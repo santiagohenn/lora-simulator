@@ -11,6 +11,7 @@ import satellite.tools.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Network {
 
@@ -21,46 +22,68 @@ public class Network {
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
 
+    private double timeOnAirMS = 1000;
+    private double dutyCyclePercentage = 1;
+    private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
+
     public static void main(String[] args) {
 
         Network network = new Network();
         network.loadAssets("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\random_sites_N40_-31.6-31.6_-65.9_r7.1946.csv",
                 "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
         network.obtainAccessIntervals();
-        network.populateDevices();
+        network.populateIOTDevices();
         network.generateTraffic();
+
 
     }
 
-    public void populateDevices() {
+    public void populateIOTDevices() {
 
-
+        earthPositions.forEach(position -> {
+            Transmisor tx = new Transmisor(position.getId());
+            devices.add(position.getId(), new IOTDevice(tx, position));
+        });
 
     }
 
     public void generateTraffic() {
 
-        long timeStepMilliSeconds = 100;
-
-        long clock = 0;
-
         for (Interval i : intervals) {
 
-            for (long ts = i.getStart() ; ts < i.getEnd() ; ts += timeStepMilliSeconds) {
+            long timeMS = i.getStart();
 
-                clock += timeStepMilliSeconds;
+            while (timeMS < i.getEnd()) {
 
-                if (clock >= 1000) {
-                    clock = 0;
-                    transmissions.add(new Transmission(ts, i.getFirstFrom(), i.getFirstTo(), 1));
-                }
+                long nextTransmissionAfterMS = generatePoissonEvent(1.0 / (100.0 * 1000.0));
+                System.out.println("Transmitting after: " + nextTransmissionAfterMS);
+
+                long AbsoluteTimeOfNextTransmissionMS = timeMS + nextTransmissionAfterMS;
+
+                transmissions.add(new Transmission(AbsoluteTimeOfNextTransmissionMS, i.getFirstFrom(), i.getFirstTo(), 1));
+
+                // Advance time - packet time on air
+                timeMS = AbsoluteTimeOfNextTransmissionMS;
+
+                // Advance time - duty cycle
+                timeMS += dutyCycleSilentTimeMS;
 
             }
 
         }
 
         System.out.println("### TRANSMISSIONS ###");
-        transmissions.forEach(System.out::println);
+        transmissions.forEach(t -> {
+            System.out.println(t + " -> " + Utils.unix2stamp(t.getTimestamp()));
+        });
+
+    }
+
+    public long generatePoissonEvent(double rate) {
+
+        Random r = new Random();
+        double nextEvent = -Math.log(1.0 - r.nextDouble()) / rate;
+        return (long) nextEvent;
 
     }
 
@@ -68,7 +91,7 @@ public class Network {
 
         Simulation sim = new Simulation();
 
-        sim.setParams("2022-01-01T15:00:00.000","2022-01-01T17:30:00.000",60.0, 25);
+        sim.setParams("2022-01-01T15:00:00.000", "2022-01-01T17:30:00.000", 60.0, 25);
 
         Satellite sat = satellites.get(0);
 
@@ -92,7 +115,6 @@ public class Network {
         satellites = Utils.satellitesFromFile(satellitesPath);
         earthPositions = Utils.positionsFromFile(positionsPath);
 
-
     }
 
     public void printSatelliteInfo(Satellite sat) {
@@ -103,7 +125,7 @@ public class Network {
                 Math.sqrt(3.986004418E14D / Math.pow(sat.getElement("a"), 3.0D)),
                 0, 0, 0, oe.getInclinationRads(), oe.getArgOfPerigeeRads()
                 , oe.getRightAscensionRads(), oe.getAnomalyRads(),
-                1 , 0, TimeScalesFactory.getUTC());
+                1, 0, TimeScalesFactory.getUTC());
 
         System.out.println(tle.getLine1() + '\n' + tle.getLine2());
         System.out.println(sat.getElements());
