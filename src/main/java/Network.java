@@ -19,6 +19,7 @@ public class Network {
     private List<IOTDevice> devices = new ArrayList<>();
     private List<Satellite> satellites = new ArrayList<>();
     private List<Interval> intervals = new ArrayList<>();
+    private List<Transmission> transmissions = new ArrayList<>();
 
     public static void main(String[] args) {
 
@@ -26,7 +27,13 @@ public class Network {
         network.loadAssets("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\random_sites_N40_-31.6-31.6_-65.9_r7.1946.csv",
                 "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
         network.obtainAccessIntervals();
+        network.populateDevices();
         network.generateTraffic();
+
+    }
+
+    public void populateDevices() {
+
 
 
     }
@@ -35,15 +42,25 @@ public class Network {
 
         long timeStepMilliSeconds = 100;
 
+        long clock = 0;
+
         for (Interval i : intervals) {
 
             for (long ts = i.getStart() ; ts < i.getEnd() ; ts += timeStepMilliSeconds) {
 
+                clock += timeStepMilliSeconds;
 
+                if (clock >= 1000) {
+                    clock = 0;
+                    transmissions.add(new Transmission(ts, i.getFirstFrom(), i.getFirstTo(), 1));
+                }
 
             }
 
         }
+
+        System.out.println("### TRANSMISSIONS ###");
+        transmissions.forEach(System.out::println);
 
     }
 
