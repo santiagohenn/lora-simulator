@@ -1,19 +1,20 @@
 public class Transmission {
 
-    private final long timestamp;
+    private final long startTransmissionTimestamp;
     private final int fromId;
     private final int toId;
     private final int channel;
+    private long endTransmissionTimestamp;
 
     public Transmission(long timestamp, int fromId, int toId, int channel) {
-        this.timestamp = timestamp;
+        this.startTransmissionTimestamp = timestamp;
         this.fromId = fromId;
         this.toId = toId;
         this.channel = channel;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getStartTransmissionTimestamp() {
+        return startTransmissionTimestamp;
     }
 
     public int getFromId() {
@@ -28,8 +29,16 @@ public class Transmission {
         return channel;
     }
 
+    public long getEndTransmissionTimestamp() {
+        return endTransmissionTimestamp;
+    }
+
+    public void setEndTransmissionTimestamp(long endTransmissionTimestamp) {
+        this.endTransmissionTimestamp = endTransmissionTimestamp;
+    }
+
     @Override
     public String toString() {
-        return timestamp + "," + fromId + "," + toId + "," + channel;
+        return startTransmissionTimestamp + "," + fromId + "," + toId + "," + channel;
     }
 }

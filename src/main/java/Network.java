@@ -9,9 +9,7 @@ import satellite.tools.structures.Interval;
 import satellite.tools.structures.OrbitalElements;
 import satellite.tools.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Network {
 
@@ -22,7 +20,7 @@ public class Network {
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
 
-    private double timeOnAirMS = 1000;
+    private long timeOnAirMS = 1000;
     private double dutyCyclePercentage = 1;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
 
@@ -34,16 +32,41 @@ public class Network {
         network.obtainAccessIntervals();
         network.populateIOTDevices();
         network.generateTraffic();
-
+        network.analyzeTraffic();
 
     }
 
-    public void populateIOTDevices() {
+    public void analyzeTraffic() {
 
-        earthPositions.forEach(position -> {
-            Transmisor tx = new Transmisor(position.getId());
-            devices.add(position.getId(), new IOTDevice(tx, position));
-        });
+        // Sort transmissions by time
+        transmissions.sort((t1, t2) -> t1.getStartTransmissionTimestamp() >= t2.getStartTransmissionTimestamp() ? 1 : -1);
+//        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
+
+        Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
+        Deque<Transmission> transmissionsCollided = new ArrayDeque<>();
+
+        Transmission transmissionInGateway = transmissions.get(0);
+
+        Iterator<Transmission> transmissionIterator = transmissions.iterator();
+        transmissionIterator.next();
+
+        while (transmissionIterator.hasNext()) {
+
+            Transmission nextTransmission = transmissionIterator.next();
+
+            if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()) {
+                transmissionsSuccessful.addLast(transmissionInGateway);
+                transmissionInGateway = nextTransmission;
+            } else {
+                transmissionsCollided.addLast(transmissionInGateway);
+                transmissionsCollided.addLast(nextTransmission);
+            }
+
+        }
+
+        System.out.println("Successful transmissions: " + transmissionsSuccessful.size());
+        System.out.println("Collided transmissions: " + transmissionsCollided.size());
+
 
     }
 
@@ -56,14 +79,16 @@ public class Network {
             while (timeMS < i.getEnd()) {
 
                 long nextTransmissionAfterMS = generatePoissonEvent(1.0 / (100.0 * 1000.0));
-                System.out.println("Transmitting after: " + nextTransmissionAfterMS);
+                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
+                long endTransmissionTimestamp = timeMS + timeOnAirMS;
 
-                long AbsoluteTimeOfNextTransmissionMS = timeMS + nextTransmissionAfterMS;
-
-                transmissions.add(new Transmission(AbsoluteTimeOfNextTransmissionMS, i.getFirstFrom(), i.getFirstTo(), 1));
+                // Transmit
+                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
+                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                transmissions.add(tx);
 
                 // Advance time - packet time on air
-                timeMS = AbsoluteTimeOfNextTransmissionMS;
+                timeMS = endTransmissionTimestamp + timeOnAirMS;
 
                 // Advance time - duty cycle
                 timeMS += dutyCycleSilentTimeMS;
@@ -72,11 +97,6 @@ public class Network {
 
         }
 
-        System.out.println("### TRANSMISSIONS ###");
-        transmissions.forEach(t -> {
-            System.out.println(t + " -> " + Utils.unix2stamp(t.getTimestamp()));
-        });
-
     }
 
     public long generatePoissonEvent(double rate) {
@@ -84,6 +104,15 @@ public class Network {
         Random r = new Random();
         double nextEvent = -Math.log(1.0 - r.nextDouble()) / rate;
         return (long) nextEvent;
+
+    }
+
+    public void populateIOTDevices() {
+
+        earthPositions.forEach(position -> {
+            Transmisor tx = new Transmisor(position.getId());
+            devices.add(position.getId(), new IOTDevice(tx, position));
+        });
 
     }
 
@@ -102,24 +131,29 @@ public class Network {
             intervals.addAll(sim.getIntervals());
         }
 
-        printSatelliteInfo(sat);
-        intervals.forEach(i -> {
-            System.out.println(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
-                    + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd()));
-        });
+//        System.out.println("### SATELLITE INFO ###");
+//        printSatelliteInfo(sat);
+//        System.out.println("### ACCESS INTERVALS ###");
+//        intervals.forEach(i -> System.out.println(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
+//                + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd())));
 
     }
 
     public void loadAssets(String positionsPath, String satellitesPath) {
+        loadSatellites(satellitesPath);
+        loadEarthPositions(positionsPath);
+    }
 
+    public void loadSatellites(String satellitesPath) {
         satellites = Utils.satellitesFromFile(satellitesPath);
-        earthPositions = Utils.positionsFromFile(positionsPath);
+    }
 
+    public void loadEarthPositions(String positionsPath) {
+        earthPositions = Utils.positionsFromFile(positionsPath);
     }
 
     public void printSatelliteInfo(Satellite sat) {
         OrbitalElements oe = sat.getElements();
-        System.out.println(oe.getInclination());
         TLE tle = new TLE(9999 + sat.getId(), 'U', 2022, 1, "A",
                 0, 999, Utils.stamp2AD("2022-01-01T16:00:00.000"),
                 Math.sqrt(3.986004418E14D / Math.pow(sat.getElement("a"), 3.0D)),
