@@ -24,6 +24,9 @@ public class Network {
     private double dutyCyclePercentage = 1;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
 
+    private String scenarioStartTime = "2022-01-01T16:00:00.000";
+    private String scenarioEndTime = "2022-01-01T16:30:00.000";
+
     public static void main(String[] args) {
 
         Network network = new Network();
@@ -67,6 +70,28 @@ public class Network {
         System.out.println("Successful transmissions: " + transmissionsSuccessful.size());
         System.out.println("Collided transmissions: " + transmissionsCollided.size());
 
+        Map<Long, Integer> metrics = new HashMap<>();
+
+        long timestepMS = 100000;
+        long epochTimeMS = 0;
+        long successfulPackets = 0;
+        long collidedPackets = 0;
+
+        for (long time = Utils.stamp2unix(scenarioStartTime) + timestepMS; time < Utils.stamp2unix(scenarioEndTime); time += timestepMS) {
+
+//            System.out.println("interval [" + (time - timestepMS) + "," + time + "]");
+
+            long finalTime = time;
+            successfulPackets = transmissionsSuccessful.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (finalTime - timestepMS) && t.getStartTransmissionTimestamp() < finalTime)).count();
+
+            collidedPackets = transmissionsCollided.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (finalTime - timestepMS) && t.getStartTransmissionTimestamp() < finalTime)).count();
+
+            System.out.println(epochTimeMS/1000 + "," + successfulPackets + "," + collidedPackets);
+            epochTimeMS += timestepMS;
+
+        }
 
     }
 
@@ -125,7 +150,7 @@ public class Network {
         Satellite sat = satellites.get(0);
 
         for (Position earthPos : earthPositions) {
-            sim = new Simulation("2022-01-01T15:00:00.000", "2022-01-01T17:30:00.000",
+            sim = new Simulation("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000",
                     earthPos, sat, 60.0, 25);
             sim.computeAccess();
             intervals.addAll(sim.getIntervals());
