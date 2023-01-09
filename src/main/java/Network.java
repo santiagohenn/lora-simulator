@@ -20,9 +20,10 @@ public class Network {
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
 
-    private long timeOnAirMS = 1000;
+    private long timeOnAirMS = 10; //1000;
     private double dutyCyclePercentage = 1;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
+    private double frameGenerationRate = 1.0 / (100.0 * 1000.0);
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
@@ -42,16 +43,15 @@ public class Network {
     public void analyzeTraffic() {
 
         // Sort transmissions by time
-        transmissions.sort((t1, t2) -> t1.getStartTransmissionTimestamp() >= t2.getStartTransmissionTimestamp() ? 1 : -1);
+        transmissions.sort(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp));
 //        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
         Deque<Transmission> transmissionsCollided = new ArrayDeque<>();
 
-        Transmission transmissionInGateway = transmissions.get(0);
-
+//        transmissions.get(0);
         Iterator<Transmission> transmissionIterator = transmissions.iterator();
-        transmissionIterator.next();
+        Transmission transmissionInGateway = transmissionIterator.next();
 
         while (transmissionIterator.hasNext()) {
 
@@ -103,7 +103,7 @@ public class Network {
 
             while (timeMS < i.getEnd()) {
 
-                long nextTransmissionAfterMS = generatePoissonEvent(1.0 / (100.0 * 1000.0));
+                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
                 long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
                 long endTransmissionTimestamp = timeMS + timeOnAirMS;
 
@@ -161,6 +161,8 @@ public class Network {
 //        System.out.println("### ACCESS INTERVALS ###");
 //        intervals.forEach(i -> System.out.println(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
 //                + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd())));
+//        System.out.println(Collections.max(intervals, (i1, i2) -> i1.getDuration() >= i2.getDuration() ? 1 : -1));
+
 
     }
 
