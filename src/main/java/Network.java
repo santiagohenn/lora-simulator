@@ -2,6 +2,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.orekit.propagation.analytical.tle.TLE;
 import org.orekit.time.TimeScalesFactory;
+import reports.ReportGenerator;
 import satellite.tools.Simulation;
 import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
@@ -19,24 +20,30 @@ public class Network {
     private List<Satellite> satellites = new ArrayList<>();
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
+    private List<String> throughputAnalysis = new ArrayList<>();
 
-    private long timeOnAirMS = 10; //1000;
+    private long timeOnAirMS = 10; //00;
     private double dutyCyclePercentage = 1;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
-    private double frameGenerationRate = 1.0 / (100.0 * 1000.0);
+    private double frameGenerationRate = ( 1.0 / (100.0 * 1000.0) ) * 100.0;
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
 
     public static void main(String[] args) {
 
+        ReportGenerator rg = new ReportGenerator("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\");
+
         Network network = new Network();
-        network.loadAssets("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\random_sites_N40_-31.6-31.6_-65.9_r7.1946.csv",
-                "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
+        network.loadSatellites("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
+        PositionsGenerator pg = new PositionsGenerator(10, -31.6, -65.9, 7.1946);
+
+        network.setEarthPositions(pg.generatePositions());
         network.obtainAccessIntervals();
         network.populateIOTDevices();
         network.generateTraffic();
         network.analyzeTraffic();
+
 
     }
 
@@ -190,4 +197,7 @@ public class Network {
         System.out.println(sat.getElements());
     }
 
+    public void setEarthPositions(List<Position> earthPositions) {
+        this.earthPositions = earthPositions;
+    }
 }
