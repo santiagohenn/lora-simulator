@@ -1,21 +1,35 @@
+import satellite.tools.assets.entities.Position;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 public class PositionsGenerator {
 
-    int nOfNodes;
-    double centerLatDegrees;
-    double centerLongitudeDegrees;
-    double radiusDegrees;
-    double centerLatitudeDegrees = 90.0 - centerLatDegrees;
-    double centerLatitudeRadians = Math.toRadians(centerLatitudeDegrees);
+    private int nOfNodes;
+    private double centerLongitudeDegrees;
+    private double radiusDegrees;
+    private double centerLatitudeDegrees;
+    private double centerLatitudeRadians;
 
-    public PositionsGenerator() {
-
+    public PositionsGenerator(int nOfNodes, double centerLatDegrees, double centerLongitudeDegrees, double radiusDegrees) {
+        setParams(nOfNodes, centerLatDegrees, centerLongitudeDegrees, radiusDegrees);
     }
 
-    public void generatePositions() {
+    public void setParams(int nOfNodes, double centerLatDegrees, double centerLongitudeDegrees, double radiusDegrees) {
+        this.nOfNodes = nOfNodes;
+        this.centerLongitudeDegrees = centerLongitudeDegrees;
+        this.radiusDegrees = radiusDegrees;
+        centerLatitudeDegrees = 90.0 - centerLatDegrees;
+        centerLatitudeRadians = Math.toRadians(centerLatitudeDegrees);
+    }
 
+    public void setnOfNodes(int nOfNodes) {
+        this.nOfNodes = nOfNodes;
+    }
 
+    public ArrayList<Position> generatePositions() {
+
+        ArrayList<Position> coordinates = new ArrayList<>();
 
         // Generate at radius
         double step = (2 * Math.PI) / (nOfNodes - 1);
@@ -83,9 +97,11 @@ public class PositionsGenerator {
                 longitudeDegrees -= 360;
             }
 
-
+            coordinates.add(new Position(latitudeDegrees, longitudeDegrees, 0));
 
         }
+
+        return coordinates;
 
     }
 

@@ -48,8 +48,6 @@ public class Network {
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
         Deque<Transmission> transmissionsCollided = new ArrayDeque<>();
-
-//        transmissions.get(0);
         Iterator<Transmission> transmissionIterator = transmissions.iterator();
         Transmission transmissionInGateway = transmissionIterator.next();
 
