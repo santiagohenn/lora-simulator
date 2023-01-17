@@ -1,3 +1,6 @@
-EndDevice.class
 Network.class
+PositionsGenerator.class
+Transmission.class
+reports\ReportGenerator.class
+IOTDevice.class
 Transmisor.class

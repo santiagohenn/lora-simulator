@@ -15,39 +15,50 @@ import java.util.*;
 public class Network {
 
     private static final Logger Log = LogManager.getLogger(Network.class);
+
     private List<Position> earthPositions = new ArrayList<>();
     private List<IOTDevice> devices = new ArrayList<>();
     private List<Satellite> satellites = new ArrayList<>();
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
-    private List<String> throughputAnalysis = new ArrayList<>();
+    private List<String> packetStatistics = new ArrayList<>();
 
-    private long timeOnAirMS = 10; //00;
-    private double dutyCyclePercentage = 1;
+    private long timeOnAirMS = 1000;
+    private double dutyCyclePercentage = 100;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
-    private double frameGenerationRate = ( 1.0 / (100.0 * 1000.0) ) * 100.0;
+    private double frameGenerationRate = (1.0 / 100.0 * 1e3);
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
 
     public static void main(String[] args) {
 
-        ReportGenerator rg = new ReportGenerator("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\");
-
         Network network = new Network();
         network.loadSatellites("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
-        PositionsGenerator pg = new PositionsGenerator(10, -31.6, -65.9, 7.1946);
+        PositionsGenerator pg = new PositionsGenerator();
 
-        network.setEarthPositions(pg.generatePositions());
-        network.obtainAccessIntervals();
-        network.populateIOTDevices();
-        network.generateTraffic();
-        network.analyzeTraffic();
+        for (int nodes = 10; nodes <= 50; nodes += 10) {
+            pg.setParams(nodes, -31.6, -65.9, 7.1946);
+            network.setEarthPositions(pg.generatePositions());
+            network.obtainAccessIntervals();
+//            network.populateIOTDevices();
+            network.generateTraffic();
+            network.analyzeTraffic();
+            network.savePacketStatisticsToFile("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\", nodes + "N");
+        }
 
+    }
+
+    public void savePacketStatisticsToFile(String path, String name) {
+
+        ReportGenerator rg = new ReportGenerator(path);
+        rg.saveAsCSV(packetStatistics, name);
 
     }
 
     public void analyzeTraffic() {
+
+        packetStatistics.clear();
 
         // Sort transmissions by time
         transmissions.sort(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp));
@@ -55,45 +66,63 @@ public class Network {
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
         Deque<Transmission> transmissionsCollided = new ArrayDeque<>();
+        TreeSet<Transmission> collisions = new TreeSet<>();
         Iterator<Transmission> transmissionIterator = transmissions.iterator();
+
+        // Take the first transmission
         Transmission transmissionInGateway = transmissionIterator.next();
 
+        // While there are other transmissions
         while (transmissionIterator.hasNext()) {
 
+            // Take the next transmission
             Transmission nextTransmission = transmissionIterator.next();
 
+            // If this transmission does not collide with the previous one
             if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()) {
+
+                // It means it successfully reached the server
                 transmissionsSuccessful.addLast(transmissionInGateway);
-                transmissionInGateway = nextTransmission;
+
+                // If
+                if (!transmissionIterator.hasNext()) {
+                    transmissionsSuccessful.addLast(nextTransmission);
+                }
+
             } else {
-                transmissionsCollided.addLast(transmissionInGateway);
-                transmissionsCollided.addLast(nextTransmission);
+                collisions.add(transmissionInGateway);
+                collisions.add(nextTransmission);
             }
+
+            transmissionInGateway = nextTransmission;
 
         }
 
+        System.out.println("Total transmissions: " + transmissions.size() );
         System.out.println("Successful transmissions: " + transmissionsSuccessful.size());
-        System.out.println("Collided transmissions: " + transmissionsCollided.size());
+        System.out.println("Collided transmissions (tx - collisions): " + (transmissions.size() - transmissionsSuccessful.size()));
+        System.out.println("Collided transmissions (TreeSet): " + collisions.size());
 
-        Map<Long, Integer> metrics = new HashMap<>();
+//        Map<Long, Integer> metrics = new HashMap<>();
 
         long timestepMS = 100000;
         long epochTimeMS = 0;
-        long successfulPackets = 0;
-        long collidedPackets = 0;
+        long successfulPackets;
+        long collidedPackets;
 
-        for (long time = Utils.stamp2unix(scenarioStartTime) + timestepMS; time < Utils.stamp2unix(scenarioEndTime); time += timestepMS) {
-
-//            System.out.println("interval [" + (time - timestepMS) + "," + time + "]");
+        for (long time = Utils.stamp2unix(scenarioStartTime) + timestepMS; time <= Utils.stamp2unix(scenarioEndTime); time += timestepMS) {
 
             long finalTime = time;
+
             successfulPackets = transmissionsSuccessful.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (finalTime - timestepMS) && t.getStartTransmissionTimestamp() < finalTime)).count();
 
-            collidedPackets = transmissionsCollided.stream()
+            collidedPackets = collisions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (finalTime - timestepMS) && t.getStartTransmissionTimestamp() < finalTime)).count();
 
-            System.out.println(epochTimeMS/1000 + "," + successfulPackets + "," + collidedPackets);
+            Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets);
+            packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets);
+
             epochTimeMS += timestepMS;
 
         }
@@ -101,6 +130,9 @@ public class Network {
     }
 
     public void generateTraffic() {
+
+        Log.info("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
+        Log.info("time on air (ms) - " + timeOnAirMS);
 
         for (Interval i : intervals) {
 
@@ -150,28 +182,28 @@ public class Network {
 
         Simulation sim = new Simulation();
 
-        sim.setParams("2022-01-01T15:00:00.000", "2022-01-01T17:30:00.000", 60.0, 25);
-
+        sim.setParams(scenarioStartTime, scenarioEndTime, 60.0, 25);
         Satellite sat = satellites.get(0);
 
         for (Position earthPos : earthPositions) {
-            sim = new Simulation("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000",
-                    earthPos, sat, 60.0, 25);
+            sim = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, sat, 60.0, 25);
             sim.computeAccess();
+//            sim.getIntervals().forEach(interval -> interval.setFirstFrom(earthPos.getId()));
             intervals.addAll(sim.getIntervals());
         }
 
 //        System.out.println("### SATELLITE INFO ###");
 //        printSatelliteInfo(sat);
+//        System.out.println("### POSITIONS INFO ###");
+//        earthPositions.forEach(p -> System.out.println(p.getLat() + "," + p.getLon()));
 //        System.out.println("### ACCESS INTERVALS ###");
 //        intervals.forEach(i -> System.out.println(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
 //                + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd())));
 //        System.out.println(Collections.max(intervals, (i1, i2) -> i1.getDuration() >= i2.getDuration() ? 1 : -1));
 
-
     }
 
-    public void loadAssets(String positionsPath, String satellitesPath) {
+    public void loadPositions(String positionsPath, String satellitesPath) {
         loadSatellites(satellitesPath);
         loadEarthPositions(positionsPath);
     }

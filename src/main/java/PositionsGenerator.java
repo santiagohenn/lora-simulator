@@ -11,6 +11,10 @@ public class PositionsGenerator {
     private double centerLatitudeDegrees;
     private double centerLatitudeRadians;
 
+    public PositionsGenerator() {
+
+    }
+
     public PositionsGenerator(int nOfNodes, double centerLatDegrees, double centerLongitudeDegrees, double radiusDegrees) {
         setParams(nOfNodes, centerLatDegrees, centerLongitudeDegrees, radiusDegrees);
     }
@@ -97,7 +101,7 @@ public class PositionsGenerator {
                 longitudeDegrees -= 360;
             }
 
-            coordinates.add(new Position(latitudeDegrees, longitudeDegrees, 0));
+            coordinates.add(new Position(i, latitudeDegrees, longitudeDegrees, 0));
 
         }
 
