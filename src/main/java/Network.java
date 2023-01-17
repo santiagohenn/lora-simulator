@@ -24,9 +24,9 @@ public class Network {
     private List<String> packetStatistics = new ArrayList<>();
 
     private long timeOnAirMS = 1000;
-    private double dutyCyclePercentage = 100;
+    private double dutyCyclePercentage = 1;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
-    private double frameGenerationRate = (1.0 / 100.0 * 1e3);
+    private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
@@ -38,6 +38,7 @@ public class Network {
         PositionsGenerator pg = new PositionsGenerator();
 
         for (int nodes = 10; nodes <= 50; nodes += 10) {
+            Log.info("Simulating for " + nodes + " nodes");
             pg.setParams(nodes, -31.6, -65.9, 7.1946);
             network.setEarthPositions(pg.generatePositions());
             network.obtainAccessIntervals();
@@ -62,6 +63,10 @@ public class Network {
 
         // Sort transmissions by time
         transmissions.sort(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp));
+
+//        System.out.println("### Transmissions ###");
+//        transmissions.forEach(System.out::println);
+
 //        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
@@ -79,17 +84,18 @@ public class Network {
             Transmission nextTransmission = transmissionIterator.next();
 
             // If this transmission does not collide with the previous one
-            if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()) {
+            if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()
+                && !collisions.contains(transmissionInGateway)) {
 
                 // It means it successfully reached the server
                 transmissionsSuccessful.addLast(transmissionInGateway);
 
-                // If
+                // If This was the last transmission, it reaches the server
                 if (!transmissionIterator.hasNext()) {
                     transmissionsSuccessful.addLast(nextTransmission);
                 }
 
-            } else {
+            } else {    // If transmissions collide both are discarded
                 collisions.add(transmissionInGateway);
                 collisions.add(nextTransmission);
             }
@@ -100,8 +106,11 @@ public class Network {
 
         System.out.println("Total transmissions: " + transmissions.size() );
         System.out.println("Successful transmissions: " + transmissionsSuccessful.size());
-        System.out.println("Collided transmissions (tx - collisions): " + (transmissions.size() - transmissionsSuccessful.size()));
+        System.out.println("Collided transmissions (tx - successful): " + (transmissions.size() - transmissionsSuccessful.size()));
         System.out.println("Collided transmissions (TreeSet): " + collisions.size());
+
+//        System.out.println("### Collisions ###");
+//        collisions.forEach(System.out::println);
 
 //        Map<Long, Integer> metrics = new HashMap<>();
 
