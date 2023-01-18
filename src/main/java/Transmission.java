@@ -9,13 +9,15 @@ public class Transmission implements Comparable<Transmission> {
     private final int channel;
     private long endTransmissionTimestamp;
     private long timeOnAirMilliSeconds;
+    private boolean corrupt;
 
-    public Transmission(long timestamp, int fromId, int toId, int channel) {
-        this.startTransmissionTimestamp = timestamp;
+
+    public Transmission(long starTransmissionTimestamp, int fromId, int toId, int channel) {
+        this.startTransmissionTimestamp = starTransmissionTimestamp;
         this.fromId = fromId;
         this.toId = toId;
         this.channel = channel;
-        this.transmissionID = ("" + timestamp + fromId + toId + channel).hashCode();
+        this.transmissionID = ("" + starTransmissionTimestamp + fromId + toId + channel).hashCode();
     }
 
     public long getStartTransmissionTimestamp() {
@@ -48,6 +50,18 @@ public class Transmission implements Comparable<Transmission> {
 
     public void setTimeOnAirMilliSeconds(long timeOnAirMilliSeconds) {
         this.timeOnAirMilliSeconds = timeOnAirMilliSeconds;
+    }
+
+    public boolean isCorrupt() {
+        return corrupt;
+    }
+
+    public void setCorrupt(boolean corrupt) {
+        this.corrupt = corrupt;
+    }
+
+    public int getTransmissionID() {
+        return transmissionID;
     }
 
     @Override

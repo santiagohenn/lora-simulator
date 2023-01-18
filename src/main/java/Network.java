@@ -24,7 +24,7 @@ public class Network {
     private List<String> packetStatistics = new ArrayList<>();
 
     private long timeOnAirMS = 1000;
-    private double dutyCyclePercentage = 1;
+    private double dutyCyclePercentage = 100;
     private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
     private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
 
@@ -54,6 +54,7 @@ public class Network {
 
         ReportGenerator rg = new ReportGenerator(path);
         rg.saveAsCSV(packetStatistics, name);
+        rg.saveAsJSON(transmissions, "TX_" + name);
 
     }
 
@@ -66,7 +67,6 @@ public class Network {
 
 //        System.out.println("### Transmissions ###");
 //        transmissions.forEach(System.out::println);
-
 //        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
@@ -84,18 +84,21 @@ public class Network {
             Transmission nextTransmission = transmissionIterator.next();
 
             // If this transmission does not collide with the previous one
-            if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()
-                && !collisions.contains(transmissionInGateway)) {
+            if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()) {
 
                 // It means it successfully reached the server
-                transmissionsSuccessful.addLast(transmissionInGateway);
+                if (!transmissionInGateway.isCorrupt()) {
+                    transmissionsSuccessful.addLast(transmissionInGateway);
+                }
 
-                // If This was the last transmission, it reaches the server
+                // If this was the last transmission and does not collide, it reaches the server
                 if (!transmissionIterator.hasNext()) {
                     transmissionsSuccessful.addLast(nextTransmission);
                 }
 
             } else {    // If transmissions collide both are discarded
+                transmissionInGateway.setCorrupt(true);
+                nextTransmission.setCorrupt(true);
                 collisions.add(transmissionInGateway);
                 collisions.add(nextTransmission);
             }
@@ -104,7 +107,13 @@ public class Network {
 
         }
 
-        System.out.println("Total transmissions: " + transmissions.size() );
+        long debugCorruptCount = transmissions.stream().filter(Transmission::isCorrupt).count();
+        long debugSuccessCount = transmissions.stream().filter(t -> !t.isCorrupt()).count();
+
+        Log.info("debugCorruptCount: " + debugCorruptCount);
+        Log.info("debugSuccessCount: " + debugSuccessCount);
+
+        System.out.println("Total transmissions: " + transmissions.size());
         System.out.println("Successful transmissions: " + transmissionsSuccessful.size());
         System.out.println("Collided transmissions (tx - successful): " + (transmissions.size() - transmissionsSuccessful.size()));
         System.out.println("Collided transmissions (TreeSet): " + collisions.size());
@@ -112,25 +121,35 @@ public class Network {
 //        System.out.println("### Collisions ###");
 //        collisions.forEach(System.out::println);
 
-//        Map<Long, Integer> metrics = new HashMap<>();
-
         long timestepMS = 100000;
         long epochTimeMS = 0;
         long successfulPackets;
         long collidedPackets;
+        long totalPackets;
 
         for (long time = Utils.stamp2unix(scenarioStartTime) + timestepMS; time <= Utils.stamp2unix(scenarioEndTime); time += timestepMS) {
 
-            long finalTime = time;
+            long currentTime = time;
 
-            successfulPackets = transmissionsSuccessful.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (finalTime - timestepMS) && t.getStartTransmissionTimestamp() < finalTime)).count();
+//            successfulPackets = transmissionsSuccessful.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
+//
+//            collidedPackets = collisions.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
 
-            collidedPackets = collisions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (finalTime - timestepMS) && t.getStartTransmissionTimestamp() < finalTime)).count();
+            totalPackets = transmissions.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
 
-            Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets);
-            packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets);
+            successfulPackets = transmissions.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
+                            && !t.isCorrupt())).count();
+
+            collidedPackets = transmissions.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
+                            && t.isCorrupt())).count();
+
+            Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
+            packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
 
             epochTimeMS += timestepMS;
 
@@ -140,8 +159,8 @@ public class Network {
 
     public void generateTraffic() {
 
-        Log.info("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
-        Log.info("time on air (ms) - " + timeOnAirMS);
+        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
+        Log.debug("time on air (ms) - " + timeOnAirMS);
 
         for (Interval i : intervals) {
 
