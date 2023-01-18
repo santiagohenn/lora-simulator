@@ -159,12 +159,12 @@ public class Network {
 
     public void generateTraffic() {
 
-        Log.info("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
+        transmissions.clear();
+
+        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
         Log.debug("time on air (ms) - " + timeOnAirMS);
 
         for (Interval i : intervals) {
-
-            Log.info("Generating traffic for node " + i.getFirstFrom());
 
             long timeMS = i.getStart();
 
