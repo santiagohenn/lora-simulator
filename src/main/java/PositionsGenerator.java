@@ -31,7 +31,7 @@ public class PositionsGenerator {
         this.nOfNodes = nOfNodes;
     }
 
-    public ArrayList<Position> generatePositions() {
+    public ArrayList<Position> generateUniformRandomPositions() {
 
         ArrayList<Position> coordinates = new ArrayList<>();
 

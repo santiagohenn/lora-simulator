@@ -24,8 +24,8 @@ public class Network {
     private List<String> packetStatistics = new ArrayList<>();
 
     private long timeOnAirMS = 1000;
-    private double dutyCyclePercentage = 1;
-    private long dutyCycleSilentTimeMS = (long) ((100 - dutyCyclePercentage) * timeOnAirMS);
+    private long dutyCyclePercentage = 100;
+    private long dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
     private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
@@ -40,21 +40,21 @@ public class Network {
         for (int nodes = 10; nodes <= 50; nodes += 10) {
             Log.info("Simulating for " + nodes + " nodes");
             pg.setParams(nodes, -31.6, -65.9, 7.1946);
-            network.setEarthPositions(pg.generatePositions());
+            network.setEarthPositions(pg.generateUniformRandomPositions());
             network.obtainAccessIntervals();
-//            network.populateIOTDevices();
             network.generateTraffic();
             network.analyzeTraffic();
-            network.savePacketStatisticsToFile("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\", nodes + "N");
+            network.saveData("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\", nodes + "N");
         }
 
     }
 
-    public void savePacketStatisticsToFile(String path, String name) {
+    public void saveData(String path, String name) {
 
         ReportGenerator rg = new ReportGenerator(path);
         rg.saveAsCSV(packetStatistics, name);
         rg.saveAsJSON(transmissions, "TX_" + name);
+
 
     }
 
@@ -171,6 +171,11 @@ public class Network {
             while (timeMS < i.getEnd()) {
 
                 long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+
+                if (nextTransmissionAfterMS < 0) {
+                    Log.error("POISSON EVENT NEGATIVE");
+                }
+
                 long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
 
@@ -207,6 +212,8 @@ public class Network {
     }
 
     public void obtainAccessIntervals() {
+
+        intervals.clear();
 
         Simulation sim = new Simulation();
 
