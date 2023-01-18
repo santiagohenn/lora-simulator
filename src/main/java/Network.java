@@ -170,7 +170,7 @@ public class Network {
 
                 long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
                 long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
-                long endTransmissionTimestamp = timeMS + timeOnAirMS;
+                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
 
                 // Transmit
                 Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
