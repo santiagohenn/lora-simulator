@@ -8,9 +8,9 @@ public class Transmission implements Comparable<Transmission> {
     private final int toId;
     private final int channel;
     private long endTransmissionTimestamp;
+    private long endDutyCycleSilentTime;
     private long timeOnAirMilliSeconds;
     private boolean corrupt;
-
 
     public Transmission(long starTransmissionTimestamp, int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = starTransmissionTimestamp;
@@ -50,6 +50,14 @@ public class Transmission implements Comparable<Transmission> {
 
     public void setTimeOnAirMilliSeconds(long timeOnAirMilliSeconds) {
         this.timeOnAirMilliSeconds = timeOnAirMilliSeconds;
+    }
+
+    public long getEndDutyCycleSilentTime() {
+        return endDutyCycleSilentTime;
+    }
+
+    public void setEndDutyCycleSilentTime(long endDutyCycleSilentTime) {
+        this.endDutyCycleSilentTime = endDutyCycleSilentTime;
     }
 
     public boolean isCorrupt() {
