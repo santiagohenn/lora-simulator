@@ -24,8 +24,8 @@ public class Network {
     private List<String> packetStatistics = new ArrayList<>();
 
     private long timeOnAirMS = 1000;
-    private double dutyCyclePercentage = 100;
-    private double dutyCycleSilentTimeMS = (100 - dutyCyclePercentage) * timeOnAirMS;
+    private double dutyCyclePercentage = 1;
+    private long dutyCycleSilentTimeMS = (long) ((100 - dutyCyclePercentage) * timeOnAirMS);
     private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
@@ -159,10 +159,12 @@ public class Network {
 
     public void generateTraffic() {
 
-        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
+        Log.info("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
         Log.debug("time on air (ms) - " + timeOnAirMS);
 
         for (Interval i : intervals) {
+
+            Log.info("Generating traffic for node " + i.getFirstFrom());
 
             long timeMS = i.getStart();
 
@@ -175,13 +177,11 @@ public class Network {
                 // Transmit
                 Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
                 tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
                 transmissions.add(tx);
 
-                // Advance time - packet time on air
-                timeMS = endTransmissionTimestamp + timeOnAirMS;
-
-                // Advance time - duty cycle
-                timeMS += dutyCycleSilentTimeMS;
+                // Advance time: end transmission timestamp + silent time (duty cycle)
+                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
 
             }
 

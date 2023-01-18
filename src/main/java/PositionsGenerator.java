@@ -39,7 +39,7 @@ public class PositionsGenerator {
         double step = (2 * Math.PI) / (nOfNodes - 1);
         double theta = 0;
 
-        for (int i = 1; i < nOfNodes; i++) {
+        for (int i = 0; i < nOfNodes; i++) {
 
 //            theta += step;
 //            double lambdaDegrees = radiusDegrees;
