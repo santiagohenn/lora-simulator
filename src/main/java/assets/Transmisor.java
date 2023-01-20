@@ -1,3 +1,5 @@
+package assets;
+
 public class Transmisor {
 
     private int id;

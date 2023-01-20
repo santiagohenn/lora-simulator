@@ -1,3 +1,5 @@
+package assets;
+
 import org.jetbrains.annotations.NotNull;
 
 public class Transmission implements Comparable<Transmission> {

@@ -1,8 +1,10 @@
+import assets.Transmission;
+import generators.PositionsFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.orekit.propagation.analytical.tle.TLE;
 import org.orekit.time.TimeScalesFactory;
-import reports.ReportGenerator;
+import generators.ReportFactory;
 import satellite.tools.Simulation;
 import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
@@ -11,20 +13,21 @@ import satellite.tools.structures.OrbitalElements;
 import satellite.tools.utils.Utils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Network {
 
     private static final Logger Log = LogManager.getLogger(Network.class);
 
     private List<Position> earthPositions = new ArrayList<>();
-    private List<IOTDevice> devices = new ArrayList<>();
+//    private List<assets.IOTDevice> devices = new ArrayList<>();
     private List<Satellite> satellites = new ArrayList<>();
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
     private List<String> packetStatistics = new ArrayList<>();
 
     private long timeOnAirMS = 1000;
-    private long dutyCyclePercentage = 100;
+    private long dutyCyclePercentage = 1;
     private long dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
     private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
 
@@ -35,9 +38,9 @@ public class Network {
 
         Network network = new Network();
         network.loadSatellites("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
-        PositionsGenerator pg = new PositionsGenerator();
+        PositionsFactory pg = new PositionsFactory();
 
-        for (int nodes = 10; nodes <= 50; nodes += 10) {
+        for (int nodes = 10; nodes <= 100; nodes += 10) {
             Log.info("Simulating for " + nodes + " nodes");
             pg.setParams(nodes, -31.6, -65.9, 7.1946);
             network.setEarthPositions(pg.generateUniformRandomPositions());
@@ -49,12 +52,17 @@ public class Network {
 
     }
 
+    public Network() {
+        Log.info("Simulation start timestamp: " + Utils.stamp2unix(scenarioStartTime));
+    }
+
     public void saveData(String path, String name) {
 
-        ReportGenerator rg = new ReportGenerator(path);
+        ReportFactory rg = new ReportFactory(path);
         rg.saveAsCSV(packetStatistics, name);
         rg.saveAsJSON(transmissions, "TX_" + name);
-
+        rg.saveAsJSON(intervals.stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
+            .collect(Collectors.toList()), "intervals_" + name);
 
     }
 
@@ -131,19 +139,13 @@ public class Network {
 
             long currentTime = time;
 
-//            successfulPackets = transmissionsSuccessful.stream()
-//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
-//
-//            collidedPackets = collisions.stream()
-//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
-
             totalPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
 
             successfulPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isCorrupt())).count();
-
+            // TODO: subtract successful from total to obtain collided once tests are put in place
             collidedPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
                             && t.isCorrupt())).count();
@@ -171,13 +173,13 @@ public class Network {
             while (timeMS < i.getEnd()) {
 
                 long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
-
-                if (nextTransmissionAfterMS < 0) {
-                    Log.error("POISSON EVENT NEGATIVE");
-                }
-
                 long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+
+                // If the satellite will be out of visibility for the next transmission, do not transmit
+                if (endTransmissionTimestamp > i.getEnd()) {
+                    break;
+                }
 
                 // Transmit
                 Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
@@ -202,14 +204,14 @@ public class Network {
 
     }
 
-    public void populateIOTDevices() {
-
-        earthPositions.forEach(position -> {
-            Transmisor tx = new Transmisor(position.getId());
-            devices.add(position.getId(), new IOTDevice(tx, position));
-        });
-
-    }
+//    public void populateIOTDevices() {
+//
+//        earthPositions.forEach(position -> {
+//            assets.Transmisor tx = new assets.Transmisor(position.getId());
+//            devices.add(position.getId(), new assets.IOTDevice(tx, position));
+//        });
+//
+//    }
 
     public void obtainAccessIntervals() {
 
@@ -223,18 +225,17 @@ public class Network {
         for (Position earthPos : earthPositions) {
             sim = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, sat, 60.0, 25);
             sim.computeAccess();
-//            sim.getIntervals().forEach(interval -> interval.setFirstFrom(earthPos.getId()));
             intervals.addAll(sim.getIntervals());
         }
 
-//        System.out.println("### SATELLITE INFO ###");
+//        Log.info("### SATELLITE INFO ###");
 //        printSatelliteInfo(sat);
-//        System.out.println("### POSITIONS INFO ###");
-//        earthPositions.forEach(p -> System.out.println(p.getLat() + "," + p.getLon()));
+//        Log.info("### POSITIONS INFO ###");
+//        earthPositions.forEach(p -> Log.info(p.getLat() + "," + p.getLon()));
 //        System.out.println("### ACCESS INTERVALS ###");
-//        intervals.forEach(i -> System.out.println(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
+//        intervals.forEach(i -> Log.info(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
 //                + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd())));
-//        System.out.println(Collections.max(intervals, (i1, i2) -> i1.getDuration() >= i2.getDuration() ? 1 : -1));
+//        Log.info(Collections.max(intervals, (i1, i2) -> i1.getDuration() >= i2.getDuration() ? 1 : -1));
 
     }
 

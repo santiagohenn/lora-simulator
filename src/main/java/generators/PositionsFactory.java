@@ -1,9 +1,11 @@
+package generators;
+
 import satellite.tools.assets.entities.Position;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class PositionsGenerator {
+public class PositionsFactory {
 
     private int nOfNodes;
     private double centerLongitudeDegrees;
@@ -11,11 +13,11 @@ public class PositionsGenerator {
     private double centerLatitudeDegrees;
     private double centerLatitudeRadians;
 
-    public PositionsGenerator() {
+    public PositionsFactory() {
 
     }
 
-    public PositionsGenerator(int nOfNodes, double centerLatDegrees, double centerLongitudeDegrees, double radiusDegrees) {
+    public PositionsFactory(int nOfNodes, double centerLatDegrees, double centerLongitudeDegrees, double radiusDegrees) {
         setParams(nOfNodes, centerLatDegrees, centerLongitudeDegrees, radiusDegrees);
     }
 

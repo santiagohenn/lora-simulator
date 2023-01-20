@@ -1,4 +1,4 @@
-package reports;
+package generators;
 
 import com.google.gson.Gson;
 
@@ -6,13 +6,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class ReportGenerator {
+public class ReportFactory {
 
     public static final String JSON_EXTENSION = ".json";
     public static final String CSV_EXTENSION = ".csv";
     private final String outputPath;
 
-    public ReportGenerator(String outputPath) {
+    public ReportFactory(String outputPath) {
         if (!outputPath.endsWith("/")) {
             outputPath = outputPath + "/";
         }
