@@ -14,12 +14,20 @@ public class Transmission implements Comparable<Transmission> {
     private long timeOnAirMilliSeconds;
     private int lost = 0;
 
-    public Transmission(long starTransmissionTimestamp, int fromId, int toId, int channel) {
-        this.startTransmissionTimestamp = starTransmissionTimestamp;
+    public Transmission(long startTransmissionTimestamp, int fromId, int toId, int channel) {
+        this.startTransmissionTimestamp = startTransmissionTimestamp;
         this.fromId = fromId;
         this.toId = toId;
         this.channel = channel;
-        this.transmissionID = ("" + starTransmissionTimestamp + fromId + toId + channel).hashCode();
+        this.transmissionID = ("" + startTransmissionTimestamp + fromId + toId + channel).hashCode();
+    }
+
+    public Transmission(Transmission t) {
+        this(t.getStartTransmissionTimestamp(), t.getFromId(), t.getToId(), t.getChannel());
+        this.endTransmissionTimestamp = t.getEndTransmissionTimestamp();
+        this.endDutyCycleSilentTime = t.getEndTransmissionTimestamp();
+        this.timeOnAirMilliSeconds = t.getTimeOnAirMilliSeconds();
+        this.lost = t.getLostReason();
     }
 
     public long getStartTransmissionTimestamp() {

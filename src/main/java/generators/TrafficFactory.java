@@ -71,41 +71,37 @@ public class TrafficFactory {
 
             Transmission lastSuccessfulTransmission = null;
 
+            // Advance time to next transmission
+            long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+            timeMS += nextTransmissionAfterMS;
+
             while (timeMS < i.getEnd()) {
 
-                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
-                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
+                long startTransmissionTimestamp = timeMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+
+                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), -1, 1);
+                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
 
                 // If the satellite will be out of visibility for the next transmission, do not transmit
                 if (endTransmissionTimestamp > i.getEnd()) {
                     break;
                 }
 
-                Transmission tx;
-
-                if (lastSuccessfulTransmission != null && timeMS < lastSuccessfulTransmission.getEndDutyCycleSilentTime()) {
-
+                if (lastSuccessfulTransmission != null && startTransmissionTimestamp < lastSuccessfulTransmission.getEndDutyCycleSilentTime()) {
                     // Transmission lost due to duty cycle
-                    tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), -1, 1);
-                    tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                    tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
                     tx.setLostReason(2);
-
                 } else {
-
                     // Transmit successfully
-                    tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
-                    tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                    tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
                     lastSuccessfulTransmission = tx;
-
                 }
 
                 transmissions.add(tx);
 
                 // Advance time to next transmission
-                timeMS = endTransmissionTimestamp;
+                nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+                timeMS += nextTransmissionAfterMS;
 
             }
 

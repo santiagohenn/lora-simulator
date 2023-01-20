@@ -22,7 +22,7 @@ public class Network {
 
     private List<Position> earthPositions = new ArrayList<>();
     private List<Satellite> satellites = new ArrayList<>();
-    private List<Interval> intervals = new ArrayList<>();
+    private List<Interval> accessIntervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
     private List<String> packetStatistics = new ArrayList<>();
 
@@ -61,7 +61,7 @@ public class Network {
         ReportFactory rg = new ReportFactory(path);
         rg.saveAsCSV(packetStatistics, name);
         rg.saveAsJSON(transmissions, "TX_" + name);
-        rg.saveAsJSON(intervals.stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
+        rg.saveAsJSON(accessIntervals.stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
             .collect(Collectors.toList()), "intervals_" + name);
 
     }
@@ -70,8 +70,10 @@ public class Network {
 
         packetStatistics.clear();
 
-        // Sort transmissions by time
-        transmissions.sort(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp));
+        // Filter transmissions that where sent to space and sort them by time
+        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
+                .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
+                .collect(Collectors.toList());
 
 //        System.out.println("### Transmissions ###");
 //        transmissions.forEach(System.out::println);
@@ -79,7 +81,7 @@ public class Network {
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
         TreeSet<Transmission> collisions = new TreeSet<>();
-        Iterator<Transmission> transmissionIterator = transmissions.iterator();
+        Iterator<Transmission> transmissionIterator = transmissionsSent.iterator();
 
         // Take the first transmission
         Transmission transmissionInGateway = transmissionIterator.next();
@@ -114,16 +116,15 @@ public class Network {
 
         }
 
-        long debugCorruptCount = transmissions.stream().filter(Transmission::isLost).count();
+        long debugCollisionCount = transmissions.stream().filter(t -> t.getLostReason() == 1).count();
         long debugSuccessCount = transmissions.stream().filter(t -> !t.isLost()).count();
 
-        Log.info("debugCorruptCount: " + debugCorruptCount);
-        Log.info("debugSuccessCount: " + debugSuccessCount);
-
-        System.out.println("Total transmissions: " + transmissions.size());
-        System.out.println("Successful transmissions: " + transmissionsSuccessful.size());
-        System.out.println("Collided transmissions (tx - successful): " + (transmissions.size() - transmissionsSuccessful.size()));
-        System.out.println("Collided transmissions (TreeSet): " + collisions.size());
+        Log.debug("debugCollisionCount: " + debugCollisionCount);
+        Log.debug("debugSuccessCount: " + debugSuccessCount);
+        Log.debug("Total transmissions: " + transmissions.size());
+        Log.debug("Successful transmissions: " + transmissionsSuccessful.size());
+        Log.debug("Collided transmissions (tx - successful): " + (transmissions.size() - transmissionsSuccessful.size()));
+        Log.debug("Collided transmissions (TreeSet): " + collisions.size());
 
 //        System.out.println("### Collisions ###");
 //        collisions.forEach(System.out::println);
@@ -139,14 +140,17 @@ public class Network {
             long currentTime = time;
 
             totalPackets = transmissions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime)).count();
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS)
+                            && t.getStartTransmissionTimestamp() < currentTime)).count();
 
             successfulPackets = transmissions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS)
+                            && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isLost())).count();
 
             collidedPackets = transmissions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS)
+                            && t.getStartTransmissionTimestamp() < currentTime
                             && t.getLostReason() == 1)).count();
 
             Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
@@ -160,13 +164,13 @@ public class Network {
     public void generateTraffic() {
 
         TrafficFactory tf = new TrafficFactory();
-        transmissions = tf.generateTrafficPolicy1(intervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = tf.generateTrafficPolicy2(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
 
     }
 
     public void obtainAccessIntervals() {
 
-        intervals.clear();
+        accessIntervals.clear();
 
         Simulation sim = new Simulation();
 
@@ -176,7 +180,7 @@ public class Network {
         for (Position earthPos : earthPositions) {
             sim = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, sat, 60.0, 25);
             sim.computeAccess();
-            intervals.addAll(sim.getIntervals());
+            accessIntervals.addAll(sim.getIntervals());
         }
 
 //        Log.info("### SATELLITE INFO ###");
