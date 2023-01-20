@@ -12,7 +12,7 @@ public class Transmission implements Comparable<Transmission> {
     private long endTransmissionTimestamp;
     private long endDutyCycleSilentTime;
     private long timeOnAirMilliSeconds;
-    private boolean corrupt;
+    private int corrupt = 0;
 
     public Transmission(long starTransmissionTimestamp, int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = starTransmissionTimestamp;
@@ -63,10 +63,14 @@ public class Transmission implements Comparable<Transmission> {
     }
 
     public boolean isCorrupt() {
+        return corrupt > 0;
+    }
+
+    public int getCorrupt() {
         return corrupt;
     }
 
-    public void setCorrupt(boolean corrupt) {
+    public void setCorrupt(int corrupt) {
         this.corrupt = corrupt;
     }
 

@@ -69,7 +69,7 @@ public class TrafficFactory {
 
             long timeMS = i.getStart();
 
-            Transmission lastTransmission;
+            Transmission lastSuccessfulTransmission = null;
 
             while (timeMS < i.getEnd()) {
 
@@ -82,16 +82,30 @@ public class TrafficFactory {
                     break;
                 }
 
-                // Transmit
-                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
-                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
-                lastTransmission = tx;
+                Transmission tx;
+
+                if (lastSuccessfulTransmission != null && timeMS < lastSuccessfulTransmission.getEndDutyCycleSilentTime()) {
+
+                    // Transmission lost due to duty cycle
+                    tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), -1, 1);
+                    tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                    tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+                    tx.setCorrupt(2);
+
+                } else {
+
+                    // Transmit successfully
+                    tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
+                    tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                    tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+                    lastSuccessfulTransmission = tx;
+
+                }
 
                 transmissions.add(tx);
 
-                // Advance time: end transmission timestamp + silent time (duty cycle)
-                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
+                // Advance time to next transmission
+                timeMS = endTransmissionTimestamp;
 
             }
 

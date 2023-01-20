@@ -104,8 +104,8 @@ public class Network {
                 }
 
             } else {    // If transmissions collide both are discarded
-                transmissionInGateway.setCorrupt(true);
-                nextTransmission.setCorrupt(true);
+                transmissionInGateway.setCorrupt(1);
+                nextTransmission.setCorrupt(1);
                 collisions.add(transmissionInGateway);
                 collisions.add(nextTransmission);
             }
@@ -144,10 +144,10 @@ public class Network {
             successfulPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isCorrupt())).count();
-            // TODO: subtract successful from total to obtain collided once tests are put in place
+
             collidedPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
-                            && t.isCorrupt())).count();
+                            && t.getCorrupt() == 1)).count();
 
             Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
             packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
