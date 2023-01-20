@@ -90,7 +90,7 @@ public class TrafficFactory {
                     tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), -1, 1);
                     tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
                     tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
-                    tx.setCorrupt(2);
+                    tx.setLostReason(2);
 
                 } else {
 

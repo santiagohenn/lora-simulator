@@ -94,7 +94,7 @@ public class Network {
             if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()) {
 
                 // It means it successfully reached the server
-                if (!transmissionInGateway.isCorrupt()) {
+                if (!transmissionInGateway.isLost()) {
                     transmissionsSuccessful.addLast(transmissionInGateway);
                 }
 
@@ -104,8 +104,8 @@ public class Network {
                 }
 
             } else {    // If transmissions collide both are discarded
-                transmissionInGateway.setCorrupt(1);
-                nextTransmission.setCorrupt(1);
+                transmissionInGateway.setLostReason(1);
+                nextTransmission.setLostReason(1);
                 collisions.add(transmissionInGateway);
                 collisions.add(nextTransmission);
             }
@@ -114,8 +114,8 @@ public class Network {
 
         }
 
-        long debugCorruptCount = transmissions.stream().filter(Transmission::isCorrupt).count();
-        long debugSuccessCount = transmissions.stream().filter(t -> !t.isCorrupt()).count();
+        long debugCorruptCount = transmissions.stream().filter(Transmission::isLost).count();
+        long debugSuccessCount = transmissions.stream().filter(t -> !t.isLost()).count();
 
         Log.info("debugCorruptCount: " + debugCorruptCount);
         Log.info("debugSuccessCount: " + debugSuccessCount);
@@ -143,11 +143,11 @@ public class Network {
 
             successfulPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
-                            && !t.isCorrupt())).count();
+                            && !t.isLost())).count();
 
             collidedPackets = transmissions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS) && t.getStartTransmissionTimestamp() < currentTime
-                            && t.getCorrupt() == 1)).count();
+                            && t.getLostReason() == 1)).count();
 
             Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
             packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
@@ -155,7 +155,6 @@ public class Network {
             epochTimeMS += timestepMS;
 
         }
-
     }
 
     public void generateTraffic() {
@@ -163,51 +162,7 @@ public class Network {
         TrafficFactory tf = new TrafficFactory();
         transmissions = tf.generateTrafficPolicy1(intervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
 
-//        transmissions.clear();
-//
-//        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
-//        Log.debug("time on air (ms) - " + timeOnAirMS);
-//
-//        for (Interval i : intervals) {
-//
-//            long timeMS = i.getStart();
-//
-//            while (timeMS < i.getEnd()) {
-//
-//                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
-//                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
-//                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
-//
-//                // If the satellite will be out of visibility for the next transmission, do not transmit
-//                if (endTransmissionTimestamp > i.getEnd()) {
-//                    break;
-//                }
-//
-//                // Transmit
-//                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
-//                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-//                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
-//                transmissions.add(tx);
-//
-//                // Advance time: end transmission timestamp + silent time (duty cycle)
-//                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
-//
-//            }
-//
-//        }
-
     }
-
-
-
-//    public void populateIOTDevices() {
-//
-//        earthPositions.forEach(position -> {
-//            assets.Transmisor tx = new assets.Transmisor(position.getId());
-//            devices.add(position.getId(), new assets.IOTDevice(tx, position));
-//        });
-//
-//    }
 
     public void obtainAccessIntervals() {
 
