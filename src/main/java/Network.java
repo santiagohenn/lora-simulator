@@ -1,5 +1,6 @@
 import assets.Transmission;
 import generators.PositionsFactory;
+import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.orekit.propagation.analytical.tle.TLE;
@@ -20,16 +21,15 @@ public class Network {
     private static final Logger Log = LogManager.getLogger(Network.class);
 
     private List<Position> earthPositions = new ArrayList<>();
-//    private List<assets.IOTDevice> devices = new ArrayList<>();
     private List<Satellite> satellites = new ArrayList<>();
     private List<Interval> intervals = new ArrayList<>();
     private List<Transmission> transmissions = new ArrayList<>();
     private List<String> packetStatistics = new ArrayList<>();
 
-    private long timeOnAirMS = 1000;
+    private long timeOnAirMS = 10;
     private long dutyCyclePercentage = 1;
     private long dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
-    private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
+    private double frameGenerationRate = (1.0 / (100.0 * 1000.0)) * 100.0; // (1/99) / 100
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
@@ -78,7 +78,6 @@ public class Network {
 //        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
-        Deque<Transmission> transmissionsCollided = new ArrayDeque<>();
         TreeSet<Transmission> collisions = new TreeSet<>();
         Iterator<Transmission> transmissionIterator = transmissions.iterator();
 
@@ -129,7 +128,7 @@ public class Network {
 //        System.out.println("### Collisions ###");
 //        collisions.forEach(System.out::println);
 
-        long timestepMS = 100000;
+        long timestepMS = 50000; // 100000;
         long epochTimeMS = 0;
         long successfulPackets;
         long collidedPackets;
@@ -161,48 +160,45 @@ public class Network {
 
     public void generateTraffic() {
 
-        transmissions.clear();
+        TrafficFactory tf = new TrafficFactory();
+        transmissions = tf.generateTrafficPolicy1(intervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
 
-        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
-        Log.debug("time on air (ms) - " + timeOnAirMS);
-
-        for (Interval i : intervals) {
-
-            long timeMS = i.getStart();
-
-            while (timeMS < i.getEnd()) {
-
-                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
-                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
-                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
-
-                // If the satellite will be out of visibility for the next transmission, do not transmit
-                if (endTransmissionTimestamp > i.getEnd()) {
-                    break;
-                }
-
-                // Transmit
-                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
-                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
-                transmissions.add(tx);
-
-                // Advance time: end transmission timestamp + silent time (duty cycle)
-                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
-
-            }
-
-        }
-
-    }
-
-    public long generatePoissonEvent(double rate) {
-
-        Random r = new Random();
-        double nextEvent = -Math.log(1.0 - r.nextDouble()) / rate;
-        return (long) nextEvent;
+//        transmissions.clear();
+//
+//        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
+//        Log.debug("time on air (ms) - " + timeOnAirMS);
+//
+//        for (Interval i : intervals) {
+//
+//            long timeMS = i.getStart();
+//
+//            while (timeMS < i.getEnd()) {
+//
+//                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+//                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
+//                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+//
+//                // If the satellite will be out of visibility for the next transmission, do not transmit
+//                if (endTransmissionTimestamp > i.getEnd()) {
+//                    break;
+//                }
+//
+//                // Transmit
+//                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
+//                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+//                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+//                transmissions.add(tx);
+//
+//                // Advance time: end transmission timestamp + silent time (duty cycle)
+//                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
+//
+//            }
+//
+//        }
 
     }
+
+
 
 //    public void populateIOTDevices() {
 //
