@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class NetworkAnalyzer {
 
-    private double timeStep;
+    private double sampleStepSeconds;
     private final List<String> packetStatistics = new ArrayList<>();
 
     public void analyzeTraffic(Network network) {

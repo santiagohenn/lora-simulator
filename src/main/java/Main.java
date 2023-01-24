@@ -8,8 +8,11 @@ public class Main {
     public static void main(String[] args) {
 
         String outputPath = "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\";
-        Network network = new Network();
-        network.loadSatellites("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
+        String satellitePath = "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv";
+
+        Network network = new Network(60.0, 1000, 1, 1.0 / (100.0 * 1000.0));
+        network.SetSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
+        network.loadSatellites(satellitePath);
 
         PositionsFactory positionsFactory = new PositionsFactory();
         NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer();
