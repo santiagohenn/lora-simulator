@@ -1,9 +1,18 @@
 package generators;
 
+import assets.Transmission;
 import com.google.gson.Gson;
+import org.orekit.propagation.analytical.tle.TLE;
+import org.orekit.time.TimeScalesFactory;
+import satellite.tools.assets.entities.Position;
+import satellite.tools.assets.entities.Satellite;
+import satellite.tools.structures.Interval;
+import satellite.tools.structures.OrbitalElements;
+import satellite.tools.utils.Utils;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 public class ReportFactory {
@@ -82,6 +91,36 @@ public class ReportFactory {
             return false;
         }
         return true;
+    }
+
+    public void printTransmissions(List<Transmission> transmissions) {
+        System.out.println("### Transmissions ###");
+        transmissions.forEach(System.out::println);
+        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
+    }
+
+    public void printSatelliteInfo(Satellite sat) {
+        OrbitalElements oe = sat.getElements();
+        TLE tle = new TLE(9999 + sat.getId(), 'U', 2022, 1, "A",
+                0, 999, Utils.stamp2AD("2022-01-01T16:00:00.000"),
+                Math.sqrt(3.986004418E14D / Math.pow(sat.getElement("a"), 3.0D)),
+                0, 0, 0, oe.getInclinationRads(), oe.getArgOfPerigeeRads()
+                , oe.getRightAscensionRads(), oe.getAnomalyRads(),
+                1, 0, TimeScalesFactory.getUTC());
+
+        System.out.println(tle.getLine1() + '\n' + tle.getLine2());
+        System.out.println(sat.getElements());
+    }
+
+    public void printPositionsInfo(List<Position> positions) {
+        positions.forEach(p -> System.out.println(p.getLat() + "," + p.getLon()));
+    }
+
+    public void printIntervals(List<Interval> intervals) {
+        System.out.println("### ACCESS INTERVALS ###");
+        intervals.forEach(i -> System.out.println(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
+                + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd())));
+        System.out.println(Collections.max(intervals, (i1, i2) -> i1.getDuration() >= i2.getDuration() ? 1 : -1));
     }
 
 }

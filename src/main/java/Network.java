@@ -1,16 +1,13 @@
 import assets.Transmission;
 import generators.PositionsFactory;
+import generators.ReportFactory;
 import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.orekit.propagation.analytical.tle.TLE;
-import org.orekit.time.TimeScalesFactory;
-import generators.ReportFactory;
 import satellite.tools.Simulation;
 import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.structures.Interval;
-import satellite.tools.structures.OrbitalElements;
 import satellite.tools.utils.Utils;
 
 import java.util.*;
@@ -26,10 +23,11 @@ public class Network {
     private List<Transmission> transmissions = new ArrayList<>();
     private List<String> packetStatistics = new ArrayList<>();
 
-    private long timeOnAirMS = 10;
+    private long timeStep;
+    private long timeOnAirMS = 1000;
     private long dutyCyclePercentage = 1;
     private long dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
-    private double frameGenerationRate = (1.0 / (100.0 * 1000.0)) * 100.0; // (1/99) / 100
+    private double frameGenerationRate = (1.0 / (100.0 * 1000.0)); // (1/99) / 100
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
@@ -74,10 +72,6 @@ public class Network {
         List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
                 .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                 .collect(Collectors.toList());
-
-//        System.out.println("### Transmissions ###");
-//        transmissions.forEach(System.out::println);
-//        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
 
         Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
         TreeSet<Transmission> collisions = new TreeSet<>();
@@ -183,15 +177,6 @@ public class Network {
             accessIntervals.addAll(sim.getIntervals());
         }
 
-//        Log.info("### SATELLITE INFO ###");
-//        printSatelliteInfo(sat);
-//        Log.info("### POSITIONS INFO ###");
-//        earthPositions.forEach(p -> Log.info(p.getLat() + "," + p.getLon()));
-//        System.out.println("### ACCESS INTERVALS ###");
-//        intervals.forEach(i -> Log.info(i.getFirstFrom() + " to " + i.getFirstTo() + " -> "
-//                + Utils.unix2stamp(i.getStart()) + "," + Utils.unix2stamp(i.getEnd())));
-//        Log.info(Collections.max(intervals, (i1, i2) -> i1.getDuration() >= i2.getDuration() ? 1 : -1));
-
     }
 
     public void loadPositions(String positionsPath, String satellitesPath) {
@@ -207,20 +192,8 @@ public class Network {
         earthPositions = Utils.positionsFromFile(positionsPath);
     }
 
-    public void printSatelliteInfo(Satellite sat) {
-        OrbitalElements oe = sat.getElements();
-        TLE tle = new TLE(9999 + sat.getId(), 'U', 2022, 1, "A",
-                0, 999, Utils.stamp2AD("2022-01-01T16:00:00.000"),
-                Math.sqrt(3.986004418E14D / Math.pow(sat.getElement("a"), 3.0D)),
-                0, 0, 0, oe.getInclinationRads(), oe.getArgOfPerigeeRads()
-                , oe.getRightAscensionRads(), oe.getAnomalyRads(),
-                1, 0, TimeScalesFactory.getUTC());
-
-        System.out.println(tle.getLine1() + '\n' + tle.getLine2());
-        System.out.println(sat.getElements());
-    }
-
     public void setEarthPositions(List<Position> earthPositions) {
         this.earthPositions = earthPositions;
     }
+
 }
