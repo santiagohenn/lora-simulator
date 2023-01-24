@@ -1,6 +1,7 @@
 package network;
 
 import assets.Transmission;
+import generators.ReportFactory;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
 
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
 public class NetworkAnalyzer {
 
     private double timeStep;
-    private List<String> packetStatistics = new ArrayList<>();
+    private final List<String> packetStatistics = new ArrayList<>();
 
     public void analyzeTraffic(Network network) {
 
@@ -102,4 +103,18 @@ public class NetworkAnalyzer {
         }
     }
 
+    public void saveData(Network network, String path, String name) {
+
+        ReportFactory rg = new ReportFactory(path);
+        rg.saveAsCSV(packetStatistics, name);
+        rg.saveAsJSON(network.getTransmissions(), "TX_" + name);
+        rg.saveAsJSON(network.getAccessIntervals()
+                .stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
+                .collect(Collectors.toList()), "intervals_" + name);
+
+    }
+
+    public List<String> getPacketStatistics() {
+        return packetStatistics;
+    }
 }

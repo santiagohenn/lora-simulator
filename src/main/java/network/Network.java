@@ -1,7 +1,6 @@
 package network;
 
 import assets.Transmission;
-import generators.ReportFactory;
 import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,8 +10,8 @@ import satellite.tools.assets.entities.Satellite;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Utils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Network {
 
@@ -23,7 +22,7 @@ public class Network {
     private List<Transmission> transmissions = new ArrayList<>();
     private List<String> packetStatistics = new ArrayList<>();
 
-    private long timeStep;
+    private double timeStepSeconds;
     private long timeOnAirMS = 1000;
     private long dutyCyclePercentage = 1;
     private long dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
@@ -33,31 +32,25 @@ public class Network {
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
 
     public Network() {
+
+    }
+
+    public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
+        setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
         Log.info("Simulation start timestamp: " + Utils.stamp2unix(scenarioStartTime));
     }
 
-    public void saveData(String path, String name) {
-
-        ReportFactory rg = new ReportFactory(path);
-        rg.saveAsCSV(packetStatistics, name);
-        rg.saveAsJSON(transmissions, "TX_" + name);
-        rg.saveAsJSON(accessIntervals.stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
-            .collect(Collectors.toList()), "intervals_" + name);
-
+    public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
+        this.timeStepSeconds = timeStepSeconds;
+        this.timeOnAirMS = timeOnAirMS;
+        this.dutyCyclePercentage = dutyCyclePercentage;
+        this.frameGenerationRate = frameGenerationRate;
     }
 
-    public void analyzeTraffic() {
-
-        NetworkAnalyzer na = new NetworkAnalyzer();
-        na.analyzeTraffic(this);
-
-    }
-
-    public void generateTraffic() {
-
+    public void simulateTraffic() {
+        computeAccessIntervals();
         TrafficFactory tf = new TrafficFactory();
         transmissions = tf.generateTrafficPolicy2(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
-
     }
 
     public void computeAccessIntervals() {
@@ -66,7 +59,7 @@ public class Network {
 
         Simulation sim = new Simulation();
 
-        sim.setParams(scenarioStartTime, scenarioEndTime, 60.0, 25);
+        sim.setParams(scenarioStartTime, scenarioEndTime, timeStepSeconds, 25);
         Satellite sat = satellites.get(0);
 
         for (Position earthPos : earthPositions) {
@@ -105,4 +98,9 @@ public class Network {
     public String getScenarioEndTime() {
         return scenarioEndTime;
     }
+
+    public List<Interval> getAccessIntervals() {
+        return accessIntervals;
+    }
+
 }
