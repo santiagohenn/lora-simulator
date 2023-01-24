@@ -23,12 +23,11 @@ public class Network {
     private List<Transmission> transmissions = new ArrayList<>();
 
     private double timeStepSeconds;
-    private long timeOnAirMS = 1000;
-    private long dutyCyclePercentage = 1;
-    private long dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
-    private double frameGenerationRate = (1.0 / (100.0 * 1000.0));
-    private String scenarioStartTime = "2022-01-01T16:00:00.000";
-    private String scenarioEndTime = "2022-01-01T16:30:00.000";
+    private long timeOnAirMS;
+    private long dutyCycleSilentTimeMS;
+    private double frameGenerationRate;
+    private String scenarioStartTime;
+    private String scenarioEndTime;
 
     public Network() {
 
@@ -42,8 +41,7 @@ public class Network {
     public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
         this.timeStepSeconds = timeStepSeconds;
         this.timeOnAirMS = timeOnAirMS;
-        this.dutyCyclePercentage = dutyCyclePercentage;
-        dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
+        this.dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
         this.frameGenerationRate = frameGenerationRate;
     }
 
