@@ -1,5 +1,6 @@
+package network;
+
 import assets.Transmission;
-import generators.PositionsFactory;
 import generators.ReportFactory;
 import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
@@ -16,7 +17,6 @@ import java.util.stream.Collectors;
 public class Network {
 
     private static final Logger Log = LogManager.getLogger(Network.class);
-
     private List<Position> earthPositions = new ArrayList<>();
     private List<Satellite> satellites = new ArrayList<>();
     private List<Interval> accessIntervals = new ArrayList<>();
@@ -31,24 +31,6 @@ public class Network {
 
     private String scenarioStartTime = "2022-01-01T16:00:00.000";
     private String scenarioEndTime = "2022-01-01T16:30:00.000";
-
-    public static void main(String[] args) {
-
-        Network network = new Network();
-        network.loadSatellites("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv");
-        PositionsFactory pg = new PositionsFactory();
-
-        for (int nodes = 10; nodes <= 100; nodes += 10) {
-            Log.info("Simulating for " + nodes + " nodes");
-            pg.setParams(nodes, -31.6, -65.9, 7.1946);
-            network.setEarthPositions(pg.generateUniformRandomPositions());
-            network.obtainAccessIntervals();
-            network.generateTraffic();
-            network.analyzeTraffic();
-            network.saveData("C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\", nodes + "N");
-        }
-
-    }
 
     public Network() {
         Log.info("Simulation start timestamp: " + Utils.stamp2unix(scenarioStartTime));
