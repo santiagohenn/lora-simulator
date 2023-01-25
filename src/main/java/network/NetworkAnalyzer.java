@@ -11,7 +11,12 @@ import java.util.stream.Collectors;
 public class NetworkAnalyzer {
 
     private double sampleStepSeconds;
-    private final List<String> packetStatistics = new ArrayList<>();
+    private final List<String> packetStatistics;
+
+    public NetworkAnalyzer(double sampleStepSeconds) {
+        packetStatistics = new ArrayList<>();
+        this.sampleStepSeconds = sampleStepSeconds;
+    }
 
     public void analyzeTraffic(Network network) {
 
@@ -70,37 +75,41 @@ public class NetworkAnalyzer {
         Log.debug("Collided transmissions (tx - successful): " + (transmissions.size() - transmissionsSuccessful.size()));
         Log.debug("Collided transmissions (TreeSet): " + collisions.size());
 
-        long timestepMS = 50000; // 100000;
+        long sampleStepMS = (long) (sampleStepSeconds * 1000);
         long epochTimeMS = 0;
         long successfulPackets;
         long collidedPackets;
         long totalPackets;
 
-        for (long time = Utils.stamp2unix(network.getScenarioStartTime()) + timestepMS;
-             time <= Utils.stamp2unix(network.getScenarioEndTime()); time += timestepMS) {
+        for (long time = Utils.stamp2unix(network.getSimulationStartTime()) + sampleStepMS;
+             time <= Utils.stamp2unix(network.getSimulationEndTime()); time += sampleStepMS) {
 
             long currentTime = time;
 
             totalPackets = transmissions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS)
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime)).count();
 
             successfulPackets = transmissions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS)
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isLost())).count();
 
             collidedPackets = transmissions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - timestepMS)
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
                             && t.getLostReason() == 1)).count();
 
             Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
             packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
 
-            epochTimeMS += timestepMS;
+            epochTimeMS += sampleStepMS;
 
         }
+    }
+
+    public void setSampleStepSeconds(double sampleStepSeconds) {
+        this.sampleStepSeconds = sampleStepSeconds;
     }
 
     public void saveData(Network network, String path, String name) {

@@ -35,7 +35,6 @@ public class Network {
 
     public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
-        Log.info("Simulation start timestamp: " + Utils.stamp2unix(scenarioStartTime));
     }
 
     public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
@@ -43,11 +42,6 @@ public class Network {
         this.timeOnAirMS = timeOnAirMS;
         this.dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
         this.frameGenerationRate = frameGenerationRate;
-    }
-
-    public void SetSimulationInterval(String scenarioStartTime, String scenarioEndTime) {
-        this.scenarioStartTime = scenarioStartTime;
-        this.scenarioEndTime = scenarioEndTime;
     }
 
     public void simulateTraffic() {
@@ -73,37 +67,34 @@ public class Network {
 
     }
 
-    public void loadPositions(String positionsPath, String satellitesPath) {
-        loadSatellites(satellitesPath);
-        loadEarthPositions(positionsPath);
-    }
-
-    public void loadSatellites(String satellitesPath) {
-        satellites = Utils.satellitesFromFile(satellitesPath);
-    }
-
-    public void loadEarthPositions(String positionsPath) {
-        earthPositions = Utils.positionsFromFile(positionsPath);
-    }
-
     public void setEarthPositions(List<Position> earthPositions) {
         this.earthPositions = earthPositions;
+    }
+
+    public void setSatellites(List<Satellite> satellites) {
+        this.satellites = satellites;
     }
 
     public List<Transmission> getTransmissions() {
         return transmissions;
     }
 
-    public String getScenarioStartTime() {
+    public List<Interval> getAccessIntervals() {
+        return accessIntervals;
+    }
+
+    public void setSimulationInterval(String scenarioStartTime, String scenarioEndTime) {
+        Log.info("Simulation start unix timestamp: " + Utils.stamp2unix(scenarioStartTime));
+        this.scenarioStartTime = scenarioStartTime;
+        this.scenarioEndTime = scenarioEndTime;
+    }
+
+    public String getSimulationStartTime() {
         return scenarioStartTime;
     }
 
-    public String getScenarioEndTime() {
+    public String getSimulationEndTime() {
         return scenarioEndTime;
-    }
-
-    public List<Interval> getAccessIntervals() {
-        return accessIntervals;
     }
 
 }
