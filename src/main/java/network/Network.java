@@ -28,6 +28,7 @@ public class Network {
     private double frameGenerationRate;
     private String scenarioStartTime;
     private String scenarioEndTime;
+    private Simulation sim;
 
     public Network() {
 
@@ -53,14 +54,14 @@ public class Network {
     public void computeAccessIntervals() {
 
         accessIntervals.clear();
-
-        Simulation sim = new Simulation();
-
+        sim = new Simulation();
         sim.setParams(scenarioStartTime, scenarioEndTime, timeStepSeconds, 25);
         Satellite sat = satellites.get(0);
+        sim.setSatellite(sat);
 
         for (Position earthPos : earthPositions) {
             sim = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, sat, timeStepSeconds, 25);   // FIXME
+            sim.setDevice(earthPos);
             sim.computeAccess();
             accessIntervals.addAll(sim.getIntervals());
         }
