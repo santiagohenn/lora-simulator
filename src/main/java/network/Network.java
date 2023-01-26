@@ -17,10 +17,10 @@ public class Network {
 
     static final Logger Log = LogManager.getLogger(Network.class);
 
-    private final List<Interval> accessIntervals = new ArrayList<>();
-    private List<Position> earthPositions = new ArrayList<>();
-    private List<Satellite> satellites = new ArrayList<>();
-    private List<Transmission> transmissions = new ArrayList<>();
+    private List<Interval> accessIntervals;
+    private List<Position> earthPositions;
+    private List<Satellite> satellites;
+    private List<Transmission> transmissions;
 
     private double timeStepSeconds;
     private long timeOnAirMS;
@@ -28,14 +28,13 @@ public class Network {
     private double frameGenerationRate;
     private String scenarioStartTime;
     private String scenarioEndTime;
-    private Simulation sim;
-
-    public Network() {
-
-    }
+    private Simulation simulation;
 
     public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
+        simulation = new Simulation();
+        simulation.setVisibilityThreshold(25);
+        accessIntervals = new ArrayList<>();
     }
 
     public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
@@ -53,17 +52,12 @@ public class Network {
 
     public void computeAccessIntervals() {
 
-        accessIntervals.clear();
-        sim = new Simulation();
-        sim.setParams(scenarioStartTime, scenarioEndTime, timeStepSeconds, 25);
-        Satellite sat = satellites.get(0);
-        sim.setSatellite(sat);
+        accessIntervals = new ArrayList<>();
 
         for (Position earthPos : earthPositions) {
-            sim = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, sat, timeStepSeconds, 25);   // FIXME
-            sim.setDevice(earthPos);
-            sim.computeAccess();
-            accessIntervals.addAll(sim.getIntervals());
+            simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellites.get(0), timeStepSeconds, 25);
+            simulation.computeAccess();
+            accessIntervals.addAll(simulation.getIntervals());
         }
 
     }
@@ -85,9 +79,11 @@ public class Network {
     }
 
     public void setSimulationInterval(String scenarioStartTime, String scenarioEndTime) {
-        Log.info("Simulation start unix timestamp: " + Utils.stamp2unix(scenarioStartTime));
+        Log.info("Simulation start unix timestamp: {} ", Utils.stamp2unix(scenarioStartTime));
         this.scenarioStartTime = scenarioStartTime;
         this.scenarioEndTime = scenarioEndTime;
+        simulation.setStartTime(scenarioStartTime);
+        simulation.setEndTime(scenarioEndTime);
     }
 
     public String getSimulationStartTime() {

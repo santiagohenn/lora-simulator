@@ -2,7 +2,8 @@ package network;
 
 import assets.Transmission;
 import generators.ReportFactory;
-import satellite.tools.utils.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import satellite.tools.utils.Utils;
 
 import java.util.*;
@@ -11,16 +12,16 @@ import java.util.stream.Collectors;
 public class NetworkAnalyzer {
 
     private double sampleStepSeconds;
-    private final List<String> packetStatistics;
+    private List<String> packetStatistics;
+    static final Logger Log = LogManager.getLogger(NetworkAnalyzer.class);
 
     public NetworkAnalyzer(double sampleStepSeconds) {
-        packetStatistics = new ArrayList<>();
-        this.sampleStepSeconds = sampleStepSeconds;
+        setSampleStepSeconds(sampleStepSeconds);
     }
 
     public void analyzeTraffic(Network network) {
 
-        packetStatistics.clear();
+        packetStatistics = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
         // Filter transmissions that where sent to space and sort them by time
@@ -28,7 +29,6 @@ public class NetworkAnalyzer {
                 .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                 .collect(Collectors.toList());
 
-        Deque<Transmission> transmissionsSuccessful = new ArrayDeque<>();
         TreeSet<Transmission> collisions = new TreeSet<>();
         Iterator<Transmission> transmissionIterator = transmissionsSent.iterator();
 
@@ -41,20 +41,8 @@ public class NetworkAnalyzer {
             // Take the next transmission
             Transmission nextTransmission = transmissionIterator.next();
 
-            // If this transmission does not collide with the previous one
-            if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getEndTransmissionTimestamp()) {
-
-                // It means it successfully reached the server
-                if (!transmissionInGateway.isLost()) {
-                    transmissionsSuccessful.addLast(transmissionInGateway);
-                }
-
-                // If this was the last transmission and does not collide, it reaches the server
-                if (!transmissionIterator.hasNext()) {
-                    transmissionsSuccessful.addLast(nextTransmission);
-                }
-
-            } else {    // If transmissions collide both are discarded
+            // If this transmission collides with the previous one, both are lost
+            if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()) {
                 transmissionInGateway.setLostReason(1);
                 nextTransmission.setLostReason(1);
                 collisions.add(transmissionInGateway);
@@ -65,15 +53,10 @@ public class NetworkAnalyzer {
 
         }
 
-        long debugCollisionCount = transmissions.stream().filter(t -> t.getLostReason() == 1).count();
-        long debugSuccessCount = transmissions.stream().filter(t -> !t.isLost()).count();
-
-        Log.debug("debugCollisionCount: " + debugCollisionCount);
-        Log.debug("debugSuccessCount: " + debugSuccessCount);
-        Log.debug("Total transmissions: " + transmissions.size());
-        Log.debug("Successful transmissions: " + transmissionsSuccessful.size());
-        Log.debug("Collided transmissions (tx - successful): " + (transmissions.size() - transmissionsSuccessful.size()));
-        Log.debug("Collided transmissions (TreeSet): " + collisions.size());
+        Log.debug("debugCollisionCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 1).count());
+        Log.debug("debugSuccessCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 0).count());
+        Log.debug("Total transmissions: {}", transmissions.size());
+        Log.debug("Collided transmissions (TreeSet): {}", collisions.size());
 
         long sampleStepMS = (long) (sampleStepSeconds * 1000);
         long epochTimeMS = 0;
@@ -95,13 +78,17 @@ public class NetworkAnalyzer {
                             && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isLost())).count();
 
-            collidedPackets = transmissions.stream()
+//            collidedPackets = transmissions.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime
+//                            && t.getLostReason() == 1)).count();
+
+            collidedPackets = collisions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
                             && t.getLostReason() == 1)).count();
 
-            Log.debug(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
-            packetStatistics.add(epochTimeMS / 1000 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
+            packetStatistics.add(epochTimeMS / 1000.0 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
 
             epochTimeMS += sampleStepMS;
 
@@ -109,7 +96,11 @@ public class NetworkAnalyzer {
     }
 
     public void setSampleStepSeconds(double sampleStepSeconds) {
-        this.sampleStepSeconds = sampleStepSeconds;
+        if (sampleStepSeconds <= 0) {
+            Log.error("Sample time must be greater than 0");
+        } else {
+            this.sampleStepSeconds = sampleStepSeconds;
+        }
     }
 
     public void saveData(Network network, String path, String name) {
