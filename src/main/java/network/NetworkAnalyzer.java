@@ -78,11 +78,6 @@ public class NetworkAnalyzer {
                             && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isLost())).count();
 
-//            collidedPackets = transmissions.stream()
-//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-//                            && t.getStartTransmissionTimestamp() < currentTime
-//                            && t.getLostReason() == 1)).count();
-
             collidedPackets = collisions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime

@@ -1,7 +1,10 @@
 package generators;
 
 import satellite.tools.assets.entities.Position;
+import satellite.tools.utils.Log;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -46,11 +49,9 @@ public class PositionsFactory {
 //            theta += step;
 //            double lambdaDegrees = radiusDegrees;
 
-            Random r = new Random();
+            theta = (1.0 - getRandomDouble()) * 2 * Math.PI;
 
-            theta = (1.0 - r.nextDouble()) * 2 * Math.PI;
-
-            double lambdaDegrees = radiusDegrees * Math.sqrt(1.0 - r.nextDouble());
+            double lambdaDegrees = radiusDegrees * Math.sqrt(1.0 - getRandomDouble());
             double lambdaRadians = Math.toRadians(lambdaDegrees);
 
             // Compute latitude
@@ -109,6 +110,18 @@ public class PositionsFactory {
 
         return coordinates;
 
+    }
+
+    private double getRandomDouble() {
+        Random r;
+        try {
+            r = SecureRandom.getInstanceStrong();
+        } catch (NoSuchAlgorithmException e) {
+            Log.error("Random NoSuchAlgorithmException error");
+            e.printStackTrace();
+            return 0D;
+        }
+        return r.nextDouble();
     }
 
 }

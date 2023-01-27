@@ -47,7 +47,7 @@ public class Network {
     public void simulateTraffic() {
         computeAccessIntervals();
         TrafficFactory tf = new TrafficFactory();
-        transmissions = tf.generateTrafficPolicy2(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
