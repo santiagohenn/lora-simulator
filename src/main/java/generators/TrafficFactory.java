@@ -57,6 +57,47 @@ public class TrafficFactory {
 
     }
 
+    public List<Transmission> generateMGTraffic(@NotNull List<Interval> intervals, double frameGenerationRate,
+                                                     long timeOnAirMS, long dutyCycleSilentTimeMS) {
+
+        List<Transmission> transmissions = new ArrayList<>();
+
+        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
+        Log.debug("time on air (ms) - " + timeOnAirMS);
+
+        for (Interval i : intervals) {
+
+            long timeMS = i.getStart();
+
+            while (timeMS < i.getEnd()) {
+
+                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
+                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+
+                // If the satellite will be out of visibility for the next transmission, do not transmit
+                if (endTransmissionTimestamp > i.getEnd()) {
+                    break;
+                }
+
+                // Transmit
+                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
+
+                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+                transmissions.add(tx);
+
+                // Advance time: end transmission timestamp + silent time (duty cycle)
+                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
+
+            }
+
+        }
+
+        return transmissions;
+
+    }
+
     public List<Transmission> generateTrafficPolicy2(@NotNull List<Interval> intervals, double frameGenerationRate,
                                                      long timeOnAirMS, long dutyCycleSilentTimeMS) {
 

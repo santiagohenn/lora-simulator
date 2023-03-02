@@ -22,10 +22,11 @@ public class Main {
         PositionsFactory positionsFactory = new PositionsFactory();
         NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(50);
 
-        for (int nodes = 10; nodes <= 100; nodes += 10) {
+        for (int nodes = 10; nodes <= 10; nodes += 10) {
             Log.info("Simulating for " + nodes + " nodes");
             positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
             network.setEarthPositions(positionsFactory.generateUniformRandomPositions());
+            network.computeAccessIntervals();
             network.simulateTraffic();
             networkAnalyzer.analyzeTraffic(network);
             networkAnalyzer.saveData(network, outputPath, nodes + "N");

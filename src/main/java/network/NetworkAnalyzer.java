@@ -24,7 +24,7 @@ public class NetworkAnalyzer {
         packetStatistics = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
-        // Filter transmissions that where sent to space and sort them by time
+        // Filter transmissions that where sent to the void and sort them by time
         List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
                 .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                 .collect(Collectors.toList());

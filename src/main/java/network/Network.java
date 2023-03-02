@@ -4,14 +4,14 @@ import assets.Transmission;
 import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import satellite.tools.Simulation;
 import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Network {
 
@@ -45,20 +45,87 @@ public class Network {
     }
 
     public void simulateTraffic() {
-        computeAccessIntervals();
+        if (accessIntervals.isEmpty()) {
+            Log.info("Computing access intervals");
+            computeAccessIntervals();
+        }
         TrafficFactory tf = new TrafficFactory();
         transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
 
+        Log.debug("Computing access intervals for " + satellites.size() + " sat(s)/gw");
         accessIntervals = new ArrayList<>();
 
-        for (Position earthPos : earthPositions) {
-            simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellites.get(0), timeStepSeconds, 25);
-            simulation.computeAccess();
-            accessIntervals.addAll(simulation.getIntervals());
+        for (Satellite satellite : satellites) {
+            for (Position earthPos : earthPositions) {
+                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
+                simulation.computeAccess();
+                accessIntervals.addAll(simulation.getIntervals());
+            }
         }
+
+        if (satellites.size() == 1) {
+            return;
+        }
+
+        Log.debug("Satellites > 1 => MG mode");
+        List<Interval> multiGatewayIntervals = computeMultiGateway(accessIntervals);
+        multiGatewayIntervals.forEach(i -> System.out.println(i.getStart() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
+
+    }
+
+    private List<Interval> computeMultiGateway(List<Interval> accessIntervals) {
+
+        Log.debug("Computing MG access");
+        boolean includeCoverageGaps = false;
+        Set<Integer> inContact = new LinkedHashSet<>();
+        List<Event> eventList = intervals2events(accessIntervals);
+
+        List<Interval> multiGatewayIntervals = new ArrayList<>();
+
+        eventList = eventList.subList(1, eventList.size());
+
+        var currentInterval = accessIntervals.get(0); // TODO: Replace with iterator
+        inContact.add(currentInterval.getFirstTo());
+
+        for (Event event : eventList) {
+            currentInterval.setFirstFrom(event.fromID);
+            if (!inContact.contains(event.getToID())) {  // If I establish contact with a new asset
+                inContact.add(event.getToID());
+                if (includeCoverageGaps || !currentInterval.getToAssets().isEmpty()) {
+                    multiGatewayIntervals.add(new Interval(currentInterval.getStart(), event.getTime(),
+                            currentInterval.getFromAssets(), currentInterval.getToAssets()));
+                }
+                currentInterval.addTo(event.getToID());
+            } else {    // If the asset is already in contact
+                inContact.remove(event.getToID());
+                multiGatewayIntervals.add(new Interval(currentInterval.getStart(), event.getTime(),
+                        currentInterval.getFromAssets(), currentInterval.getToAssets()));
+                currentInterval.removeTo(event.getToID());
+            }
+            currentInterval.setStart(event.getTime());
+        }
+
+        return multiGatewayIntervals;
+
+    }
+
+    /**
+     * Transform intervals to events
+     **/ //TODO: implement within computeMultiGateway, delete after implementation on computeMultiGateway
+    private List<Event> intervals2events(List<Interval> intervals) {
+
+        List<Event> eventsList = new ArrayList<>();
+
+        for (Interval interval : intervals) {
+            eventsList.add(new Event(interval.getStart(), interval.getFirstFrom(), interval.getFirstTo()));
+            eventsList.add(new Event(interval.getEnd(), interval.getFirstFrom(), interval.getFirstTo()));
+        }
+
+        eventsList.sort((e1, e2) -> (int) (e1.getTime() - e2.getTime()));
+        return eventsList;
 
     }
 
@@ -94,4 +161,48 @@ public class Network {
         return scenarioEndTime;
     }
 
+    class Event implements Comparable<Event> {
+
+        private final long time;
+        private final int fromID;
+        private final int toID;
+
+        public Event(long time, int fromID, int toID) {
+            this.time = time;
+            this.fromID = fromID;
+            this.toID = toID;
+        }
+
+        public long getTime() {
+            return time;
+        }
+
+        public int getFromID() {
+            return fromID;
+        }
+
+        public int getToID() {
+            return toID;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Event) {
+                Event objAsEvent = (Event) obj;
+                return objAsEvent.getFromID() == this.fromID && objAsEvent.getToID() == this.toID ;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int compareTo(@NotNull Event o) {
+            return Long.compare(this.time, o.time);
+        }
+
+    }
+
+
 }
+
+

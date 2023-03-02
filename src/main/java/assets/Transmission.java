@@ -2,44 +2,63 @@ package assets;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Transmission implements Comparable<Transmission> {
 
     private final int transmissionID;
     private final long startTransmissionTimestamp;
-    private final int fromId;
-    private final int toId;
+    private final List<Integer> fromAssets;
+    private final List<Integer> toAssets;
     private final int channel;
     private long endTransmissionTimestamp;
     private long endDutyCycleSilentTime;
     private long timeOnAirMilliSeconds;
     private int lost = 0;
 
+    /**
+     * Single gateway constructor
+     * **/
     public Transmission(long startTransmissionTimestamp, int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = startTransmissionTimestamp;
-        this.fromId = fromId;
-        this.toId = toId;
+        fromAssets = new ArrayList<>(1);
+        fromAssets.add(fromId);
+        toAssets = new ArrayList<>(1);
+        toAssets.add(toId);
         this.channel = channel;
         this.transmissionID = ("" + startTransmissionTimestamp + fromId + toId + channel).hashCode();
     }
 
-    public Transmission(Transmission t) {
-        this(t.getStartTransmissionTimestamp(), t.getFromId(), t.getToId(), t.getChannel());
-        this.endTransmissionTimestamp = t.getEndTransmissionTimestamp();
-        this.endDutyCycleSilentTime = t.getEndTransmissionTimestamp();
-        this.timeOnAirMilliSeconds = t.getTimeOnAirMilliSeconds();
-        this.lost = t.getLostReason();
+    /**
+     * Multi gateway constructor
+     * **/
+    public Transmission(long startTransmissionTimestamp, List<Integer> fromAssets, List<Integer> toAssets, int channel) {
+        this.startTransmissionTimestamp = startTransmissionTimestamp;
+        this.fromAssets = fromAssets;
+        this.toAssets = toAssets;
+        this.channel = channel;
+        this.transmissionID = ("" + startTransmissionTimestamp + fromAssets + toAssets + channel).hashCode();
     }
 
     public long getStartTransmissionTimestamp() {
         return startTransmissionTimestamp;
     }
 
+    public List<Integer> getFromAssets() {
+        return fromAssets;
+    }
+
+    public List<Integer> getToAssets() {
+        return toAssets;
+    }
+
     public int getFromId() {
-        return fromId;
+        return fromAssets.get(0);
     }
 
     public int getToId() {
-        return toId;
+        return toAssets.get(0);
     }
 
     public int getChannel() {
@@ -88,7 +107,7 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public String toString() {
-        return startTransmissionTimestamp + "," + fromId + "," + toId + "," + channel;
+        return startTransmissionTimestamp + "," + fromAssets + "," + toAssets + "," + channel;
     }
 
     @Override
