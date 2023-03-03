@@ -17,7 +17,7 @@ public class Network {
 
     static final Logger Log = LogManager.getLogger(Network.class);
 
-    private List<Interval> accessIntervals;
+    private List<Interval> currentIntervals;
     private List<Position> earthPositions;
     private List<Satellite> satellites;
     private List<Transmission> transmissions;
@@ -34,7 +34,7 @@ public class Network {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
         simulation = new Simulation();
         simulation.setVisibilityThreshold(25);
-        accessIntervals = new ArrayList<>();
+        currentIntervals = new ArrayList<>();
     }
 
     public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
@@ -45,34 +45,77 @@ public class Network {
     }
 
     public void simulateTraffic() {
-        if (accessIntervals.isEmpty()) {
+        if (currentIntervals.isEmpty()) {
             Log.info("Computing access intervals");
             computeAccessIntervals();
         }
         TrafficFactory tf = new TrafficFactory();
-        transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = tf.generateTrafficPolicy1(currentIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
 
-        Log.debug("Computing access intervals for " + satellites.size() + " sat(s)/gw");
-        accessIntervals = new ArrayList<>();
+        boolean includeCoverageGaps = false;
 
-        for (Satellite satellite : satellites) {
-            for (Position earthPos : earthPositions) {
-                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
-                simulation.computeAccess();
-                accessIntervals.addAll(simulation.getIntervals());
-            }
-        }
+        List<Interval> allAccesses = new ArrayList<>();
 
-        if (satellites.size() == 1) {
+        if (earthPositions.isEmpty() || satellites.isEmpty()) {
+            Log.warn("Check assets!");
             return;
         }
 
-        Log.debug("Satellites > 1 => MG mode");
-        List<Interval> multiGatewayIntervals = computeMultiGateway(accessIntervals);
-        multiGatewayIntervals.forEach(i -> System.out.println(i.getStart() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
+        Log.debug("Computing access intervals for " + satellites.size() + " sat(s)/gw");
+
+        for (Position earthPos : earthPositions) {
+
+            currentIntervals = new ArrayList<>();
+
+            for (Satellite satellite : satellites) {
+                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
+                simulation.computeAccess();
+                currentIntervals.addAll(simulation.getIntervals());
+                if (satellites.size() == 1) {
+                    return;
+                }
+            }
+
+            Log.debug("Satellites > 1 => MG mode");
+
+            currentIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
+
+                List<Interval> combinedIntervals = new ArrayList<>();
+                Set<Integer> inContact = new LinkedHashSet<>();
+                List<Event> eventList = intervals2events(currentIntervals);
+                eventList = eventList.subList(1, eventList.size());
+
+                var currentInterval = currentIntervals.get(0);
+                inContact.add(currentInterval.getFirstTo());
+
+                for (Event event : eventList) {
+                    if (!inContact.contains(event.toID)) {  // If I establish contact with a new asset
+                        inContact.add(event.toID);
+                        if (includeCoverageGaps || !currentInterval.getToAssets().isEmpty()) {
+                            combinedIntervals.add(new Interval(currentInterval.getStart(), event.getTime(), currentInterval.getFromAssets(), currentInterval.getToAssets()));
+                        }
+                        currentInterval.addTo(event.toID);
+                    } else {    // If the asset is already in contact
+                        inContact.remove(event.toID);
+                        combinedIntervals.add(new Interval(currentInterval.getStart(), event.getTime(), currentInterval.getFromAssets(), currentInterval.getToAssets()));
+                        currentInterval.removeTo(event.toID);
+                    }
+                    currentInterval.setStart(event.getTime());
+                }
+
+            allAccesses.addAll(combinedIntervals);
+
+        }
+
+//        System.out.println("All intervals: ");
+//        currentIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
+//        currentIntervals.forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
+        System.out.println("After processing: ");
+//        List<Interval> multiGatewayIntervals = computeMultiGateway(accessIntervals);
+        allAccesses.forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
 
     }
 
@@ -81,6 +124,7 @@ public class Network {
         Log.debug("Computing MG access");
         boolean includeCoverageGaps = false;
         Set<Integer> inContact = new LinkedHashSet<>();
+        Set<Event> activeLinks = new LinkedHashSet<>();
         List<Event> eventList = intervals2events(accessIntervals);
 
         List<Interval> multiGatewayIntervals = new ArrayList<>();
@@ -89,6 +133,14 @@ public class Network {
 
         var currentInterval = accessIntervals.get(0); // TODO: Replace with iterator
         inContact.add(currentInterval.getFirstTo());
+
+//        activeLinks.add(eventList.get(0));
+//        Iterator<Event> eventIterator = eventList.iterator();
+//        eventIterator.next(); // Skip the first
+//
+//        while (eventIterator.hasNext()) {
+//
+//        }
 
         for (Event event : eventList) {
             currentInterval.setFirstFrom(event.fromID);
@@ -141,8 +193,8 @@ public class Network {
         return transmissions;
     }
 
-    public List<Interval> getAccessIntervals() {
-        return accessIntervals;
+    public List<Interval> getCurrentIntervals() {
+        return currentIntervals;
     }
 
     public void setSimulationInterval(String scenarioStartTime, String scenarioEndTime) {

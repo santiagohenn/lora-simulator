@@ -1,10 +1,13 @@
 import generators.PositionsFactory;
+import generators.ReportFactory;
 import network.Network;
 import network.NetworkAnalyzer;
+import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -22,10 +25,14 @@ public class Main {
         PositionsFactory positionsFactory = new PositionsFactory();
         NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(50);
 
+        ReportFactory rf = new ReportFactory(outputPath);
+
         for (int nodes = 10; nodes <= 10; nodes += 10) {
             Log.info("Simulating for " + nodes + " nodes");
             positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
-            network.setEarthPositions(positionsFactory.generateUniformRandomPositions());
+            ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
+            rf.saveAsJSON(uniformRandomPositions, "positionsFromSimulator");
+            network.setEarthPositions(uniformRandomPositions);
             network.computeAccessIntervals();
             network.simulateTraffic();
             networkAnalyzer.analyzeTraffic(network);

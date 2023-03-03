@@ -100,10 +100,10 @@ public class NetworkAnalyzer {
 
     public void saveData(Network network, String path, String name) {
 
-        ReportFactory rg = new ReportFactory(path);
-        rg.saveAsCSV(packetStatistics, name);
-        rg.saveAsJSON(network.getTransmissions(), "TX_" + name);
-        rg.saveAsJSON(network.getAccessIntervals()
+        ReportFactory rf = new ReportFactory(path);
+        rf.saveAsCSV(packetStatistics, name);
+        rf.saveAsJSON(network.getTransmissions(), "TX_" + name);
+        rf.saveAsJSON(network.getCurrentIntervals()
                 .stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
                 .collect(Collectors.toList()), "intervals_" + name);
 
