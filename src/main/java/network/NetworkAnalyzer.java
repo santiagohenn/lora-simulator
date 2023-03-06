@@ -29,8 +29,6 @@ public class NetworkAnalyzer {
                 .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                 .collect(Collectors.toList());
 
-
-
         TreeSet<Transmission> collisions = new TreeSet<>();
         Iterator<Transmission> transmissionIterator = transmissionsSent.iterator();
 
@@ -61,6 +59,43 @@ public class NetworkAnalyzer {
         Log.debug("Total transmissions: {}", transmissions.size());
         Log.debug("Collided transmissions (TreeSet): {}", collisions.size());
 
+//        long sampleStepMS = (long) (sampleStepSeconds * 1000);
+//        long epochTimeMS = 0;
+//        long successfulPackets;
+//        long collidedPackets;
+//        long totalPackets;
+//
+//        for (long time = Utils.stamp2unix(network.getSimulationStartTime()) + sampleStepMS;
+//             time <= Utils.stamp2unix(network.getSimulationEndTime()); time += sampleStepMS) {
+//
+//            long currentTime = time;
+//
+//            totalPackets = transmissions.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime)).count();
+//
+//            successfulPackets = transmissions.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime
+//                            && !t.isLost())).count();
+//
+//            collidedPackets = collisions.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime
+//                            && t.getLostReason() == 1)).count();
+//
+//            packetStatistics.add(epochTimeMS / 1000.0 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
+//
+//            epochTimeMS += sampleStepMS;
+//
+//        }
+
+        sampledAnalysis(network, collisions);
+
+    }
+
+    private void sampledAnalysis(Network network, TreeSet<Transmission> collisions) {
+
         long sampleStepMS = (long) (sampleStepSeconds * 1000);
         long epochTimeMS = 0;
         long successfulPackets;
@@ -72,11 +107,11 @@ public class NetworkAnalyzer {
 
             long currentTime = time;
 
-            totalPackets = transmissions.stream()
+            totalPackets = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime)).count();
 
-            successfulPackets = transmissions.stream()
+            successfulPackets = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
                             && !t.isLost())).count();
@@ -91,6 +126,7 @@ public class NetworkAnalyzer {
             epochTimeMS += sampleStepMS;
 
         }
+
     }
 
     public void setSampleStepSeconds(double sampleStepSeconds) {
