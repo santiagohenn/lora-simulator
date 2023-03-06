@@ -27,7 +27,7 @@ public class Transmission implements Comparable<Transmission> {
         toAssets = new ArrayList<>(1);
         toAssets.add(toId);
         this.channel = channel;
-        this.transmissionID = ("" + startTransmissionTimestamp + fromId + toId + channel).hashCode();
+        this.transmissionID = ("" + startTransmissionTimestamp + fromId + channel).hashCode();
     }
 
     /**
@@ -38,7 +38,7 @@ public class Transmission implements Comparable<Transmission> {
         this.fromAssets = fromAssets;
         this.toAssets = toAssets;
         this.channel = channel;
-        this.transmissionID = ("" + startTransmissionTimestamp + fromAssets + toAssets + channel).hashCode();
+        this.transmissionID = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
     }
 
     public long getStartTransmissionTimestamp() {

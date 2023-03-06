@@ -24,10 +24,12 @@ public class NetworkAnalyzer {
         packetStatistics = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
-        // Filter transmissions that where sent to the void and sort them by time
-        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
+        // Filter transmissions that where sent to the void and sort them by time // TODO: Remove .distinct()
+        List<Transmission> transmissionsSent = transmissions.stream().distinct().filter(t -> !t.isLost())
                 .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                 .collect(Collectors.toList());
+
+
 
         TreeSet<Transmission> collisions = new TreeSet<>();
         Iterator<Transmission> transmissionIterator = transmissionsSent.iterator();
@@ -42,7 +44,8 @@ public class NetworkAnalyzer {
             Transmission nextTransmission = transmissionIterator.next();
 
             // If this transmission collides with the previous one, both are lost
-            if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()) {
+            if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()
+            && !nextTransmission.equals(transmissionInGateway)) {
                 transmissionInGateway.setLostReason(1);
                 nextTransmission.setLostReason(1);
                 collisions.add(transmissionInGateway);
@@ -104,7 +107,7 @@ public class NetworkAnalyzer {
         rf.saveAsCSV(packetStatistics, name);
         rf.saveAsJSON(network.getTransmissions(), "TX_" + name);
         rf.saveAsJSON(network.getCurrentIntervals()
-                .stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd()})
+                .stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
                 .collect(Collectors.toList()), "intervals_" + name);
 
     }

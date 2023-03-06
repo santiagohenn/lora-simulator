@@ -66,6 +66,10 @@ public class Network {
 
         Log.debug("Computing access intervals for " + satellites.size() + " sat(s)/gw");
 
+        if (satellites.size() > 1) {
+            Log.warn("Satellites > 1 => MG mode");
+        }
+
         for (Position earthPos : earthPositions) {
 
             currentIntervals = new ArrayList<>();
@@ -74,37 +78,37 @@ public class Network {
                 simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
                 simulation.computeAccess();
                 currentIntervals.addAll(simulation.getIntervals());
-                if (satellites.size() == 1) {
-                    return;
-                }
             }
-
-            Log.debug("Satellites > 1 => MG mode");
 
             currentIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
 
-                List<Interval> combinedIntervals = new ArrayList<>();
-                Set<Integer> inContact = new LinkedHashSet<>();
-                List<Event> eventList = intervals2events(currentIntervals);
-                eventList = eventList.subList(1, eventList.size());
+            if (satellites.size() == 1) {
+                allAccesses.addAll(currentIntervals);
+                continue;
+            }
 
-                var currentInterval = currentIntervals.get(0);
-                inContact.add(currentInterval.getFirstTo());
+            List<Interval> combinedIntervals = new ArrayList<>();
+            Set<Integer> inContact = new LinkedHashSet<>();
+            List<Event> eventList = intervals2events(currentIntervals);
+            eventList = eventList.subList(1, eventList.size());
 
-                for (Event event : eventList) {
-                    if (!inContact.contains(event.toID)) {  // If I establish contact with a new asset
-                        inContact.add(event.toID);
-                        if (includeCoverageGaps || !currentInterval.getToAssets().isEmpty()) {
-                            combinedIntervals.add(new Interval(currentInterval.getStart(), event.getTime(), currentInterval.getFromAssets(), currentInterval.getToAssets()));
-                        }
-                        currentInterval.addTo(event.toID);
-                    } else {    // If the asset is already in contact
-                        inContact.remove(event.toID);
+            var currentInterval = currentIntervals.get(0);
+            inContact.add(currentInterval.getFirstTo());
+
+            for (Event event : eventList) {
+                if (!inContact.contains(event.toID)) {  // If I establish contact with a new asset
+                    inContact.add(event.toID);
+                    if (includeCoverageGaps || !currentInterval.getToAssets().isEmpty()) {
                         combinedIntervals.add(new Interval(currentInterval.getStart(), event.getTime(), currentInterval.getFromAssets(), currentInterval.getToAssets()));
-                        currentInterval.removeTo(event.toID);
                     }
-                    currentInterval.setStart(event.getTime());
+                    currentInterval.addTo(event.toID);
+                } else {    // If the asset is already in contact
+                    inContact.remove(event.toID);
+                    combinedIntervals.add(new Interval(currentInterval.getStart(), event.getTime(), currentInterval.getFromAssets(), currentInterval.getToAssets()));
+                    currentInterval.removeTo(event.toID);
                 }
+                currentInterval.setStart(event.getTime());
+            }
 
             allAccesses.addAll(combinedIntervals);
 
@@ -113,54 +117,10 @@ public class Network {
 //        System.out.println("All intervals: ");
 //        currentIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
 //        currentIntervals.forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
-        System.out.println("After processing: ");
+//        System.out.println("After processing: ");
 //        List<Interval> multiGatewayIntervals = computeMultiGateway(accessIntervals);
-        allAccesses.forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
 
-    }
-
-    private List<Interval> computeMultiGateway(List<Interval> accessIntervals) {
-
-        Log.debug("Computing MG access");
-        boolean includeCoverageGaps = false;
-        Set<Integer> inContact = new LinkedHashSet<>();
-        Set<Event> activeLinks = new LinkedHashSet<>();
-        List<Event> eventList = intervals2events(accessIntervals);
-
-        List<Interval> multiGatewayIntervals = new ArrayList<>();
-
-        eventList = eventList.subList(1, eventList.size());
-
-        var currentInterval = accessIntervals.get(0); // TODO: Replace with iterator
-        inContact.add(currentInterval.getFirstTo());
-
-//        activeLinks.add(eventList.get(0));
-//        Iterator<Event> eventIterator = eventList.iterator();
-//        eventIterator.next(); // Skip the first
-//
-//        while (eventIterator.hasNext()) {
-//
-//        }
-
-        for (Event event : eventList) {
-            currentInterval.setFirstFrom(event.fromID);
-            if (!inContact.contains(event.getToID())) {  // If I establish contact with a new asset
-                inContact.add(event.getToID());
-                if (includeCoverageGaps || !currentInterval.getToAssets().isEmpty()) {
-                    multiGatewayIntervals.add(new Interval(currentInterval.getStart(), event.getTime(),
-                            currentInterval.getFromAssets(), currentInterval.getToAssets()));
-                }
-                currentInterval.addTo(event.getToID());
-            } else {    // If the asset is already in contact
-                inContact.remove(event.getToID());
-                multiGatewayIntervals.add(new Interval(currentInterval.getStart(), event.getTime(),
-                        currentInterval.getFromAssets(), currentInterval.getToAssets()));
-                currentInterval.removeTo(event.getToID());
-            }
-            currentInterval.setStart(event.getTime());
-        }
-
-        return multiGatewayIntervals;
+        currentIntervals = allAccesses;
 
     }
 

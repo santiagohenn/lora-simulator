@@ -40,11 +40,13 @@ public class TrafficFactory {
                     break;
                 }
 
-                // Transmit
-                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
-                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
-                transmissions.add(tx);
+                // Transmit to each gw in sight
+                for (Integer gwIdx : i.getToAssets()) {
+                    Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), gwIdx, 1);
+                    tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
+                    tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+                    transmissions.add(tx);
+                }
 
                 // Advance time: end transmission timestamp + silent time (duty cycle)
                 timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
