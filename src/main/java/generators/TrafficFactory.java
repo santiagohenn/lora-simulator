@@ -19,18 +19,15 @@ public class TrafficFactory {
     public TrafficFactory(Network network) {
         this.network = network;
         transmitters = new HashMap<>();
+        populateTransmitters();
     }
 
     private void populateTransmitters() {
-
-
-
+        network.getEarthPositions().forEach(ep -> transmitters.put(ep.getId(), new Transmitter(ep.getId())));
     }
 
     public List<Transmission> generateTrafficPolicy1(@NotNull List<Interval> intervals, double frameGenerationRate,
                                                      long timeOnAirMS, long dutyCycleSilentTimeMS) {
-
-
 
         List<Transmission> transmissions = new ArrayList<>();
 
@@ -44,6 +41,16 @@ public class TrafficFactory {
             while (timeMS < i.getEnd()) {
 
                 long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+
+                // Update status of transmitter
+                transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
+
+                // Check if transmitter is blocked
+                if (transmitters.get(i.getFirstFrom()).isBlocked()) {
+                    timeMS += nextTransmissionAfterMS;
+                    continue;
+                }
+
                 long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
                 long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
@@ -53,7 +60,11 @@ public class TrafficFactory {
                     break;
                 }
 
-                // Transmissions to each gateway, used to analyze
+                // MG Transmission, used to store last transmission in the transmitter
+                transmitters.get(i.getFirstFrom()).transmit(new Transmission(startTransmissionTimestamp,
+                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFromAssets(), i.getToAssets(), 1));
+
+                // SG Transmissions to each gateway, used for analysis // TODO: replace with lambda
                 for (Integer gwIdx : i.getToAssets()) {
                     Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), gwIdx, 1);
                     tx.setEndTransmissionTimestamp(endTransmissionTimestamp);

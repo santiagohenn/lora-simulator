@@ -41,6 +41,20 @@ public class Transmission implements Comparable<Transmission> {
         this.transmissionHash = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
     }
 
+    /**
+     * Multi gateway constructor
+     * **/
+    public Transmission(long startTransmissionTimestamp, long endTransmissionTimestamp, long endDutyCycleSilentTime,
+                        List<Integer> fromAssets, List<Integer> toAssets, int channel) {
+        this.endTransmissionTimestamp = endTransmissionTimestamp;
+        this.endDutyCycleSilentTime = endDutyCycleSilentTime;
+        this.startTransmissionTimestamp = startTransmissionTimestamp;
+        this.fromAssets = fromAssets;
+        this.toAssets = toAssets;
+        this.channel = channel;
+        this.transmissionHash = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
+    }
+
     public long getStartTransmissionTimestamp() {
         return startTransmissionTimestamp;
     }
@@ -71,6 +85,7 @@ public class Transmission implements Comparable<Transmission> {
 
     public void setEndTransmissionTimestamp(long endTransmissionTimestamp) {
         this.endTransmissionTimestamp = endTransmissionTimestamp;
+        this.endDutyCycleSilentTime = endTransmissionTimestamp;
     }
 
     public long getTimeOnAirMilliSeconds() {
