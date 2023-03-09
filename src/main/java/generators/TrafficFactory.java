@@ -1,24 +1,36 @@
 package generators;
 
+import assets.Transmitter;
 import assets.Transmission;
+import network.Network;
 import org.jetbrains.annotations.NotNull;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Log;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class TrafficFactory {
 
-    public TrafficFactory() {
-        // Default constructor
+    Map<Integer, Transmitter> transmitters;
+    Network network;
+
+    public TrafficFactory(Network network) {
+        this.network = network;
+        transmitters = new HashMap<>();
+    }
+
+    private void populateTransmitters() {
+
+
+
     }
 
     public List<Transmission> generateTrafficPolicy1(@NotNull List<Interval> intervals, double frameGenerationRate,
                                                      long timeOnAirMS, long dutyCycleSilentTimeMS) {
+
+
 
         List<Transmission> transmissions = new ArrayList<>();
 
@@ -37,11 +49,11 @@ public class TrafficFactory {
                 long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
 
                 // If the satellite will be out of visibility for the next transmission, do not transmit
-                if (endTransmissionTimestamp > i.getEnd()) {
+                if (endTransmissionTimestamp > i.getEnd()) { // TODO: Transmit anyways and analyze later
                     break;
                 }
 
-                // Transmit to each gw in sight
+                // Transmissions to each gateway, used to analyze
                 for (Integer gwIdx : i.getToAssets()) {
                     Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), gwIdx, 1);
                     tx.setEndTransmissionTimestamp(endTransmissionTimestamp);

@@ -155,7 +155,7 @@ public class NetworkAnalyzer {
         ReportFactory rf = new ReportFactory(path);
         rf.saveAsCSV(packetStatistics, name);
         rf.saveAsJSON(network.getTransmissions(), "TX_" + name);
-        rf.saveAsJSON(network.getCurrentIntervals()
+        rf.saveAsJSON(network.getAccessIntervals()
                 .stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
                 .collect(Collectors.toList()), "intervals_" + name);
 

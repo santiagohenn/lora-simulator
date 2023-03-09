@@ -34,7 +34,7 @@ public class Main {
             rf.saveAsJSON(uniformRandomPositions, "positionsFromSimulator");
             network.setEarthPositions(uniformRandomPositions);
             network.computeAccessIntervals();
-            network.getCurrentIntervals().forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
+            // network.getCurrentIntervals().forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
             network.simulateTraffic();
             networkAnalyzer.analyzeTraffic(network);
             networkAnalyzer.saveData(network, outputPath, nodes + "N");

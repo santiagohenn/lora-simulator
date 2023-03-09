@@ -17,7 +17,7 @@ public class Network {
 
     static final Logger Log = LogManager.getLogger(Network.class);
 
-    private List<Interval> currentIntervals;
+    private List<Interval> accessIntervals;
     private List<Position> earthPositions;
     private List<Satellite> satellites;
     private List<Transmission> transmissions;
@@ -34,7 +34,7 @@ public class Network {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
         simulation = new Simulation();
         simulation.setVisibilityThreshold(25);
-        currentIntervals = new ArrayList<>();
+        accessIntervals = new ArrayList<>();
     }
 
     public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
@@ -45,12 +45,12 @@ public class Network {
     }
 
     public void simulateTraffic() {
-        if (currentIntervals.isEmpty()) {
+        if (accessIntervals.isEmpty()) {
             Log.info("Computing access intervals");
             computeAccessIntervals();
         }
-        TrafficFactory tf = new TrafficFactory();
-        transmissions = tf.generateTrafficPolicy1(currentIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        TrafficFactory tf = new TrafficFactory(this); //TODO: add params to the constructor
+        transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
@@ -72,27 +72,27 @@ public class Network {
 
         for (Position earthPos : earthPositions) {
 
-            currentIntervals = new ArrayList<>();
+            accessIntervals = new ArrayList<>();
 
             for (Satellite satellite : satellites) {
                 simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
                 simulation.computeAccess();
-                currentIntervals.addAll(simulation.getIntervals());
+                accessIntervals.addAll(simulation.getIntervals());
             }
 
-            currentIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
+            accessIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
 
             if (satellites.size() == 1) {
-                allAccesses.addAll(currentIntervals);
+                allAccesses.addAll(accessIntervals);
                 continue;
             }
 
             List<Interval> combinedIntervals = new ArrayList<>();
             Set<Integer> inContact = new LinkedHashSet<>();
-            List<Event> eventList = intervals2events(currentIntervals);
+            List<Event> eventList = intervals2events(accessIntervals);
             eventList = eventList.subList(1, eventList.size());
 
-            var currentInterval = currentIntervals.get(0);
+            var currentInterval = accessIntervals.get(0);
             inContact.add(currentInterval.getFirstTo());
 
             for (Event event : eventList) {
@@ -120,7 +120,7 @@ public class Network {
 //        System.out.println("After processing: ");
 //        List<Interval> multiGatewayIntervals = computeMultiGateway(accessIntervals);
 
-        currentIntervals = allAccesses;
+        accessIntervals = allAccesses;
 
     }
 
@@ -153,8 +153,8 @@ public class Network {
         return transmissions;
     }
 
-    public List<Interval> getCurrentIntervals() {
-        return currentIntervals;
+    public List<Interval> getAccessIntervals() {
+        return accessIntervals;
     }
 
     public void setSimulationInterval(String scenarioStartTime, String scenarioEndTime) {

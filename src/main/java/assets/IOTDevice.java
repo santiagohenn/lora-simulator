@@ -4,15 +4,15 @@ import satellite.tools.assets.entities.Position;
 
 public class IOTDevice {
 
-    Transmisor tx;
+    Transmitter tx;
     Position position;
 
-    public IOTDevice(Transmisor tx, Position position) {
+    public IOTDevice(Transmitter tx, Position position) {
         this.tx = tx;
         this.position = position;
     }
 
-    public Transmisor getTx() {
+    public Transmitter getTx() {
         return tx;
     }
 
