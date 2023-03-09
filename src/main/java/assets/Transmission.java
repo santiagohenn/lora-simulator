@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Transmission implements Comparable<Transmission> {
 
-    private final int transmissionID;
+    private final int transmissionHash;
     private final long startTransmissionTimestamp;
     private final List<Integer> fromAssets;
     private final List<Integer> toAssets;
@@ -27,7 +27,7 @@ public class Transmission implements Comparable<Transmission> {
         toAssets = new ArrayList<>(1);
         toAssets.add(toId);
         this.channel = channel;
-        this.transmissionID = ("" + startTransmissionTimestamp + fromId + channel).hashCode();
+        this.transmissionHash = ("" + startTransmissionTimestamp + fromId + channel).hashCode();
     }
 
     /**
@@ -38,7 +38,7 @@ public class Transmission implements Comparable<Transmission> {
         this.fromAssets = fromAssets;
         this.toAssets = toAssets;
         this.channel = channel;
-        this.transmissionID = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
+        this.transmissionHash = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
     }
 
     public long getStartTransmissionTimestamp() {
@@ -101,8 +101,8 @@ public class Transmission implements Comparable<Transmission> {
         this.lost = lost;
     }
 
-    public int getTransmissionID() {
-        return transmissionID;
+    public int getTransmissionHash() {
+        return transmissionHash;
     }
 
     @Override
@@ -113,7 +113,7 @@ public class Transmission implements Comparable<Transmission> {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Transmission) {
-            return ((Transmission) obj).transmissionID == this.transmissionID;
+            return ((Transmission) obj).transmissionHash == this.transmissionHash;
         } else {
             return false;
         }
@@ -121,6 +121,9 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public int compareTo(@NotNull Transmission o) {
+        if (o.equals(this)) {
+            return 0;
+        }
         return Long.compare(this.startTransmissionTimestamp, o.startTransmissionTimestamp);
     }
 }

@@ -12,8 +12,8 @@ public class TransmissionTest {
         Transmission t1 = new Transmission(123456, 0,1,1);
         Transmission t2 = new Transmission(123456, 0,1,1);
 
-        Log.info("tid: " + t1.getTransmissionID());
-        Log.info("tid: " + t2.getTransmissionID());
+        Log.info("tid: " + t1.getTransmissionHash());
+        Log.info("tid: " + t2.getTransmissionHash());
 
         assertEquals(t1, t2);
 

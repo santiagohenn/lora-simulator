@@ -24,40 +24,53 @@ public class NetworkAnalyzer {
         packetStatistics = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
-        // Filter transmissions that where sent to the void and sort them by time // TODO: Remove .distinct()
-        List<Transmission> transmissionsSent = transmissions.stream().distinct().filter(t -> !t.isLost())
-                .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
+        // Filter transmissions that where sent to the void
+        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
                 .collect(Collectors.toList());
 
         TreeSet<Transmission> collisions = new TreeSet<>();
-        Iterator<Transmission> transmissionIterator = transmissionsSent.iterator();
 
-        // Take the first transmission
-        Transmission transmissionInGateway = transmissionIterator.next();
+        // Do this for each gateway
+        for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
 
-        // While there are other transmissions
-        while (transmissionIterator.hasNext()) {
+            Log.warn("Analyzing for gw ID " + gwId);
 
-            // Take the next transmission
-            Transmission nextTransmission = transmissionIterator.next();
+            int finalNgw = gwId;
+            Iterator<Transmission> transmissionIterator = transmissionsSent.stream()
+                    .filter(t -> t.getToId() == finalNgw)
+                    .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
+                    .iterator();
 
-            // If this transmission collides with the previous one, both are lost
-            if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()
-            && !nextTransmission.equals(transmissionInGateway)) {
-                transmissionInGateway.setLostReason(1);
-                nextTransmission.setLostReason(1);
-                collisions.add(transmissionInGateway);
-                collisions.add(nextTransmission);
+            // Take the first transmission
+            Transmission transmissionInGateway = transmissionIterator.next();
+
+            // While there are other transmissions
+            while (transmissionIterator.hasNext()) {
+
+                // Take the next transmission
+                Transmission nextTransmission = transmissionIterator.next();
+
+                // If this transmission collides with the previous one, both are lost
+                if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()
+                        && !nextTransmission.equals(transmissionInGateway)) {
+                    transmissionInGateway.setLostReason(1);
+                    nextTransmission.setLostReason(1);
+                    collisions.add(transmissionInGateway);
+                    collisions.add(nextTransmission);
+                }
+
+                transmissionInGateway = nextTransmission;
+
             }
 
-            transmissionInGateway = nextTransmission;
+            Log.debug("debugCollisionCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 1).count());
+            Log.debug("debugSuccessCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 0).count());
 
         }
 
-        Log.debug("debugCollisionCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 1).count());
-        Log.debug("debugSuccessCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 0).count());
-        Log.debug("Total transmissions: {}", transmissions.size());
-        Log.debug("Collided transmissions (TreeSet): {}", collisions.size());
+        Log.debug("[entire scenario] Total transmissions: {}", transmissions.size());
+        Log.debug("[entire scenario] Collided transmissions (TreeSet): {}", collisions.size());
+
 
 //        long sampleStepMS = (long) (sampleStepSeconds * 1000);
 //        long epochTimeMS = 0;

@@ -34,6 +34,7 @@ public class TrafficFactory {
                 long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
                 long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+                long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
 
                 // If the satellite will be out of visibility for the next transmission, do not transmit
                 if (endTransmissionTimestamp > i.getEnd()) {
@@ -44,12 +45,12 @@ public class TrafficFactory {
                 for (Integer gwIdx : i.getToAssets()) {
                     Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), gwIdx, 1);
                     tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                    tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+                    tx.setEndDutyCycleSilentTime(endDutyCycleTimestamp);
                     transmissions.add(tx);
                 }
 
                 // Advance time: end transmission timestamp + silent time (duty cycle)
-                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
+                timeMS = endDutyCycleTimestamp;
 
             }
 

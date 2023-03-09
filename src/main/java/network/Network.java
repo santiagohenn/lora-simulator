@@ -173,6 +173,14 @@ public class Network {
         return scenarioEndTime;
     }
 
+    public List<Position> getEarthPositions() {
+        return earthPositions;
+    }
+
+    public List<Satellite> getSatellites() {
+        return satellites;
+    }
+
     class Event implements Comparable<Event> {
 
         private final long time;
