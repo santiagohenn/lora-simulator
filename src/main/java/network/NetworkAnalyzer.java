@@ -24,7 +24,7 @@ public class NetworkAnalyzer {
         packetStatistics = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
-        // Filter transmissions that where sent to the void
+        // Filter transmissions that where sent to the void // TODO add conditional depending on policy
         List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
                 .collect(Collectors.toList());
 
@@ -63,12 +63,17 @@ public class NetworkAnalyzer {
 
             }
 
-            Log.debug("debugCollisionCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 1).count());
-            Log.debug("debugSuccessCount: {}", transmissions.stream().filter(t -> t.getLostReason() == 0).count());
+            Log.debug("debugCollisionCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 1).count());
+            Log.debug("debugSuccessCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 0).count());
 
         }
 
-        Log.debug("[entire scenario] Total transmissions: {}", transmissions.size());
+        Log.debug("All");
+        transmissionsSent.forEach(System.out::println);
+        Log.debug("Distinct");
+        transmissionsSent.stream().distinct().collect(Collectors.toList()).forEach(System.out::println);
+
+        Log.debug("[entire scenario] Total transmissions: {}", transmissionsSent.size());
         Log.debug("[entire scenario] Collided transmissions (TreeSet): {}", collisions.size());
 
 

@@ -62,13 +62,13 @@ public class TrafficFactory {
 
                 // MG Transmission, used to store last transmission in the transmitter
                 transmitters.get(i.getFirstFrom()).transmit(new Transmission(startTransmissionTimestamp,
-                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFromAssets(), i.getToAssets(), 1));
+                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFromAssets().get(0),
+                        i.getToAssets(), 1)); // TODO: Replace fromAssets for int
 
                 // SG Transmissions to each gateway, used for analysis // TODO: replace with lambda
                 for (Integer gwIdx : i.getToAssets()) {
-                    Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), gwIdx, 1);
-                    tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                    tx.setEndDutyCycleSilentTime(endDutyCycleTimestamp);
+                    Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
+                            endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
                     transmissions.add(tx);
                 }
 
@@ -83,46 +83,6 @@ public class TrafficFactory {
 
     }
 
-    public List<Transmission> generateMGTraffic(@NotNull List<Interval> intervals, double frameGenerationRate,
-                                                     long timeOnAirMS, long dutyCycleSilentTimeMS) {
-
-        List<Transmission> transmissions = new ArrayList<>();
-
-        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
-        Log.debug("time on air (ms) - " + timeOnAirMS);
-
-        for (Interval i : intervals) {
-
-            long timeMS = i.getStart();
-
-            while (timeMS < i.getEnd()) {
-
-                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
-                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
-                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
-
-                // If the satellite will be out of visibility for the next transmission, do not transmit
-                if (endTransmissionTimestamp > i.getEnd()) {
-                    break;
-                }
-
-                // Transmit
-                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), i.getFirstTo(), 1);
-
-                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
-                transmissions.add(tx);
-
-                // Advance time: end transmission timestamp + silent time (duty cycle)
-                timeMS = endTransmissionTimestamp + dutyCycleSilentTimeMS;
-
-            }
-
-        }
-
-        return transmissions;
-
-    }
 
     public List<Transmission> generateTrafficPolicy2(@NotNull List<Interval> intervals, double frameGenerationRate,
                                                      long timeOnAirMS, long dutyCycleSilentTimeMS) {
@@ -147,9 +107,9 @@ public class TrafficFactory {
                 long startTransmissionTimestamp = timeMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
 
-                Transmission tx = new Transmission(startTransmissionTimestamp, i.getFirstFrom(), -1, 1);
-                tx.setEndTransmissionTimestamp(endTransmissionTimestamp);
-                tx.setEndDutyCycleSilentTime(endTransmissionTimestamp + dutyCycleSilentTimeMS);
+                Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
+                        endTransmissionTimestamp + dutyCycleSilentTimeMS,
+                        i.getFirstFrom(), -1, 1);
 
                 // If the satellite will be out of visibility for the next transmission, do not transmit
                 if (endTransmissionTimestamp > i.getEnd()) {

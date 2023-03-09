@@ -9,8 +9,8 @@ public class Transmission implements Comparable<Transmission> {
 
     private final int transmissionHash;
     private final long startTransmissionTimestamp;
-    private final List<Integer> fromAssets;
     private final List<Integer> toAssets;
+    private final int fromId;
     private final int channel;
     private long endTransmissionTimestamp;
     private long endDutyCycleSilentTime;
@@ -19,11 +19,13 @@ public class Transmission implements Comparable<Transmission> {
 
     /**
      * Single gateway constructor
-     * **/
-    public Transmission(long startTransmissionTimestamp, int fromId, int toId, int channel) {
+     **/
+    public Transmission(long startTransmissionTimestamp, long endTransmissionTimestamp, long endDutyCycleSilentTime,
+                        int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = startTransmissionTimestamp;
-        fromAssets = new ArrayList<>(1);
-        fromAssets.add(fromId);
+        this.endTransmissionTimestamp = endTransmissionTimestamp;
+        this.endDutyCycleSilentTime = endDutyCycleSilentTime;
+        this.fromId = fromId;
         toAssets = new ArrayList<>(1);
         toAssets.add(toId);
         this.channel = channel;
@@ -32,43 +34,29 @@ public class Transmission implements Comparable<Transmission> {
 
     /**
      * Multi gateway constructor
-     * **/
-    public Transmission(long startTransmissionTimestamp, List<Integer> fromAssets, List<Integer> toAssets, int channel) {
-        this.startTransmissionTimestamp = startTransmissionTimestamp;
-        this.fromAssets = fromAssets;
-        this.toAssets = toAssets;
-        this.channel = channel;
-        this.transmissionHash = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
-    }
-
-    /**
-     * Multi gateway constructor
-     * **/
+     **/
     public Transmission(long startTransmissionTimestamp, long endTransmissionTimestamp, long endDutyCycleSilentTime,
-                        List<Integer> fromAssets, List<Integer> toAssets, int channel) {
+                        int fromId, List<Integer> toAssets, int channel) {
         this.endTransmissionTimestamp = endTransmissionTimestamp;
         this.endDutyCycleSilentTime = endDutyCycleSilentTime;
         this.startTransmissionTimestamp = startTransmissionTimestamp;
-        this.fromAssets = fromAssets;
+        this.fromId = fromId;
         this.toAssets = toAssets;
         this.channel = channel;
-        this.transmissionHash = ("" + startTransmissionTimestamp + fromAssets + channel).hashCode();
+        this.transmissionHash = ("" + startTransmissionTimestamp + fromId + channel).hashCode();
     }
 
     public long getStartTransmissionTimestamp() {
         return startTransmissionTimestamp;
     }
 
-    public List<Integer> getFromAssets() {
-        return fromAssets;
-    }
 
     public List<Integer> getToAssets() {
         return toAssets;
     }
 
     public int getFromId() {
-        return fromAssets.get(0);
+        return this.fromId;
     }
 
     public int getToId() {
@@ -122,7 +110,7 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public String toString() {
-        return startTransmissionTimestamp + "," + fromAssets + "," + toAssets + "," + channel;
+        return startTransmissionTimestamp + "," + fromId + "," + toAssets + "," + channel + ",#" + transmissionHash;
     }
 
     @Override
@@ -141,4 +129,10 @@ public class Transmission implements Comparable<Transmission> {
         }
         return Long.compare(this.startTransmissionTimestamp, o.startTransmissionTimestamp);
     }
+
+    @Override
+    public int hashCode() {
+        return transmissionHash;
+    }
+
 }
