@@ -33,7 +33,7 @@ public class NetworkAnalyzer {
         // Do this for each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
 
-            Log.warn("Analyzing for gw ID " + gwId);
+//            Log.warn("Analyzing for gw ID " + gwId);
 
             int finalNgw = gwId;
             Iterator<Transmission> transmissionIterator = transmissionsSent.stream()
@@ -63,18 +63,18 @@ public class NetworkAnalyzer {
 
             }
 
-            Log.debug("debugCollisionCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 1).count());
-            Log.debug("debugSuccessCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 0).count());
+//            Log.debug("debugCollisionCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 1).count());
+//            Log.debug("debugSuccessCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 0).count());
 
         }
 
-        Log.debug("All");
-        transmissionsSent.forEach(System.out::println);
-        Log.debug("Distinct");
-        transmissionsSent.stream().distinct().collect(Collectors.toList()).forEach(System.out::println);
+//        Log.debug("All");
+//        transmissionsSent.forEach(System.out::println);
+//        Log.debug("Distinct");
+//        transmissionsSent.stream().distinct().collect(Collectors.toList()).forEach(System.out::println);
 
-        Log.debug("[entire scenario] Total transmissions: {}", transmissionsSent.size());
-        Log.debug("[entire scenario] Collided transmissions (TreeSet): {}", collisions.size());
+//        Log.debug("[entire scenario] Total transmissions: {}", transmissionsSent.size());
+//        Log.debug("[entire scenario] Collided transmissions (TreeSet): {}", collisions.size());
 
 
 //        long sampleStepMS = (long) (sampleStepSeconds * 1000);
@@ -114,7 +114,7 @@ public class NetworkAnalyzer {
 
     private void sampledAnalysis(Network network, TreeSet<Transmission> collisions) {
 
-        long sampleStepMS = (long) (sampleStepSeconds * 1000);
+        long sampleStepMS = (long) (sampleStepSeconds * 1000); // To ms
         long epochTimeMS = 0;
         long successfulPackets;
         long collidedPackets;
@@ -168,5 +168,9 @@ public class NetworkAnalyzer {
 
     public List<String> getPacketStatistics() {
         return packetStatistics;
+    }
+
+    public void setPacketStatistics(List<String> packetStatistics) {
+        this.packetStatistics = packetStatistics;
     }
 }

@@ -64,12 +64,6 @@ public class Network {
             return;
         }
 
-        Log.debug("Computing access intervals for " + satellites.size() + " sat(s)/gw");
-
-        if (satellites.size() > 1) {
-            Log.warn("Satellites > 1 => MG mode");
-        }
-
         for (Position earthPos : earthPositions) {
 
             accessIntervals = new ArrayList<>();

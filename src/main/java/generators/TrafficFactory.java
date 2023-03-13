@@ -31,9 +31,6 @@ public class TrafficFactory {
 
         List<Transmission> transmissions = new ArrayList<>();
 
-        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
-        Log.debug("time on air (ms) - " + timeOnAirMS);
-
         for (Interval i : intervals) {
 
             long timeMS = i.getStart();
