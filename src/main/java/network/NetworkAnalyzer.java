@@ -25,14 +25,14 @@ public class NetworkAnalyzer {
         List<Transmission> transmissions = network.getTransmissions();
 
         // Filter transmissions that where sent to the void // TODO add conditional depending on policy
-        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> !t.isLost())
+        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> t.getStatus() == 0)
                 .collect(Collectors.toList());
 
         TreeSet<Transmission> collisions = new TreeSet<>();
 
         // Do this for each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
-
+//        for (int gwId = 0; gwId <= 0; gwId++) {
 //            Log.warn("Analyzing for gw ID " + gwId);
 
             int finalNgw = gwId;
@@ -41,7 +41,15 @@ public class NetworkAnalyzer {
                     .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                     .iterator();
 
+//            Iterator<Transmission> transmissionIterator = transmissionsSent.stream()
+//                    .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
+//                    .iterator();
+
             // Take the first transmission
+            if (!transmissionIterator.hasNext()) {
+                continue;
+            }
+
             Transmission transmissionInGateway = transmissionIterator.next();
 
             // While there are other transmissions
@@ -53,8 +61,8 @@ public class NetworkAnalyzer {
                 // If this transmission collides with the previous one, both are lost
                 if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()
                         && !nextTransmission.equals(transmissionInGateway)) {
-                    transmissionInGateway.setLostReason(1);
-                    nextTransmission.setLostReason(1);
+                    transmissionInGateway.setStatus(1);
+                    nextTransmission.setStatus(1);
                     collisions.add(transmissionInGateway);
                     collisions.add(nextTransmission);
                 }
@@ -128,18 +136,33 @@ public class NetworkAnalyzer {
             totalPackets = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime)).count();
+            // TODO: Try distinct here
 
             successfulPackets = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
-                            && !t.isLost())).count();
+                            && t.getStatus() == 0))
+                    .distinct()
+                    .count();
+
+//            if (epochTimeMS == 820000) {
+//                Log.warn("NOT DISTINCT");
+//                network.getTransmissions().stream().filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                        && t.getStartTransmissionTimestamp() < currentTime)).forEach(System.out::println);
+//                Log.warn("DISTINCT");
+//                network.getTransmissions().stream().filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                        && t.getStartTransmissionTimestamp() < currentTime)).distinct().forEach(System.out::println);
+//            }
 
             collidedPackets = collisions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
-                            && t.getLostReason() == 1)).count();
+                            && t.getStatus() == 1)).count();
+            // TODO: Try distinct here too
 
-            packetStatistics.add(epochTimeMS / 1000.0 + "," + successfulPackets + "," + collidedPackets + "," + totalPackets);
+            packetStatistics.add(epochTimeMS / 1000.0 + "," + successfulPackets + ","
+                    + collidedPackets + ","
+                    + totalPackets);
 
             epochTimeMS += sampleStepMS;
 
@@ -173,4 +196,10 @@ public class NetworkAnalyzer {
     public void setPacketStatistics(List<String> packetStatistics) {
         this.packetStatistics = packetStatistics;
     }
+
+    private String roundDouble(double number, int decimalPlaces) {
+        double roundedNumber = Math.round(number * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+        return String.format("%." + decimalPlaces + "f", roundedNumber);
+    }
+
 }

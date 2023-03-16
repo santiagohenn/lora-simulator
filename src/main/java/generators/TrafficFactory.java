@@ -1,8 +1,9 @@
 package generators;
 
-import assets.Transmitter;
 import assets.Transmission;
+import assets.Transmitter;
 import network.Network;
+import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.jetbrains.annotations.NotNull;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Log;
@@ -37,7 +38,9 @@ public class TrafficFactory {
 
             while (timeMS < i.getEnd()) {
 
-                long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+//                long nextTransmissionAfterMS = Math.round(1000.0 * generatePoissonEvent(frameGenerationRate));
+                long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
+//                Log.debug("-> " + nextTransmissionAfterMS);
 
                 // Update status of transmitter
                 transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
@@ -62,12 +65,124 @@ public class TrafficFactory {
                         endTransmissionTimestamp, endDutyCycleTimestamp, i.getFromAssets().get(0),
                         i.getToAssets(), 1)); // TODO: Replace fromAssets for int
 
+
                 // SG Transmissions to each gateway, used for analysis // TODO: replace with lambda
                 for (Integer gwIdx : i.getToAssets()) {
                     Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
                             endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+
                     transmissions.add(tx);
                 }
+
+                // Kinda like if every GW is the same
+//                Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
+//                            endDutyCycleTimestamp, i.getFirstFrom(), 0, 1);
+//                transmissions.add(tx);
+
+                // Advance time: end transmission timestamp + silent time (duty cycle)
+                timeMS = endDutyCycleTimestamp;
+
+            }
+
+        }
+
+        return transmissions;
+
+    }
+
+    public List<Transmission> generateTrafficPolicy3(@NotNull List<Interval> intervals, double frameGenerationRate,
+                                                     long timeOnAirMS, long dutyCycleSilentTimeMS) {
+
+        List<Transmission> transmissions = new ArrayList<>();
+
+        // TODO: use variable for channel
+
+        // Time interval with a 99% chance of containing a transmission
+        long timeShiftBackMS = (long) (1000.0 * poissonInterval(frameGenerationRate, 0.99));
+
+        for (Interval i : intervals) {
+
+            // Go back in time to a point such that there is a 99% chance of having a packet
+            long timeMS = i.getStart() - timeShiftBackMS;
+
+            while (timeMS < i.getEnd()) {
+
+                long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
+//                Log.debug("-> " + nextTransmissionAfterMS);
+
+                // Update status of transmitter
+                transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
+
+                // Check if transmitter is blocked
+                if (transmitters.get(i.getFirstFrom()).isBlocked()) {
+                    timeMS += nextTransmissionAfterMS;
+                    continue;
+                }
+
+                // Prepare new transmission
+                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
+                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+                long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
+                int packetStatus = 0;
+
+                // If the transmission stops before the start of the satellite access interval
+                // transmit and block the device, but no frame is received by any GW
+                if (endTransmissionTimestamp <= i.getStart()) {
+                    packetStatus = 2; // 2 = transmitted to the void
+                    Transmission transmissionInDevice = new Transmission(startTransmissionTimestamp,
+                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
+                            i.getToAssets(), 1);
+                    transmissionInDevice.setStatus(packetStatus);
+                    transmitters.get(i.getFirstFrom()).transmit(transmissionInDevice);
+                    timeMS = endDutyCycleTimestamp;
+                    continue;
+                // Else if access to the GW is gained in the middle of the transmission, create
+                // a partial packet to be heard by the GW(s)
+                } else if (startTransmissionTimestamp < i.getStart() && endTransmissionTimestamp > i.getStart()) {
+                    packetStatus = 3; // 3 = partial frame
+                    Transmission transmissionInDevice = new Transmission(startTransmissionTimestamp,
+                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
+                            i.getToAssets(), 1);
+                    transmissionInDevice.setStatus(packetStatus);
+                    transmitters.get(i.getFirstFrom()).transmit(transmissionInDevice);
+                    // Set parameters for the transmission in the GW
+                    startTransmissionTimestamp = i.getStart();
+                // Else if access to the GW is lost in the middle of the transmission, create a partial packet
+                // to be head by the GW(s)
+                } else if (startTransmissionTimestamp < i.getEnd() && endTransmissionTimestamp > i.getEnd()) {
+                    packetStatus = 3; // 3 = partial frame
+                    Transmission transmissionInDevice = new Transmission(startTransmissionTimestamp,
+                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
+                            i.getToAssets(), 1);
+                    transmissionInDevice.setStatus(packetStatus);
+                    transmitters.get(i.getFirstFrom()).transmit(transmissionInDevice);
+                    // Set parameters for the transmission in the GW
+                    endTransmissionTimestamp = i.getEnd();
+                // If the next transmission happens after the end of this interval
+                } else if (startTransmissionTimestamp > i.getEnd()) {
+                    // Check whether the next interval still has visibility over the GW
+                    // TODO: Use iterator
+                    break;
+                }
+
+                // MG Transmission, used to store last transmission in the transmitter
+                transmitters.get(i.getFirstFrom()).transmit(new Transmission(startTransmissionTimestamp,
+                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
+                        i.getToAssets(), 1));
+
+
+                // SG Transmissions to each gateway, used for analysis // TODO: replace with lambda
+                for (Integer gwIdx : i.getToAssets()) {
+                    Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
+                            endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+
+                    transmissions.add(tx);
+                }
+
+                // Kinda like if every GW is the same
+//                Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
+//                            endDutyCycleTimestamp, i.getFirstFrom(), 0, 1);
+//                transmissions.add(tx);
 
                 // Advance time: end transmission timestamp + silent time (duty cycle)
                 timeMS = endDutyCycleTimestamp;
@@ -96,7 +211,8 @@ public class TrafficFactory {
             Transmission lastSuccessfulTransmission = null;
 
             // Advance time to next transmission
-            long nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+            long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
+
             timeMS += nextTransmissionAfterMS;
 
             while (timeMS < i.getEnd()) {
@@ -115,7 +231,7 @@ public class TrafficFactory {
 
                 if (lastSuccessfulTransmission != null && startTransmissionTimestamp < lastSuccessfulTransmission.getEndDutyCycleSilentTime()) {
                     // Transmission lost due to duty cycle
-                    tx.setLostReason(2);
+                    tx.setStatus(2);
                 } else {
                     // Transmit successfully
                     lastSuccessfulTransmission = tx;
@@ -124,7 +240,7 @@ public class TrafficFactory {
                 transmissions.add(tx);
 
                 // Advance time to next transmission
-                nextTransmissionAfterMS = generatePoissonEvent(frameGenerationRate);
+                nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
                 timeMS += nextTransmissionAfterMS;
 
             }
@@ -135,7 +251,10 @@ public class TrafficFactory {
 
     }
 
-    public long generatePoissonEvent(double rate) {
+    /**
+     * Rate is in events per second
+     */
+    public double generatePoissonEvent(double rate) {
 
         Random r;
         try {
@@ -145,9 +264,23 @@ public class TrafficFactory {
             e.printStackTrace();
             return -1L;
         }
-        double nextEvent = -Math.log(1.0 - r.nextDouble()) / rate;
-        return (long) nextEvent;
+        return -Math.log(1.0 - r.nextDouble()) / rate;
 
+    }
+
+    /**
+     * Compute the elapsed time with an X% chance of containing an event given a certain rate
+     * using the CDF (Cumulative Distribution Function)
+     * **/
+    public double poissonInterval(double lambda, double probability) {
+        PoissonDistribution poisson = new PoissonDistribution(lambda);
+        double cdf = 0.0;
+        int t = 0;
+        while (cdf < probability) {
+            cdf += poisson.probability(t);
+            t++;
+        }
+        return t / lambda;
     }
 
 }

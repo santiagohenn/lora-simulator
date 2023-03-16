@@ -15,7 +15,7 @@ public class Transmission implements Comparable<Transmission> {
     private long endTransmissionTimestamp;
     private long endDutyCycleSilentTime;
     private long timeOnAirMilliSeconds;
-    private int lost = 0;
+    private int status = 0;
 
     /**
      * Single gateway constructor
@@ -92,16 +92,12 @@ public class Transmission implements Comparable<Transmission> {
         this.endDutyCycleSilentTime = endDutyCycleSilentTime;
     }
 
-    public boolean isLost() {
-        return lost > 0;
+    public int getStatus() {
+        return status;
     }
 
-    public int getLostReason() {
-        return lost;
-    }
-
-    public void setLostReason(int lost) {
-        this.lost = lost;
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public int getTransmissionHash() {
@@ -110,7 +106,8 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public String toString() {
-        return startTransmissionTimestamp + "," + fromId + "," + toAssets + "," + channel + ",#" + transmissionHash;
+        return startTransmissionTimestamp + "," + fromId + "," + toAssets + "," + channel
+                + "," + status + ",#" + transmissionHash;
     }
 
     @Override

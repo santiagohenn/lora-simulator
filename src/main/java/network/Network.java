@@ -25,13 +25,13 @@ public class Network {
     private double timeStepSeconds;
     private long timeOnAirMS;
     private long dutyCycleSilentTimeMS;
-    private double frameGenerationRate;
+    private double frameGenerationRatePacketsPerSecond;
     private String scenarioStartTime;
     private String scenarioEndTime;
     private Simulation simulation;
 
-    public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
-        setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
+    public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRatePacketsPerSecond) {
+        setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRatePacketsPerSecond);
         simulation = new Simulation();
         simulation.setVisibilityThreshold(25);
         accessIntervals = new ArrayList<>();
@@ -41,7 +41,7 @@ public class Network {
         this.timeStepSeconds = timeStepSeconds;
         this.timeOnAirMS = timeOnAirMS;
         this.dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
-        this.frameGenerationRate = frameGenerationRate;
+        this.frameGenerationRatePacketsPerSecond = frameGenerationRate;
     }
 
     public void simulateTraffic() {
@@ -50,7 +50,7 @@ public class Network {
             computeAccessIntervals();
         }
         TrafficFactory tf = new TrafficFactory(this); //TODO: add params to the constructor
-        transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRatePacketsPerSecond, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
@@ -84,7 +84,7 @@ public class Network {
             List<Interval> combinedIntervals = new ArrayList<>();
             Set<Integer> inContact = new LinkedHashSet<>();
             List<Event> eventList = intervals2events(accessIntervals);
-            eventList = eventList.subList(1, eventList.size());
+            eventList = eventList.subList(1, eventList.size()); // TODO: replace with iterator
 
             var currentInterval = accessIntervals.get(0);
             inContact.add(currentInterval.getFirstTo());
@@ -108,11 +108,6 @@ public class Network {
 
         }
 
-//        System.out.println("All intervals: ");
-//        currentIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
-//        currentIntervals.forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
-//        System.out.println("After processing: ");
-//        List<Interval> multiGatewayIntervals = computeMultiGateway(accessIntervals);
 
         accessIntervals = allAccesses;
 

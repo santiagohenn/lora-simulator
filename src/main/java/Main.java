@@ -9,6 +9,7 @@ import satellite.tools.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Main {
 
@@ -18,7 +19,7 @@ public class Main {
         String satellitePath = "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv";
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
 
-        Network network = new Network(60.0, 1000, 1, 1.0 / (100.0 * 1000.0));
+        Network network = new Network(60.0, 10, 1, 1);
         network.setSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
         network.setSatellites(satellites);
 
@@ -27,24 +28,25 @@ public class Main {
 
         ReportFactory rf = new ReportFactory(outputPath);
 
-        Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
+        if (satellites.size() == 1) {
+            Log.warn("N of Satellites = " + satellites.size() + " => Satellites == 1 => SG mode");
+        } else {
+            Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
+        }
 
-        int nOfRuns = 40;
-        double area_roi_m2 = 1.9965365450397026E12;
-        double area_roi_km2 = area_roi_m2 + 1E-6;
 
-        for (int nodes = 10; nodes <= 80; nodes += 10) {
+        int nOfRuns = 10;
+
+        for (int nodes = 180; nodes >= 10; nodes -= 20) {
 
             List<String> averageStats = new ArrayList<>();
-
-            double poissonIntensityParameter = nodes / area_roi_km2;
 
             for (int run = 0; run < nOfRuns; run++) {
 
                 Log.info("Run " + (run + 1) + "/" + nOfRuns + " for " + nodes + " nodes");
                 positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
-//                ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
-                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
+                ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
+//                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
 
                 rf.saveAsJSON(uniformRandomPositions, "positionsFromSimulator");
                 network.setEarthPositions(uniformRandomPositions);
@@ -74,7 +76,8 @@ public class Main {
                 sb.append(newDataPoint[0]); // Time
                 for (int j = 1; j <= 3; j++) {
                     sb.append(",");
-                    sb.append(Double.parseDouble(newDataPoint[j]) / nOfRuns);
+                    double metric = Double.parseDouble(newDataPoint[j]) / nOfRuns;
+                    sb.append(roundDouble(metric, 2));
                 }
 
                 averageStats.add(sb.toString());
@@ -92,7 +95,8 @@ public class Main {
                 sb.append(newDataPoint[0]); // Time
                 for (int j = 1; j <= 3; j++) {
                     sb.append(",");
-                    sb.append(Double.parseDouble(currentAverage[j]) + Double.parseDouble(newDataPoint[j]) / nOfRuns);
+                    double metric = Double.parseDouble(currentAverage[j]) + Double.parseDouble(newDataPoint[j]) / nOfRuns;
+                    sb.append(roundDouble(metric, 2));
                 }
 
                 averageStats.set(i, sb.toString());
@@ -105,7 +109,7 @@ public class Main {
 
     public static String roundDouble(double number, int decimalPlaces) {
         double roundedNumber = Math.round(number * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
-        return String.format("%." + decimalPlaces + "f", roundedNumber);
+        return String.format(Locale.ROOT, "%." + decimalPlaces + "f", roundedNumber);
     }
 
 }
