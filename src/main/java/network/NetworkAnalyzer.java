@@ -25,7 +25,7 @@ public class NetworkAnalyzer {
         List<Transmission> transmissions = network.getTransmissions();
 
         // Filter transmissions that where sent to the void // TODO add conditional depending on policy
-        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> t.getStatus() == 0)
+        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> t.getStatus() == 2)
                 .collect(Collectors.toList());
 
         TreeSet<Transmission> collisions = new TreeSet<>();
@@ -184,7 +184,8 @@ public class NetworkAnalyzer {
         rf.saveAsCSV(packetStatistics, name);
         rf.saveAsJSON(network.getTransmissions(), "TX_" + name);
         rf.saveAsJSON(network.getAccessIntervals()
-                .stream().map(interval -> new long[]{interval.getFirstFrom(), interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
+                .stream().map(interval -> new long[]{interval.getFirstFrom(),
+                        interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
                 .collect(Collectors.toList()), "intervals_" + name);
 
     }

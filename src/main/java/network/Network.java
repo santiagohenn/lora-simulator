@@ -50,7 +50,7 @@ public class Network {
             computeAccessIntervals();
         }
         TrafficFactory tf = new TrafficFactory(this); //TODO: add params to the constructor
-        transmissions = tf.generateTrafficPolicy1(accessIntervals, frameGenerationRatePacketsPerSecond, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRatePacketsPerSecond, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
