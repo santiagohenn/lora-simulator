@@ -19,12 +19,12 @@ public class Main {
         String satellitePath = "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv";
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
 
-        Network network = new Network(60.0, 1000, 1, 0.1);
+        Network network = new Network(60.0, 10, 1, 1);
         network.setSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
         network.setSatellites(satellites);
 
         PositionsFactory positionsFactory = new PositionsFactory();
-        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(50);
+        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(25);
 
         ReportFactory rf = new ReportFactory(outputPath);
 
@@ -34,10 +34,9 @@ public class Main {
             Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
 
+        int nOfRuns = 10;
 
-        int nOfRuns = 1;
-
-        for (int nodes = 100; nodes >= 10; nodes -= 20) {
+        for (int nodes = 20; nodes <= 180; nodes += 20) {
 
             List<String> averageStats = new ArrayList<>();
 
@@ -71,12 +70,12 @@ public class Main {
             for (int i = 0; i < newMeasure.size(); i++) {
 
                 StringBuilder sb = new StringBuilder();
-                String[] newDataPoint = newMeasure.get(i).split(",");
+                String[] newDataPoints = newMeasure.get(i).split(",");
 
-                sb.append(newDataPoint[0]); // Time
-                for (int j = 1; j <= 3; j++) {
+                sb.append(newDataPoints[0]); // Time
+                for (int j = 1; j <= newDataPoints.length - 1; j++) {
                     sb.append(",");
-                    double metric = Double.parseDouble(newDataPoint[j]) / nOfRuns;
+                    double metric = Double.parseDouble(newDataPoints[j]) / nOfRuns;
                     sb.append(roundDouble(metric, 2));
                 }
 
@@ -89,13 +88,13 @@ public class Main {
             for (int i = 0; i < newMeasure.size(); i++) {
 
                 StringBuilder sb = new StringBuilder();
-                String[] newDataPoint = newMeasure.get(i).split(",");
+                String[] newDataPoints = newMeasure.get(i).split(",");
                 String[] currentAverage = averageStats.get(i).split(",");
 
-                sb.append(newDataPoint[0]); // Time
-                for (int j = 1; j <= 3; j++) {
+                sb.append(newDataPoints[0]); // Time
+                for (int j = 1; j <= newDataPoints.length - 1; j++) {
                     sb.append(",");
-                    double metric = Double.parseDouble(currentAverage[j]) + Double.parseDouble(newDataPoint[j]) / nOfRuns;
+                    double metric = Double.parseDouble(currentAverage[j]) + Double.parseDouble(newDataPoints[j]) / nOfRuns;
                     sb.append(roundDouble(metric, 2));
                 }
 

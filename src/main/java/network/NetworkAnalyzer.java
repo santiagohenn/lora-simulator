@@ -25,7 +25,8 @@ public class NetworkAnalyzer {
         List<Transmission> transmissions = network.getTransmissions();
 
         // Filter transmissions that where sent to the void // TODO add conditional depending on policy
-        List<Transmission> transmissionsSent = transmissions.stream().filter(t -> t.getStatus() == 2)
+        List<Transmission> transmissionsSent = transmissions.stream()
+                .filter(t -> t.getStatus() != 2)
                 .collect(Collectors.toList());
 
         TreeSet<Transmission> collisions = new TreeSet<>();
@@ -51,6 +52,10 @@ public class NetworkAnalyzer {
             }
 
             Transmission transmissionInGateway = transmissionIterator.next();
+
+            if (!transmissionIterator.hasNext()) {
+                continue;
+            }
 
             // While there are other transmissions
             while (transmissionIterator.hasNext()) {
@@ -126,6 +131,7 @@ public class NetworkAnalyzer {
         long epochTimeMS = 0;
         long successfulPackets;
         long collidedPackets;
+        long partialFrames;
         long totalPackets;
 
         for (long time = Utils.stamp2unix(network.getSimulationStartTime()) + sampleStepMS;
@@ -135,13 +141,29 @@ public class NetworkAnalyzer {
 
             totalPackets = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime)).count();
+                            && t.getStartTransmissionTimestamp() < currentTime))
+                    .distinct()
+                    .count();
             // TODO: Try distinct here
 
             successfulPackets = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
-                            && t.getStatus() == 0))
+                            && (t.getStatus() == 0 || t.getStatus() == 3)))
+                    .distinct()
+                    .count();
+
+            collidedPackets = collisions.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+                            && t.getStartTransmissionTimestamp() < currentTime
+                            && t.getStatus() == 1))
+                    .count();
+            // TODO: Try distinct here too
+
+            partialFrames = network.getTransmissions().stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+                            && t.getStartTransmissionTimestamp() < currentTime
+                            && t.getStatus() == 3))
                     .distinct()
                     .count();
 
@@ -154,15 +176,8 @@ public class NetworkAnalyzer {
 //                        && t.getStartTransmissionTimestamp() < currentTime)).distinct().forEach(System.out::println);
 //            }
 
-            collidedPackets = collisions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime
-                            && t.getStatus() == 1)).count();
-            // TODO: Try distinct here too
-
             packetStatistics.add(epochTimeMS / 1000.0 + "," + successfulPackets + ","
-                    + collidedPackets + ","
-                    + totalPackets);
+                    + collidedPackets + "," + totalPackets + "," + partialFrames);
 
             epochTimeMS += sampleStepMS;
 

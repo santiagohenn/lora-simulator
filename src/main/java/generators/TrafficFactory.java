@@ -94,15 +94,38 @@ public class TrafficFactory {
 
         // Time interval with a 99% chance of containing a transmission
         long timeShiftBackMS = (long) (1000.0 * poissonInterval(frameGenerationRate, 0.99));
+        Log.debug("Time shift before interval: " + timeShiftBackMS + " [ms]");
+        if (intervals.isEmpty()) {
+            Log.warn("No access intervals to generate traffic");
+            return transmissions;
+        }
 
-        for (Interval i : intervals) {
+        ListIterator<Interval> intervalIterator = intervals.listIterator();
+        Transmission transmissionPending = null;
 
-            // Go back in time to a point such that there is a 99% chance of having a packet
-            long timeMS = i.getStart() - timeShiftBackMS;
+        while (intervalIterator.hasNext()) {
 
-            while (timeMS < i.getEnd()) {
+            Interval i = intervalIterator.next();
+            long timeMS;
+
+            // Check for pending packets
+            if (transmissionPending != null && transmissionPending.getFromId() == i.getFirstFrom()) {
+
+                // TODO
+
+                Log.warn("PENDING PACKET");
+
+                timeMS = transmissionPending.getEndTransmissionTimestamp();
+
+            } else {
+                transmissionPending = null;
+                timeMS = i.getStart() - timeShiftBackMS;
+            }
+
+            while (timeMS <= i.getEnd()) {
 
                 long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
+                timeMS += nextTransmissionAfterMS;
 //                Log.debug("-> " + nextTransmissionAfterMS);
 
                 // Update status of transmitter
@@ -110,12 +133,11 @@ public class TrafficFactory {
 
                 // Check if transmitter is blocked
                 if (transmitters.get(i.getFirstFrom()).isBlocked()) {
-                    timeMS += nextTransmissionAfterMS;
                     continue;
                 }
 
                 // Prepare new transmission
-                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
+                long startTransmissionTimestamp = timeMS;
                 long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
                 long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
                 int packetStatus = 0;
@@ -128,22 +150,24 @@ public class TrafficFactory {
                 // transmit and block the device, but no frame is received by any GW
                 if (endTransmissionTimestamp <= i.getStart()) {
                     packetStatus = 2; // 2 = transmitted to the void
-                // Else if access to the GW is gained in the middle of the transmission, create
-                // a partial packet to be heard by the GW(s)
-                } else if (startTransmissionTimestamp < i.getStart() && endTransmissionTimestamp > i.getStart()) {
+                    // Else if access to the GW is gained in the middle of the transmission, create
+                    // a partial packet to be heard by the GW(s)
+                } else if (startTransmissionTimestamp < i.getStart() && endTransmissionTimestamp >= i.getStart()) {
                     packetStatus = 3; // 3 = partial frame
                     // Set parameters for the transmission in the GW
                     startTransmissionTimestamp = i.getStart();
-                // Else if access to the GW is lost in the middle of the transmission, create a partial packet
-                // to be head by the GW(s)
-                } else if (startTransmissionTimestamp < i.getEnd() && endTransmissionTimestamp > i.getEnd()) {
+                    // Else if access to the GW is lost in the middle of the transmission, create a partial packet
+                    // to be head by the GW(s)
+                } else if (startTransmissionTimestamp < i.getEnd() && endTransmissionTimestamp >= i.getEnd()) {
                     packetStatus = 3; // 3 = partial frame
                     // Set parameters for the transmission in the GW
                     endTransmissionTimestamp = i.getEnd();
-                // If the next transmission happens after the end of this interval
-                } else if (startTransmissionTimestamp > i.getEnd()) {
-                    // Check whether the next interval still has visibility over the GW
-                    // TODO: Use iterator on intervals
+                    // If the next transmission happens after the end of this interval
+                } else if (startTransmissionTimestamp >= i.getEnd()) {
+                    // Insert a pending packet
+                    packetStatus = 2;
+                    transmissionInDevice.setStatus(packetStatus);
+                    transmissionPending = transmissionInDevice;
                     break;
                 }
 
@@ -152,8 +176,8 @@ public class TrafficFactory {
                 transmitters.get(i.getFirstFrom()).transmit(transmissionInDevice);
 
                 if (packetStatus == 2) {
-                    transmissions.add(transmissionInDevice);
-                    timeMS = endDutyCycleTimestamp;
+                    //transmissions.add(transmissionInDevice);
+                    //timeMS = endDutyCycleTimestamp;
                     continue;
                 }
 
@@ -166,7 +190,6 @@ public class TrafficFactory {
                 }
 
                 // Advance time: end transmission timestamp + silent time (duty cycle)
-                timeMS = endDutyCycleTimestamp;
 
             }
 

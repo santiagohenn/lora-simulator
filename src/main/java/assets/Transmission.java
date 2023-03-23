@@ -29,7 +29,7 @@ public class Transmission implements Comparable<Transmission> {
         toAssets = new ArrayList<>(1);
         toAssets.add(toId);
         this.channel = channel;
-        this.transmissionHash = ("" + startTransmissionTimestamp + fromId + channel).hashCode();
+        this.transmissionHash = hashCode();
     }
 
     /**
@@ -43,7 +43,7 @@ public class Transmission implements Comparable<Transmission> {
         this.fromId = fromId;
         this.toAssets = toAssets;
         this.channel = channel;
-        this.transmissionHash = ("" + startTransmissionTimestamp + fromId + channel).hashCode();
+        this.transmissionHash = hashCode();
     }
 
     public long getStartTransmissionTimestamp() {
@@ -129,7 +129,7 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public int hashCode() {
-        return transmissionHash;
+        return ("" + startTransmissionTimestamp + fromId + channel).hashCode();
     }
 
 }
