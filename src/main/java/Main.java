@@ -34,15 +34,19 @@ public class Main {
             Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
 
-        int nOfRuns = 10;
+        int nOfRuns = 30;
 
-        for (int nodes = 20; nodes <= 180; nodes += 20) {
+        for (int nodes = 10; nodes <= 180; nodes += 10) {
+
+            long simTime = 0;
 
             List<String> averageStats = new ArrayList<>();
 
             for (int run = 0; run < nOfRuns; run++) {
 
+                long tic = System.currentTimeMillis();
                 Log.info("Run " + (run + 1) + "/" + nOfRuns + " for " + nodes + " nodes");
+//                positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
                 positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
                 ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
 //                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
@@ -54,8 +58,12 @@ public class Main {
                 network.simulateTraffic();
                 networkAnalyzer.analyzeTraffic(network);
                 averageSimulationResult(nOfRuns, averageStats, networkAnalyzer.getPacketStatistics());
+                simTime += (System.currentTimeMillis() - tic);
 
             }
+
+            Log.debug("Time elapsed for " + nodes + " nodes: " + simTime/nOfRuns + " [ms]");
+
             Log.info("Saving data for " + nodes + " nodes");
             networkAnalyzer.setPacketStatistics(averageStats);
             networkAnalyzer.saveData(network, outputPath, nodes + "N");

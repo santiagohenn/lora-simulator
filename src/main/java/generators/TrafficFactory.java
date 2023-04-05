@@ -3,7 +3,6 @@ package generators;
 import assets.Transmission;
 import assets.Transmitter;
 import network.Network;
-import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.jetbrains.annotations.NotNull;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Log;
@@ -119,7 +118,9 @@ public class TrafficFactory {
 
             } else {
                 transmissionPending = null;
-                timeMS = i.getStart() - timeShiftBackMS;
+//                timeMS = i.getStart() - timeShiftBackMS;
+                timeMS = generateRandomLong(i.getStart() - timeShiftBackMS, i.getStart());
+
             }
 
             while (timeMS <= i.getEnd()) {
@@ -276,15 +277,41 @@ public class TrafficFactory {
      * Compute the elapsed time with an X% chance of containing an event given a certain rate
      * using the CDF (Cumulative Distribution Function)
      * **/
+//    public double poissonInterval(double lambda, double probability) {
+//        PoissonDistribution poisson = new PoissonDistribution(lambda);
+//        double cdf = 0.0;
+//        int t = 0;
+//        while (cdf < probability) {
+//            cdf += poisson.probability(t);
+//            t++;
+//        }
+//        return t / lambda;
+//    }
+
+    /**
+     * Compute the elapsed time with an X% chance of containing an event given a certain rate
+     * using the CDF (Cumulative Distribution Function)
+     * **/
     public double poissonInterval(double lambda, double probability) {
-        PoissonDistribution poisson = new PoissonDistribution(lambda);
-        double cdf = 0.0;
-        int t = 0;
-        while (cdf < probability) {
-            cdf += poisson.probability(t);
-            t++;
+        return - Math.log(1 - probability) / lambda;
+    }
+
+    private long generateRandomLong(long min, long max) {
+
+        return min + (long) (getRandomDouble() * (max - min));
+
+    }
+
+    private double getRandomDouble() {
+        Random r;
+        try {
+            r = SecureRandom.getInstanceStrong();
+        } catch (NoSuchAlgorithmException e) {
+            Log.error("Random NoSuchAlgorithmException error");
+            e.printStackTrace();
+            return 0D;
         }
-        return t / lambda;
+        return r.nextDouble();
     }
 
 }

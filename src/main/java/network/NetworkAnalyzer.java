@@ -29,7 +29,8 @@ public class NetworkAnalyzer {
                 .filter(t -> t.getStatus() != 2)
                 .collect(Collectors.toList());
 
-        TreeSet<Transmission> collisions = new TreeSet<>();
+        HashSet<Transmission> collisions = new HashSet<>();
+        HashSet<Transmission> successful = new HashSet<>();
 
         // Do this for each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
@@ -46,11 +47,12 @@ public class NetworkAnalyzer {
 //                    .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
 //                    .iterator();
 
-            // Take the first transmission
+            // TODO: Check this
             if (!transmissionIterator.hasNext()) {
                 continue;
             }
 
+            // Take the first transmission
             Transmission transmissionInGateway = transmissionIterator.next();
 
             if (!transmissionIterator.hasNext()) {
@@ -75,6 +77,9 @@ public class NetworkAnalyzer {
                 transmissionInGateway = nextTransmission;
 
             }
+
+            successful.addAll(transmissionsSent.stream()
+                    .filter(t -> t.getStatus() == 0).collect(Collectors.toList()));
 
 //            Log.debug("debugCollisionCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 1).count());
 //            Log.debug("debugSuccessCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 0).count());
@@ -121,11 +126,11 @@ public class NetworkAnalyzer {
 //
 //        }
 
-        sampledAnalysis(network, collisions);
+        sampledAnalysis(network, collisions, successful);
 
     }
 
-    private void sampledAnalysis(Network network, TreeSet<Transmission> collisions) {
+    private void sampledAnalysis(Network network, HashSet<Transmission> collisions, HashSet<Transmission> successful) {
 
         long sampleStepMS = (long) (sampleStepSeconds * 1000); // To ms
         long epochTimeMS = 0;
@@ -152,6 +157,11 @@ public class NetworkAnalyzer {
                             && (t.getStatus() == 0 || t.getStatus() == 3)))
                     .distinct()
                     .count();
+
+//            successfulPackets = successful.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime))
+//                    .count();
 
             collidedPackets = collisions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
