@@ -111,14 +111,11 @@ public class TrafficFactory {
             if (transmissionPending != null && transmissionPending.getFromId() == i.getFirstFrom()) {
 
                 // TODO
-
                 Log.warn("PENDING PACKET");
-
                 timeMS = transmissionPending.getEndTransmissionTimestamp();
 
             } else {
                 transmissionPending = null;
-//                timeMS = i.getStart() - timeShiftBackMS;
                 timeMS = generateRandomLong(i.getStart() - timeShiftBackMS, i.getStart());
 
             }
@@ -130,10 +127,10 @@ public class TrafficFactory {
 //                Log.debug("-> " + nextTransmissionAfterMS);
 
                 // Update status of transmitter
-                transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
+                transmitters.get(i.getFirstFrom()).updateStatus(timeMS); // TODO Make this return status and avoid next statement
 
                 // Check if transmitter is blocked
-                if (transmitters.get(i.getFirstFrom()).isBlocked()) {
+                if (transmitters.get(i.getFirstFrom()).isBlocked()) { // This is the next statement
                     continue;
                 }
 
@@ -177,8 +174,7 @@ public class TrafficFactory {
                 transmitters.get(i.getFirstFrom()).transmit(transmissionInDevice);
 
                 if (packetStatus == 2) {
-                    //transmissions.add(transmissionInDevice);
-                    //timeMS = endDutyCycleTimestamp;
+                    // If no one hears the transmission, continue
                     continue;
                 }
 
@@ -189,8 +185,6 @@ public class TrafficFactory {
                     transmissionInGateway.setStatus(packetStatus);
                     transmissions.add(transmissionInGateway);
                 }
-
-                // Advance time: end transmission timestamp + silent time (duty cycle)
 
             }
 

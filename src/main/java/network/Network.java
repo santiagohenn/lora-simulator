@@ -40,7 +40,7 @@ public class Network {
     public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
         this.timeStepSeconds = timeStepSeconds;
         this.timeOnAirMS = timeOnAirMS;
-        this.dutyCycleSilentTimeMS = ((100 - dutyCyclePercentage) * timeOnAirMS);
+        this.dutyCycleSilentTimeMS = (((100 - dutyCyclePercentage) * timeOnAirMS) - timeOnAirMS); // TODO REMOVE -timeOnAirMS
         this.frameGenerationRatePacketsPerSecond = frameGenerationRate;
     }
 

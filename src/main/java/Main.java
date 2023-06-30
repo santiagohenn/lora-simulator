@@ -24,7 +24,7 @@ public class Main {
         network.setSatellites(satellites);
 
         PositionsFactory positionsFactory = new PositionsFactory();
-        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(25);
+        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(15);
 
         ReportFactory rf = new ReportFactory(outputPath);
 
@@ -34,9 +34,9 @@ public class Main {
             Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
 
-        int nOfRuns = 30;
+        int nOfRuns = 1;
 
-        for (int nodes = 10; nodes <= 180; nodes += 10) {
+        for (int nodes = 10; nodes <= 100; nodes += 10) {
 
             long simTime = 0;
 
@@ -46,7 +46,6 @@ public class Main {
 
                 long tic = System.currentTimeMillis();
                 Log.info("Run " + (run + 1) + "/" + nOfRuns + " for " + nodes + " nodes");
-//                positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
                 positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
                 ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
 //                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
