@@ -1,0 +1,85 @@
+[WARN ] 2023-07-02 16:54:44.735 [main] Log - Unable to find file: C:\Users\Santi\Desktop\STARS\throughput_pipeline\satellites.csv
+[DEBUG] 2023-07-02 16:54:44.922 [main] Log - Loading orbital data: itrf.versions.conf, tai-utc.dat, finals2000A.all
+[DEBUG] 2023-07-02 16:54:44.927 [main] Log - Loaded datasets: []
+[INFO ] 2023-07-02 16:54:47.692 [main] Network - Simulation start unix timestamp: 1641052800000 
+[WARN ] 2023-07-02 16:54:47.735 [main] Log - N of Satellites = 0 => Satellites > 1 => MG mode
+[INFO ] 2023-07-02 16:54:47.752 [main] Log - Run 1/1 for 10 nodes
+[WARN ] 2023-07-02 16:54:48.501 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:48.517 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:48.517 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:48.533 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:48.533 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:48.642 [main] Log - Time elapsed for 10 nodes: 891 [ms]
+[INFO ] 2023-07-02 16:54:48.642 [main] Log - Saving data for 10 nodes
+[INFO ] 2023-07-02 16:54:48.673 [main] Log - Run 1/1 for 20 nodes
+[WARN ] 2023-07-02 16:54:48.689 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:48.689 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:48.689 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:48.689 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:48.689 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:48.829 [main] Log - Time elapsed for 20 nodes: 156 [ms]
+[INFO ] 2023-07-02 16:54:48.829 [main] Log - Saving data for 20 nodes
+[INFO ] 2023-07-02 16:54:48.829 [main] Log - Run 1/1 for 30 nodes
+[WARN ] 2023-07-02 16:54:48.861 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:48.861 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:48.861 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:48.861 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:48.861 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:48.892 [main] Log - Time elapsed for 30 nodes: 63 [ms]
+[INFO ] 2023-07-02 16:54:48.892 [main] Log - Saving data for 30 nodes
+[INFO ] 2023-07-02 16:54:48.908 [main] Log - Run 1/1 for 40 nodes
+[WARN ] 2023-07-02 16:54:48.939 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:48.939 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:48.939 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:48.939 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:48.939 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:48.970 [main] Log - Time elapsed for 40 nodes: 62 [ms]
+[INFO ] 2023-07-02 16:54:48.970 [main] Log - Saving data for 40 nodes
+[INFO ] 2023-07-02 16:54:48.970 [main] Log - Run 1/1 for 50 nodes
+[WARN ] 2023-07-02 16:54:49.001 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:49.001 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:49.001 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:49.001 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:49.001 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:49.033 [main] Log - Time elapsed for 50 nodes: 63 [ms]
+[INFO ] 2023-07-02 16:54:49.033 [main] Log - Saving data for 50 nodes
+[INFO ] 2023-07-02 16:54:49.033 [main] Log - Run 1/1 for 60 nodes
+[WARN ] 2023-07-02 16:54:49.064 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:49.064 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:49.064 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:49.064 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:49.064 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:49.111 [main] Log - Time elapsed for 60 nodes: 78 [ms]
+[INFO ] 2023-07-02 16:54:49.111 [main] Log - Saving data for 60 nodes
+[INFO ] 2023-07-02 16:54:49.111 [main] Log - Run 1/1 for 70 nodes
+[WARN ] 2023-07-02 16:54:49.158 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:49.158 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:49.158 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:49.158 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:49.158 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:49.220 [main] Log - Time elapsed for 70 nodes: 109 [ms]
+[INFO ] 2023-07-02 16:54:49.220 [main] Log - Saving data for 70 nodes
+[INFO ] 2023-07-02 16:54:49.282 [main] Log - Run 1/1 for 80 nodes
+[WARN ] 2023-07-02 16:54:49.361 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:49.361 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:49.361 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:49.361 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:49.361 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:49.376 [main] Log - Time elapsed for 80 nodes: 94 [ms]
+[INFO ] 2023-07-02 16:54:49.376 [main] Log - Saving data for 80 nodes
+[INFO ] 2023-07-02 16:54:49.407 [main] Log - Run 1/1 for 90 nodes
+[WARN ] 2023-07-02 16:54:49.552 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:49.552 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:49.552 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:49.552 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:49.552 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:49.552 [main] Log - Time elapsed for 90 nodes: 145 [ms]
+[INFO ] 2023-07-02 16:54:49.552 [main] Log - Saving data for 90 nodes
+[INFO ] 2023-07-02 16:54:49.598 [main] Log - Run 1/1 for 100 nodes
+[WARN ] 2023-07-02 16:54:49.676 [main] Network - Check assets!
+[INFO ] 2023-07-02 16:54:49.676 [main] Network - Computing access intervals
+[WARN ] 2023-07-02 16:54:49.676 [main] Network - Check assets!
+[DEBUG] 2023-07-02 16:54:49.676 [main] Log - Time shift before interval: 4605 [ms]
+[WARN ] 2023-07-02 16:54:49.676 [main] Log - No access intervals to generate traffic
+[DEBUG] 2023-07-02 16:54:49.692 [main] Log - Time elapsed for 100 nodes: 94 [ms]
+[INFO ] 2023-07-02 16:54:49.692 [main] Log - Saving data for 100 nodes

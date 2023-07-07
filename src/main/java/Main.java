@@ -15,8 +15,8 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String outputPath = "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\outputs_santi\\";
-        String satellitePath = "C:\\Users\\Santi\\Desktop\\STARS\\throughput_pipeline\\satellites.csv";
+        String outputPath = "C:\\Projects\\throughput_pipeline\\outputs_santi\\";
+        String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
 
         Network network = new Network(60.0, 10, 1, 1);
@@ -24,8 +24,7 @@ public class Main {
         network.setSatellites(satellites);
 
         PositionsFactory positionsFactory = new PositionsFactory();
-        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(15);
-
+        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(30);
         ReportFactory rf = new ReportFactory(outputPath);
 
         if (satellites.size() == 1) {
@@ -41,23 +40,24 @@ public class Main {
             long simTime = 0;
 
             List<String> averageStats = new ArrayList<>();
+            List<List<double[]>> analysisDataSets = new ArrayList<>();
+
+            positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
 
             for (int run = 0; run < nOfRuns; run++) {
 
                 long tic = System.currentTimeMillis();
                 Log.info("Run " + (run + 1) + "/" + nOfRuns + " for " + nodes + " nodes");
-                positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
+
                 ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
 //                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
 
-                rf.saveAsJSON(uniformRandomPositions, "positionsFromSimulator");
                 network.setEarthPositions(uniformRandomPositions);
                 network.computeAccessIntervals();
                 // network.getCurrentIntervals().forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
                 network.simulateTraffic();
                 networkAnalyzer.analyzeTraffic(network);
-                averageSimulationResult(nOfRuns, averageStats, networkAnalyzer.getPacketStatistics());
-                simTime += (System.currentTimeMillis() - tic);
+                analysisDataSets.add(networkAnalyzer.getDataPoints());
 
             }
 
@@ -66,6 +66,8 @@ public class Main {
             Log.info("Saving data for " + nodes + " nodes");
             networkAnalyzer.setPacketStatistics(averageStats);
             networkAnalyzer.saveData(network, outputPath, nodes + "N");
+            rf.saveAsJSON(analysisDataSets, nodes + "_N");
+
         }
 
     }

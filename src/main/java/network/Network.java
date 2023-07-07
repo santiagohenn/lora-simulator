@@ -108,7 +108,6 @@ public class Network {
 
         }
 
-
         accessIntervals = allAccesses;
 
     }

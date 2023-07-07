@@ -155,7 +155,7 @@ public class TrafficFactory {
                     // Set parameters for the transmission in the GW
                     startTransmissionTimestamp = i.getStart();
                     // Else if access to the GW is lost in the middle of the transmission, create a partial packet
-                    // to be head by the GW(s)
+                    // to be heard by the GW(s)
                 } else if (startTransmissionTimestamp < i.getEnd() && endTransmissionTimestamp >= i.getEnd()) {
                     packetStatus = 3; // 3 = partial frame
                     // Set parameters for the transmission in the GW

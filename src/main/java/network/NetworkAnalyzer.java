@@ -13,6 +13,7 @@ public class NetworkAnalyzer {
 
     private double sampleStepSeconds;
     private List<String> packetStatistics;
+    private List<double[]> dataPoints;
     static final Logger Log = LogManager.getLogger(NetworkAnalyzer.class);
 
     public NetworkAnalyzer(double sampleStepSeconds) {
@@ -21,12 +22,13 @@ public class NetworkAnalyzer {
 
     public void analyzeTraffic(Network network) {
 
-        packetStatistics = new ArrayList<>();
+        packetStatistics = new ArrayList<>(); // TODO: Remove packetStatistics
+        dataPoints = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
         // Filter transmissions that where sent to the void // TODO add conditional depending on policy
         List<Transmission> transmissionsSent = transmissions.stream()
-                .filter(t -> t.getStatus() != 2)
+                .filter(t -> t.getStatus() != 2) // TODO WARNING HERE
                 .collect(Collectors.toList());
 
         HashSet<Transmission> collisions = new HashSet<>();
@@ -34,7 +36,6 @@ public class NetworkAnalyzer {
 
         // Do this for each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
-//        for (int gwId = 0; gwId <= 0; gwId++) {
 //            Log.warn("Analyzing for gw ID " + gwId);
 
             int finalNgw = gwId;
@@ -42,10 +43,6 @@ public class NetworkAnalyzer {
                     .filter(t -> t.getToId() == finalNgw)
                     .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
                     .iterator();
-
-//            Iterator<Transmission> transmissionIterator = transmissionsSent.stream()
-//                    .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
-//                    .iterator();
 
             // TODO: Check this
             if (!transmissionIterator.hasNext()) {
@@ -56,6 +53,7 @@ public class NetworkAnalyzer {
             Transmission transmissionInGateway = transmissionIterator.next();
 
             if (!transmissionIterator.hasNext()) {
+                successful.add(transmissionInGateway);
                 continue;
             }
 
@@ -66,8 +64,7 @@ public class NetworkAnalyzer {
                 Transmission nextTransmission = transmissionIterator.next();
 
                 // If this transmission collides with the previous one, both are lost
-                if (nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()
-                        && !nextTransmission.equals(transmissionInGateway)) {
+                if (checkCollision(transmissionInGateway, nextTransmission)) {
                     transmissionInGateway.setStatus(1);
                     nextTransmission.setStatus(1);
                     collisions.add(transmissionInGateway);
@@ -79,7 +76,7 @@ public class NetworkAnalyzer {
             }
 
             successful.addAll(transmissionsSent.stream()
-                    .filter(t -> t.getStatus() == 0).collect(Collectors.toList()));
+                    .filter(t -> t.getStatus() != 1).collect(Collectors.toList()));
 
 //            Log.debug("debugCollisionCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 1).count());
 //            Log.debug("debugSuccessCount: {}", transmissionsSent.stream().filter(t -> t.getLostReason() == 0).count());
@@ -151,24 +148,23 @@ public class NetworkAnalyzer {
                     .count();
             // TODO: Try distinct here
 
-            successfulPackets = network.getTransmissions().stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime
-                            && (t.getStatus() == 0 || t.getStatus() == 3)))
-                    .distinct()
-                    .count();
-
-//            successfulPackets = successful.stream()
+//            successfulPackets = network.getTransmissions().stream()
 //                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-//                            && t.getStartTransmissionTimestamp() < currentTime))
+//                            && t.getStartTransmissionTimestamp() < currentTime
+//                            && (t.getStatus() == 0 || t.getStatus() == 3)))
+//                    .distinct()
 //                    .count();
+
+            successfulPackets = successful.stream()
+                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+                            && t.getStartTransmissionTimestamp() < currentTime))
+                    .count();
 
             collidedPackets = collisions.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime
                             && t.getStatus() == 1))
                     .count();
-            // TODO: Try distinct here too
 
             partialFrames = network.getTransmissions().stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
@@ -186,8 +182,10 @@ public class NetworkAnalyzer {
 //                        && t.getStartTransmissionTimestamp() < currentTime)).distinct().forEach(System.out::println);
 //            }
 
+            // TODO: in seconds
             packetStatistics.add(epochTimeMS / 1000.0 + "," + successfulPackets + ","
                     + collidedPackets + "," + totalPackets + "," + partialFrames);
+            dataPoints.add(new double[]{epochTimeMS, successfulPackets, collidedPackets, totalPackets, partialFrames});
 
             epochTimeMS += sampleStepMS;
 
@@ -226,6 +224,32 @@ public class NetworkAnalyzer {
     private String roundDouble(double number, int decimalPlaces) {
         double roundedNumber = Math.round(number * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
         return String.format("%." + decimalPlaces + "f", roundedNumber);
+    }
+
+    public List<double[]> getDataPoints() {
+        return dataPoints;
+    }
+
+    /** Checked cases:
+     *
+     *  t1 |------------|                   t1 |------------|
+     *       t2 |------------|       t2 |------------|
+     *
+    * **/
+    private boolean checkCollision(Transmission t1, Transmission t2) {
+
+        if (t2.getStartTransmissionTimestamp() >= t1.getStartTransmissionTimestamp()
+                && t2.getStartTransmissionTimestamp() < t1.getEndTransmissionTimestamp()) {
+            return true;
+        }
+
+        if (t1.getStartTransmissionTimestamp() >= t2.getStartTransmissionTimestamp()
+                && t1.getStartTransmissionTimestamp() < t2.getEndTransmissionTimestamp()) {
+            return true;
+        }
+
+        return false;
+
     }
 
 }

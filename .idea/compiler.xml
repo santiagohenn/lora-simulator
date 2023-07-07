@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="lora-simulator" target="11" />
+      <module name="lora-simulator" target="16" />
     </bytecodeTargetLevel>
   </component>
 </project>
