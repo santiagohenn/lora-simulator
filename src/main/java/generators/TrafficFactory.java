@@ -10,6 +10,7 @@ import satellite.tools.utils.Log;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TrafficFactory {
 
@@ -99,7 +100,11 @@ public class TrafficFactory {
             return transmissions;
         }
 
-        ListIterator<Interval> intervalIterator = intervals.listIterator();
+        // Sort intervals. TODO: Maybe this is not necessary
+        ListIterator<Interval> intervalIterator = intervals.stream()
+                .sorted(Comparator.comparingLong(Interval::getStart))
+                .collect(Collectors.toList()).listIterator();
+
         Transmission transmissionPending = null;
 
         while (intervalIterator.hasNext()) {
@@ -263,7 +268,7 @@ public class TrafficFactory {
             e.printStackTrace();
             return -1L;
         }
-        return -Math.log(1.0 - r.nextDouble()) / rate;
+        return -Math.log(1.00000000 - r.nextDouble()) / rate;
 
     }
 

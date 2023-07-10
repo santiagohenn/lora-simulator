@@ -262,3 +262,175 @@
 [DEBUG] 2023-07-07 15:31:16.807 [main] Log - Time shift before interval: 4605 [ms]
 [DEBUG] 2023-07-07 15:31:23.525 [main] Log - Time elapsed for 100 nodes: 0 [ms]
 [INFO ] 2023-07-07 15:31:23.525 [main] Log - Saving data for 100 nodes
+[DEBUG] 2023-07-07 15:42:09.373 [main] Log - Loading orbital data: itrf.versions.conf, tai-utc.dat, finals2000A.all
+[DEBUG] 2023-07-07 15:42:09.373 [main] Log - Loaded datasets: []
+[INFO ] 2023-07-07 15:42:10.749 [main] Network - Simulation start unix timestamp: 1641052800000 
+[WARN ] 2023-07-07 15:42:10.755 [main] Log - N of Satellites = 1 => Satellites == 1 => SG mode
+[INFO ] 2023-07-07 15:42:10.755 [main] Log - Run 1/1 for 10 nodes
+[DEBUG] 2023-07-07 15:42:11.411 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:12.699 [main] Log - Time elapsed for 10 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:12.699 [main] Log - Saving data for 10 nodes
+[INFO ] 2023-07-07 15:42:12.941 [main] Log - Run 1/1 for 20 nodes
+[DEBUG] 2023-07-07 15:42:13.092 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:14.987 [main] Log - Time elapsed for 20 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:14.987 [main] Log - Saving data for 20 nodes
+[INFO ] 2023-07-07 15:42:15.072 [main] Log - Run 1/1 for 30 nodes
+[DEBUG] 2023-07-07 15:42:15.223 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:17.864 [main] Log - Time elapsed for 30 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:17.864 [main] Log - Saving data for 30 nodes
+[INFO ] 2023-07-07 15:42:17.911 [main] Log - Run 1/1 for 40 nodes
+[DEBUG] 2023-07-07 15:42:18.033 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:20.856 [main] Log - Time elapsed for 40 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:20.856 [main] Log - Saving data for 40 nodes
+[INFO ] 2023-07-07 15:42:20.940 [main] Log - Run 1/1 for 50 nodes
+[DEBUG] 2023-07-07 15:42:21.119 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:24.627 [main] Log - Time elapsed for 50 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:24.627 [main] Log - Saving data for 50 nodes
+[INFO ] 2023-07-07 15:42:24.696 [main] Log - Run 1/1 for 60 nodes
+[DEBUG] 2023-07-07 15:42:24.912 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:28.815 [main] Log - Time elapsed for 60 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:28.815 [main] Log - Saving data for 60 nodes
+[INFO ] 2023-07-07 15:42:28.874 [main] Log - Run 1/1 for 70 nodes
+[DEBUG] 2023-07-07 15:42:28.984 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:33.460 [main] Log - Time elapsed for 70 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:33.475 [main] Log - Saving data for 70 nodes
+[INFO ] 2023-07-07 15:42:33.562 [main] Log - Run 1/1 for 80 nodes
+[DEBUG] 2023-07-07 15:42:33.745 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:38.826 [main] Log - Time elapsed for 80 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:38.826 [main] Log - Saving data for 80 nodes
+[INFO ] 2023-07-07 15:42:38.910 [main] Log - Run 1/1 for 90 nodes
+[DEBUG] 2023-07-07 15:42:39.026 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:44.539 [main] Log - Time elapsed for 90 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:44.539 [main] Log - Saving data for 90 nodes
+[INFO ] 2023-07-07 15:42:44.624 [main] Log - Run 1/1 for 100 nodes
+[DEBUG] 2023-07-07 15:42:44.755 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:42:51.074 [main] Log - Time elapsed for 100 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:42:51.074 [main] Log - Saving data for 100 nodes
+[DEBUG] 2023-07-07 15:43:36.057 [main] Log - Loading orbital data: itrf.versions.conf, tai-utc.dat, finals2000A.all
+[DEBUG] 2023-07-07 15:43:36.065 [main] Log - Loaded datasets: []
+[INFO ] 2023-07-07 15:43:37.462 [main] Network - Simulation start unix timestamp: 1641052800000 
+[WARN ] 2023-07-07 15:43:37.462 [main] Log - N of Satellites = 1 => Satellites == 1 => SG mode
+[INFO ] 2023-07-07 15:43:37.462 [main] Log - Run 1/3 for 10 nodes
+[DEBUG] 2023-07-07 15:43:37.778 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:38.596 [main] Log - Run 2/3 for 10 nodes
+[DEBUG] 2023-07-07 15:43:38.650 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:39.398 [main] Log - Run 3/3 for 10 nodes
+[DEBUG] 2023-07-07 15:43:39.429 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:43:40.084 [main] Log - Time elapsed for 10 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:43:40.084 [main] Log - Saving data for 10 nodes
+[INFO ] 2023-07-07 15:43:40.231 [main] Log - Run 1/3 for 20 nodes
+[DEBUG] 2023-07-07 15:43:40.300 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:41.588 [main] Log - Run 2/3 for 20 nodes
+[DEBUG] 2023-07-07 15:43:41.673 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:42.923 [main] Log - Run 3/3 for 20 nodes
+[DEBUG] 2023-07-07 15:43:42.961 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:43:44.197 [main] Log - Time elapsed for 20 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:43:44.197 [main] Log - Saving data for 20 nodes
+[INFO ] 2023-07-07 15:43:44.247 [main] Log - Run 1/3 for 30 nodes
+[DEBUG] 2023-07-07 15:43:44.313 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:46.202 [main] Log - Run 2/3 for 30 nodes
+[DEBUG] 2023-07-07 15:43:46.264 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:48.084 [main] Log - Run 3/3 for 30 nodes
+[DEBUG] 2023-07-07 15:43:48.122 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:43:50.005 [main] Log - Time elapsed for 30 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:43:50.005 [main] Log - Saving data for 30 nodes
+[INFO ] 2023-07-07 15:43:50.058 [main] Log - Run 1/3 for 40 nodes
+[DEBUG] 2023-07-07 15:43:50.211 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:52.740 [main] Log - Run 2/3 for 40 nodes
+[DEBUG] 2023-07-07 15:43:52.803 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:43:55.234 [main] Log - Run 3/3 for 40 nodes
+[DEBUG] 2023-07-07 15:43:55.288 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:43:57.756 [main] Log - Time elapsed for 40 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:43:57.756 [main] Log - Saving data for 40 nodes
+[INFO ] 2023-07-07 15:43:57.793 [main] Log - Run 1/3 for 50 nodes
+[DEBUG] 2023-07-07 15:43:57.856 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:01.023 [main] Log - Run 2/3 for 50 nodes
+[DEBUG] 2023-07-07 15:44:01.085 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:04.241 [main] Log - Run 3/3 for 50 nodes
+[DEBUG] 2023-07-07 15:44:04.303 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:44:07.448 [main] Log - Time elapsed for 50 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:44:07.448 [main] Log - Saving data for 50 nodes
+[INFO ] 2023-07-07 15:44:07.484 [main] Log - Run 1/3 for 60 nodes
+[DEBUG] 2023-07-07 15:44:07.595 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:11.357 [main] Log - Run 2/3 for 60 nodes
+[DEBUG] 2023-07-07 15:44:11.420 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:15.114 [main] Log - Run 3/3 for 60 nodes
+[DEBUG] 2023-07-07 15:44:15.167 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:44:18.764 [main] Log - Time elapsed for 60 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:44:18.764 [main] Log - Saving data for 60 nodes
+[INFO ] 2023-07-07 15:44:18.854 [main] Log - Run 1/3 for 70 nodes
+[DEBUG] 2023-07-07 15:44:18.927 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:23.126 [main] Log - Run 2/3 for 70 nodes
+[DEBUG] 2023-07-07 15:44:23.197 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:27.395 [main] Log - Run 3/3 for 70 nodes
+[DEBUG] 2023-07-07 15:44:27.503 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:44:31.637 [main] Log - Time elapsed for 70 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:44:31.637 [main] Log - Saving data for 70 nodes
+[INFO ] 2023-07-07 15:44:31.706 [main] Log - Run 1/3 for 80 nodes
+[DEBUG] 2023-07-07 15:44:31.790 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:36.789 [main] Log - Run 2/3 for 80 nodes
+[DEBUG] 2023-07-07 15:44:36.895 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:41.748 [main] Log - Run 3/3 for 80 nodes
+[DEBUG] 2023-07-07 15:44:41.833 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:44:46.746 [main] Log - Time elapsed for 80 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:44:46.746 [main] Log - Saving data for 80 nodes
+[INFO ] 2023-07-07 15:44:46.853 [main] Log - Run 1/3 for 90 nodes
+[DEBUG] 2023-07-07 15:44:46.949 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:52.381 [main] Log - Run 2/3 for 90 nodes
+[DEBUG] 2023-07-07 15:44:52.460 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:44:57.927 [main] Log - Run 3/3 for 90 nodes
+[DEBUG] 2023-07-07 15:44:57.996 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:45:03.928 [main] Log - Time elapsed for 90 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:45:03.928 [main] Log - Saving data for 90 nodes
+[INFO ] 2023-07-07 15:45:04.018 [main] Log - Run 1/3 for 100 nodes
+[DEBUG] 2023-07-07 15:45:04.153 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:45:10.534 [main] Log - Run 2/3 for 100 nodes
+[DEBUG] 2023-07-07 15:45:10.623 [main] Log - Time shift before interval: 4605 [ms]
+[INFO ] 2023-07-07 15:45:16.788 [main] Log - Run 3/3 for 100 nodes
+[DEBUG] 2023-07-07 15:45:16.888 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 15:45:23.078 [main] Log - Time elapsed for 100 nodes: 0 [ms]
+[INFO ] 2023-07-07 15:45:23.078 [main] Log - Saving data for 100 nodes
+[DEBUG] 2023-07-07 16:02:11.586 [main] Log - Loading orbital data: itrf.versions.conf, tai-utc.dat, finals2000A.all
+[DEBUG] 2023-07-07 16:02:11.594 [main] Log - Loaded datasets: []
+[INFO ] 2023-07-07 16:02:13.446 [main] Network - Simulation start unix timestamp: 1641052800000 
+[WARN ] 2023-07-07 16:02:13.462 [main] Log - N of Satellites = 1 => Satellites == 1 => SG mode
+[INFO ] 2023-07-07 16:02:13.462 [main] Log - Run 1/1 for 10 nodes
+[DEBUG] 2023-07-07 16:02:13.809 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:14.907 [main] Log - Time elapsed for 10 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:14.912 [main] Log - Saving data for 10 nodes
+[INFO ] 2023-07-07 16:02:15.113 [main] Log - Run 1/1 for 20 nodes
+[DEBUG] 2023-07-07 16:02:15.616 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:17.595 [main] Log - Time elapsed for 20 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:17.595 [main] Log - Saving data for 20 nodes
+[INFO ] 2023-07-07 16:02:17.700 [main] Log - Run 1/1 for 30 nodes
+[DEBUG] 2023-07-07 16:02:17.870 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:20.966 [main] Log - Time elapsed for 30 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:20.966 [main] Log - Saving data for 30 nodes
+[INFO ] 2023-07-07 16:02:21.052 [main] Log - Run 1/1 for 40 nodes
+[DEBUG] 2023-07-07 16:02:21.275 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:24.333 [main] Log - Time elapsed for 40 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:24.333 [main] Log - Saving data for 40 nodes
+[INFO ] 2023-07-07 16:02:24.383 [main] Log - Run 1/1 for 50 nodes
+[DEBUG] 2023-07-07 16:02:24.510 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:28.246 [main] Log - Time elapsed for 50 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:28.246 [main] Log - Saving data for 50 nodes
+[INFO ] 2023-07-07 16:02:28.315 [main] Log - Run 1/1 for 60 nodes
+[DEBUG] 2023-07-07 16:02:28.447 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:32.920 [main] Log - Time elapsed for 60 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:32.920 [main] Log - Saving data for 60 nodes
+[INFO ] 2023-07-07 16:02:32.982 [main] Log - Run 1/1 for 70 nodes
+[DEBUG] 2023-07-07 16:02:33.271 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:38.022 [main] Log - Time elapsed for 70 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:38.022 [main] Log - Saving data for 70 nodes
+[INFO ] 2023-07-07 16:02:38.100 [main] Log - Run 1/1 for 80 nodes
+[DEBUG] 2023-07-07 16:02:38.201 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:43.282 [main] Log - Time elapsed for 80 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:43.282 [main] Log - Saving data for 80 nodes
+[INFO ] 2023-07-07 16:02:43.367 [main] Log - Run 1/1 for 90 nodes
+[DEBUG] 2023-07-07 16:02:43.467 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:49.016 [main] Log - Time elapsed for 90 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:49.016 [main] Log - Saving data for 90 nodes
+[INFO ] 2023-07-07 16:02:49.148 [main] Log - Run 1/1 for 100 nodes
+[DEBUG] 2023-07-07 16:02:49.264 [main] Log - Time shift before interval: 4605 [ms]
+[DEBUG] 2023-07-07 16:02:55.479 [main] Log - Time elapsed for 100 nodes: 0 [ms]
+[INFO ] 2023-07-07 16:02:55.479 [main] Log - Saving data for 100 nodes

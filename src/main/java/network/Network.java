@@ -30,6 +30,8 @@ public class Network {
     private String scenarioEndTime;
     private Simulation simulation;
 
+    private int lastSimHash = 0;
+
     public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRatePacketsPerSecond) {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRatePacketsPerSecond);
         simulation = new Simulation();
@@ -45,7 +47,7 @@ public class Network {
     }
 
     public void simulateTraffic() {
-        if (accessIntervals.isEmpty()) {
+        if (lastSimHash != getSimHashCode()) {
             Log.info("Computing access intervals");
             computeAccessIntervals();
         }
@@ -56,6 +58,7 @@ public class Network {
     public void computeAccessIntervals() {
 
         boolean includeCoverageGaps = false;
+        this.lastSimHash = getSimHashCode();
 
         List<Interval> allAccesses = new ArrayList<>();
 
@@ -167,6 +170,16 @@ public class Network {
 
     public List<Satellite> getSatellites() {
         return satellites;
+    }
+
+    private int getSimHashCode() {
+
+        // Combine the hash codes
+        int combinedHash = satellites.hashCode() * 31 + scenarioStartTime.hashCode();
+        combinedHash = combinedHash * 31 + scenarioEndTime.hashCode();
+
+        // Apply a hash function to the combined value
+        return combinedHash ^ (combinedHash >>> 16);
     }
 
     class Event implements Comparable<Event> {

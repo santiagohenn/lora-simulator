@@ -53,7 +53,7 @@ public class Main {
 //                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
 
                 network.setEarthPositions(uniformRandomPositions);
-                network.computeAccessIntervals();
+//                network.computeAccessIntervals();
                 // network.getCurrentIntervals().forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
                 network.simulateTraffic();
                 networkAnalyzer.analyzeTraffic(network);
