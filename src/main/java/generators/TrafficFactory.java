@@ -10,7 +10,6 @@ import satellite.tools.utils.Log;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TrafficFactory {
 
@@ -92,7 +91,6 @@ public class TrafficFactory {
 
         // TODO: use variable for channel
 
-        // Time interval with a 99% chance of containing a transmission
         long timeShiftBackMS = (long) (1000.0 * poissonInterval(frameGenerationRate, 0.99));
         Log.debug("Time shift before interval: " + timeShiftBackMS + " [ms]");
         if (intervals.isEmpty()) {
@@ -101,9 +99,10 @@ public class TrafficFactory {
         }
 
         // Sort intervals. TODO: Maybe this is not necessary
-        ListIterator<Interval> intervalIterator = intervals.stream()
-                .sorted(Comparator.comparingLong(Interval::getStart))
-                .collect(Collectors.toList()).listIterator();
+//        ListIterator<Interval> intervalIterator = intervals.stream()
+//                .sorted(Comparator.comparingLong(Interval::getStart))
+//                .collect(Collectors.toList()).listIterator();
+        ListIterator<Interval> intervalIterator = intervals.listIterator();
 
         Transmission transmissionPending = null;
 
@@ -113,17 +112,20 @@ public class TrafficFactory {
             long timeMS;
 
             // Check for pending packets
-            if (transmissionPending != null && transmissionPending.getFromId() == i.getFirstFrom()) {
+//            if (transmissionPending != null && transmissionPending.getFromId() == i.getFirstFrom()) {
+//
+//                // TODO
+//                Log.warn("PENDING PACKET");
+//                timeMS = transmissionPending.getEndTransmissionTimestamp();
+//
+//            } else {
+//                transmissionPending = null;
+//                timeMS = generateRandomLong(i.getStart() - timeShiftBackMS, i.getStart());
+//
+//            }
 
-                // TODO
-                Log.warn("PENDING PACKET");
-                timeMS = transmissionPending.getEndTransmissionTimestamp();
-
-            } else {
-                transmissionPending = null;
-                timeMS = generateRandomLong(i.getStart() - timeShiftBackMS, i.getStart());
-
-            }
+            timeMS = generateRandomLong(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+//            int txBlockedDC = 0;
 
             while (timeMS <= i.getEnd()) {
 
@@ -136,6 +138,7 @@ public class TrafficFactory {
 
                 // Check if transmitter is blocked
                 if (transmitters.get(i.getFirstFrom()).isBlocked()) { // This is the next statement
+//                    txBlockedDC++;
                     continue;
                 }
 
@@ -190,7 +193,6 @@ public class TrafficFactory {
                     transmissionInGateway.setStatus(packetStatus);
                     transmissions.add(transmissionInGateway);
                 }
-
             }
 
         }
@@ -297,7 +299,12 @@ public class TrafficFactory {
 
     private long generateRandomLong(long min, long max) {
 
-        return min + (long) (getRandomDouble() * (max - min));
+        if (min >= max) {
+            throw new IllegalArgumentException("Invalid range: min must be less than max");
+        }
+
+        long range = max - min + 1;
+        return min + (long) (getRandomDouble() * range);
 
     }
 

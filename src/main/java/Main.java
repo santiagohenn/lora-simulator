@@ -19,7 +19,9 @@ public class Main {
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
 
-        Network network = new Network(60.0, 10, 1, 1);
+        Network network = new Network(60.0, 370, 1, 0.00614826);
+        network.scale(100);
+//        Network network = new Network(60.0, 10, 1, 1);
         network.setSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
         network.setSatellites(satellites);
 
@@ -33,9 +35,9 @@ public class Main {
             Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
 
-        int nOfRuns = 1;
+        int nOfRuns = 10;
 
-        for (int nodes = 10; nodes <= 100; nodes += 10) {
+        for (int nodes = 20; nodes <= 20; nodes += 20) {
 
             long simTime = 0;
 
@@ -44,23 +46,23 @@ public class Main {
 
             positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
 
+            long tic = System.currentTimeMillis();
             for (int run = 0; run < nOfRuns; run++) {
 
-                long tic = System.currentTimeMillis();
                 Log.info("Run " + (run + 1) + "/" + nOfRuns + " for " + nodes + " nodes");
 
                 ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
 //                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
-
                 network.setEarthPositions(uniformRandomPositions);
-//                network.computeAccessIntervals();
                 // network.getCurrentIntervals().forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
-                network.simulateTraffic();
+//                network.simulateTraffic();
+                network.testContinuousCoverage();
                 networkAnalyzer.analyzeTraffic(network);
                 analysisDataSets.add(networkAnalyzer.getDataPoints());
 
             }
 
+            simTime = System.currentTimeMillis() - tic;
             Log.debug("Time elapsed for " + nodes + " nodes: " + simTime/nOfRuns + " [ms]");
 
             Log.info("Saving data for " + nodes + " nodes");

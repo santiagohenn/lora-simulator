@@ -25,7 +25,8 @@ public class Network {
     private double timeStepSeconds;
     private long timeOnAirMS;
     private long dutyCycleSilentTimeMS;
-    private double frameGenerationRatePacketsPerSecond;
+    private double frameGenerationRate;
+    private double dutyCyclePercentage;
     private String scenarioStartTime;
     private String scenarioEndTime;
     private Simulation simulation;
@@ -39,57 +40,94 @@ public class Network {
         accessIntervals = new ArrayList<>();
     }
 
-    public void setParams(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRate) {
+    public void setParams(double timeStepSeconds, long timeOnAirMS, double dutyCyclePercentage, double frameGenerationRate) {
         this.timeStepSeconds = timeStepSeconds;
         this.timeOnAirMS = timeOnAirMS;
-        this.dutyCycleSilentTimeMS = (((100 - dutyCyclePercentage) * timeOnAirMS) - timeOnAirMS); // TODO REMOVE -timeOnAirMS
-        this.frameGenerationRatePacketsPerSecond = frameGenerationRate;
+        double avgInterArrivalTime = (timeOnAirMS / 1000.0) / frameGenerationRate;
+        this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
+        this.dutyCyclePercentage = dutyCyclePercentage;
+//        this.frameGenerationRate = ( timeOnAirSeconds / frameGenerationRate );
+        this.frameGenerationRate = frameGenerationRate;
+        Log.info("Starting simulation with: toa(ms) = " + timeOnAirMS
+                + " | avg IAT(s) = " + avgInterArrivalTime
+                + " | dc_silent(ms) = " + this.dutyCycleSilentTimeMS
+                + " | frameGenerationRate = " + this.frameGenerationRate);
+    }
+
+    public void scale(int factor) {
+//        this.timeOnAirMS /= factor;
+        this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
+        this.frameGenerationRate *= factor;
+        Log.info("Starting simulation with: toa(ms) = " + timeOnAirMS
+                + " | avg IAT(s) = " + (timeOnAirMS / 1000.0) / frameGenerationRate
+                + " | dc_silent(ms) = " + dutyCycleSilentTimeMS
+                + " | frameGenerationRate = " + frameGenerationRate);
+    }
+
+    public void testContinuousCoverage() {
+
+        long start = simulation.getStartTimeUnix();
+        long end = simulation.getEndTimeUnix();
+
+        Log.warn("Mocking 100% coverage");
+        List<Interval> intervals = new ArrayList<>();
+
+        for (Position p : earthPositions) {
+            for (Satellite s : satellites) {
+                intervals.add(new Interval(start, end, p.getId(), s.getId()));
+            }
+        }
+
+        accessIntervals = intervals;
+
+        TrafficFactory tf = new TrafficFactory(this);
+        transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void simulateTraffic() {
-        if (lastSimHash != getSimHashCode()) {
+        if (lastSimHash != getSimHashCode() || lastSimHash == 0) {
             Log.info("Computing access intervals");
             computeAccessIntervals();
         }
         TrafficFactory tf = new TrafficFactory(this); //TODO: add params to the constructor
-        transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRatePacketsPerSecond, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
     }
 
     public void computeAccessIntervals() {
 
         boolean includeCoverageGaps = false;
         this.lastSimHash = getSimHashCode();
-
+//        accessIntervals.clear();
         List<Interval> allAccesses = new ArrayList<>();
 
         if (earthPositions.isEmpty() || satellites.isEmpty()) {
-            Log.warn("Check assets!");
+            Log.warn("Check assets! Earth Positions empty? " + earthPositions.isEmpty() + " satellites empty? " + satellites.isEmpty());
             return;
         }
 
         for (Position earthPos : earthPositions) {
 
-            accessIntervals = new ArrayList<>();
+            List<Interval> thisPositionIntervals = new ArrayList<>();
 
             for (Satellite satellite : satellites) {
                 simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
                 simulation.computeAccess();
-                accessIntervals.addAll(simulation.getIntervals());
+                thisPositionIntervals.addAll(simulation.getIntervals());
             }
 
-            accessIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
+            thisPositionIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
 
             if (satellites.size() == 1) {
-                allAccesses.addAll(accessIntervals);
+                allAccesses.addAll(thisPositionIntervals);
                 continue;
             }
 
             List<Interval> combinedIntervals = new ArrayList<>();
             Set<Integer> inContact = new LinkedHashSet<>();
-            List<Event> eventList = intervals2events(accessIntervals);
+            List<Event> eventList = intervals2events(thisPositionIntervals);
             eventList = eventList.subList(1, eventList.size()); // TODO: replace with iterator
 
-            var currentInterval = accessIntervals.get(0);
+            var currentInterval = thisPositionIntervals.get(0);
             inContact.add(currentInterval.getFirstTo());
 
             for (Event event : eventList) {
@@ -177,6 +215,7 @@ public class Network {
         // Combine the hash codes
         int combinedHash = satellites.hashCode() * 31 + scenarioStartTime.hashCode();
         combinedHash = combinedHash * 31 + scenarioEndTime.hashCode();
+        combinedHash = combinedHash * 31 + earthPositions.hashCode();
 
         // Apply a hash function to the combined value
         return combinedHash ^ (combinedHash >>> 16);
