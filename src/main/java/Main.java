@@ -19,12 +19,12 @@ public class Main {
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
 
         double timeStepSeconds = 60.0;
-        double timeOnAirMS = 500;
+        double timeOnAirMS = 200;
         double dutyCyclePercentage = 1;
-        double frameGenerationRate = 0.1;
+        double frameGenerationRate = 1;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
-        Network network = new Network(timeStepSeconds, (long) timeOnAirMS, (long) dutyCyclePercentage, frameGenerationRate);
+        Network network = new Network(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
 
         Log.info("avg inter-arrival time (ms): " + (timeOnAirMS / frameGenerationRate));
 
@@ -44,7 +44,7 @@ public class Main {
             Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
 
-        int nOfRuns = 5;
+        int nOfRuns = 10;
 
         for (int nodes = 20; nodes <= 80; nodes += 20) {
 

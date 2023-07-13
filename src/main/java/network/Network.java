@@ -23,7 +23,7 @@ public class Network {
     private List<Transmission> transmissions;
 
     private double timeStepSeconds;
-    private long timeOnAirMS;
+    private double timeOnAirMS;
     private long dutyCycleSilentTimeMS;
     private double frameGenerationRate;
     private double dutyCyclePercentage;
@@ -33,14 +33,14 @@ public class Network {
 
     private int lastSimHash = 0;
 
-    public Network(double timeStepSeconds, long timeOnAirMS, long dutyCyclePercentage, double frameGenerationRatePacketsPerSecond) {
+    public Network(double timeStepSeconds, double timeOnAirMS, double dutyCyclePercentage, double frameGenerationRatePacketsPerSecond) {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRatePacketsPerSecond);
         simulation = new Simulation();
         simulation.setVisibilityThreshold(25);
         accessIntervals = new ArrayList<>();
     }
 
-    public void setParams(double timeStepSeconds, long timeOnAirMS, double dutyCyclePercentage, double frameGenerationRate) {
+    public void setParams(double timeStepSeconds, double timeOnAirMS, double dutyCyclePercentage, double frameGenerationRate) {
         this.timeStepSeconds = timeStepSeconds;
         this.timeOnAirMS = timeOnAirMS;
         double avgInterArrivalTime = (timeOnAirMS / 1000.0) / frameGenerationRate;

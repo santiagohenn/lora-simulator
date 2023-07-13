@@ -27,7 +27,7 @@ public class TrafficFactory {
     }
 
     public List<Transmission> generateTrafficPolicy3(@NotNull List<Interval> intervals, double frameGenerationRate,
-                                                     long timeOnAirMS, long dutyCycleSilentTimeMS) {
+                                                     double timeOnAirMS, double dutyCycleSilentTimeMS) {
 
         List<Transmission> transmissions = new ArrayList<>();
 
@@ -71,7 +71,7 @@ public class TrafficFactory {
 //            int txBlockedDC = 0;
 
             double endTime = i.getEnd();
-            double timeMS = generateRandomLong(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+            double timeMS = generateRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
             while (timeMS <= endTime) {
 
                 double nextTransmissionAfterMS =  (1000.0 * generatePoissonEvent(frameGenerationRate));
@@ -195,6 +195,17 @@ public class TrafficFactory {
 
         long range = max - min + 1;
         return min + (long) (getRandomDouble() * range);
+
+    }
+
+    private double generateRandomDouble(double min, double max) {
+
+        if (min >= max) {
+            throw new IllegalArgumentException("Invalid range: min must be less than max");
+        }
+
+        double range = max - min + 1D;
+        return min + (getRandomDouble() * range);
 
     }
 
