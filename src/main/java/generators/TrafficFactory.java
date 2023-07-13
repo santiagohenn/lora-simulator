@@ -26,64 +26,6 @@ public class TrafficFactory {
         network.getEarthPositions().forEach(ep -> transmitters.put(ep.getId(), new Transmitter(ep.getId())));
     }
 
-    public List<Transmission> generateTrafficPolicy1(@NotNull List<Interval> intervals, double frameGenerationRate,
-                                                     long timeOnAirMS, long dutyCycleSilentTimeMS) {
-
-        List<Transmission> transmissions = new ArrayList<>();
-
-        for (Interval i : intervals) {
-
-            long timeMS = i.getStart();
-
-            while (timeMS < i.getEnd()) {
-
-//                long nextTransmissionAfterMS = Math.round(1000.0 * generatePoissonEvent(frameGenerationRate));
-                long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
-//                Log.debug("-> " + nextTransmissionAfterMS);
-
-                // Update status of transmitter
-                transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
-
-                // Check if transmitter is blocked
-                if (transmitters.get(i.getFirstFrom()).isBlocked()) {
-                    timeMS += nextTransmissionAfterMS;
-                    continue;
-                }
-
-                long startTransmissionTimestamp = timeMS + nextTransmissionAfterMS;
-                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
-                long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
-
-                // If the satellite will be out of visibility for the next transmission, do not transmit
-                if (endTransmissionTimestamp > i.getEnd()) { // TODO: Transmit anyways and analyze later
-                    break;
-                }
-
-                // MG Transmission, used to store last transmission in the transmitter
-                transmitters.get(i.getFirstFrom()).transmit(new Transmission(startTransmissionTimestamp,
-                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFromAssets().get(0),
-                        i.getToAssets(), 1)); // TODO: Replace fromAssets for int
-
-
-                // SG Transmissions to each gateway, used for analysis // TODO: replace with lambda
-                for (Integer gwIdx : i.getToAssets()) {
-                    Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
-                            endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
-
-                    transmissions.add(tx);
-                }
-
-                // Advance time: end transmission timestamp + silent time (duty cycle)
-                timeMS = endDutyCycleTimestamp;
-
-            }
-
-        }
-
-        return transmissions;
-
-    }
-
     public List<Transmission> generateTrafficPolicy3(@NotNull List<Interval> intervals, double frameGenerationRate,
                                                      long timeOnAirMS, long dutyCycleSilentTimeMS) {
 
@@ -197,62 +139,6 @@ public class TrafficFactory {
                     transmissionInGateway.setStatus(packetStatus);
                     transmissions.add(transmissionInGateway);
                 }
-            }
-
-        }
-
-        return transmissions;
-
-    }
-
-
-    public List<Transmission> generateTrafficPolicy2(@NotNull List<Interval> intervals, double frameGenerationRate,
-                                                     long timeOnAirMS, long dutyCycleSilentTimeMS) {
-
-        List<Transmission> transmissions = new ArrayList<>();
-
-        Log.debug("duty cycle silent time (ms) - " + dutyCycleSilentTimeMS);
-        Log.debug("time on air (ms) - " + timeOnAirMS);
-
-        for (Interval i : intervals) {
-
-            long timeMS = i.getStart();
-
-            Transmission lastSuccessfulTransmission = null;
-
-            // Advance time to next transmission
-            long nextTransmissionAfterMS = (long) (generatePoissonEvent(frameGenerationRate));
-
-            timeMS += nextTransmissionAfterMS;
-
-            while (timeMS < i.getEnd()) {
-
-                long startTransmissionTimestamp = timeMS;
-                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
-
-                Transmission tx = new Transmission(startTransmissionTimestamp, endTransmissionTimestamp,
-                        endTransmissionTimestamp + dutyCycleSilentTimeMS,
-                        i.getFirstFrom(), -1, 1);
-
-                // If the satellite will be out of visibility for the next transmission, do not transmit
-                if (endTransmissionTimestamp > i.getEnd()) {
-                    break;
-                }
-
-                if (lastSuccessfulTransmission != null && startTransmissionTimestamp < lastSuccessfulTransmission.getEndDutyCycleSilentTime()) {
-                    // Transmission lost due to duty cycle
-                    tx.setStatus(2);
-                } else {
-                    // Transmit successfully
-                    lastSuccessfulTransmission = tx;
-                }
-
-                transmissions.add(tx);
-
-                // Advance time to next transmission
-                nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
-                timeMS += nextTransmissionAfterMS;
-
             }
 
         }
