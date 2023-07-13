@@ -17,10 +17,19 @@ public class Main {
 
         String outputPath = "C:\\Projects\\throughput_pipeline\\outputs_santi\\";
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
-        List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
 
-        Network network = new Network(60.0, 370, 1, 0.00614826);
-        network.scale(100);
+        double timeStepSeconds = 60.0;
+        double timeOnAirMS = 500;
+        double dutyCyclePercentage = 1;
+        double frameGenerationRate = 0.1;
+
+        List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
+        Network network = new Network(timeStepSeconds, (long) timeOnAirMS, (long) dutyCyclePercentage, frameGenerationRate);
+
+        Log.info("avg inter-arrival time (ms): " + (timeOnAirMS / frameGenerationRate));
+
+//        network.boostRate(10);
+//        network.scale(10);
 //        Network network = new Network(60.0, 10, 1, 1);
         network.setSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
         network.setSatellites(satellites);
@@ -35,16 +44,16 @@ public class Main {
             Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
 
-        int nOfRuns = 10;
+        int nOfRuns = 5;
 
-        for (int nodes = 20; nodes <= 20; nodes += 20) {
+        for (int nodes = 20; nodes <= 80; nodes += 20) {
 
             long simTime = 0;
 
             List<String> averageStats = new ArrayList<>();
             List<List<double[]>> analysisDataSets = new ArrayList<>();
 
-            positionsFactory.setParams(nodes, -31.6, -65.9, 7.1946);
+            positionsFactory.setParams(nodes, -31.6, -65.9, 7.1957);
 
             long tic = System.currentTimeMillis();
             for (int run = 0; run < nOfRuns; run++) {

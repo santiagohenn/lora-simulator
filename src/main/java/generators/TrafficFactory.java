@@ -106,10 +106,11 @@ public class TrafficFactory {
 
         Transmission transmissionPending = null;
 
+        // Each interval corresponds to an end device
         while (intervalIterator.hasNext()) {
 
             Interval i = intervalIterator.next();
-            long timeMS;
+//            long timeMS;
 
             // Check for pending packets
 //            if (transmissionPending != null && transmissionPending.getFromId() == i.getFirstFrom()) {
@@ -124,12 +125,14 @@ public class TrafficFactory {
 //
 //            }
 
-            timeMS = generateRandomLong(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+//            timeMS
 //            int txBlockedDC = 0;
 
-            while (timeMS <= i.getEnd()) {
+            double endTime = i.getEnd();
+            double timeMS = generateRandomLong(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+            while (timeMS <= endTime) {
 
-                long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
+                double nextTransmissionAfterMS =  (1000.0 * generatePoissonEvent(frameGenerationRate));
                 timeMS += nextTransmissionAfterMS;
 //                Log.debug("-> " + nextTransmissionAfterMS);
 
@@ -143,14 +146,15 @@ public class TrafficFactory {
                 }
 
                 // Prepare new transmission
-                long startTransmissionTimestamp = timeMS;
-                long endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
-                long endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
+                double startTransmissionTimestamp = timeMS;
+                double endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
+                double endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
                 int packetStatus = 0;
 
                 Transmission transmissionInDevice = new Transmission(startTransmissionTimestamp,
                         endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
                         i.getToAssets(), 1);
+
 
                 // If the transmission stops before the start of the satellite access interval
                 // transmit and block the device, but no frame is received by any GW
@@ -217,7 +221,7 @@ public class TrafficFactory {
             Transmission lastSuccessfulTransmission = null;
 
             // Advance time to next transmission
-            long nextTransmissionAfterMS = (long) (1000.0 * generatePoissonEvent(frameGenerationRate));
+            long nextTransmissionAfterMS = (long) (generatePoissonEvent(frameGenerationRate));
 
             timeMS += nextTransmissionAfterMS;
 
@@ -270,7 +274,7 @@ public class TrafficFactory {
             e.printStackTrace();
             return -1L;
         }
-        return -Math.log(1.00000000 - r.nextDouble()) / rate;
+        return - Math.log(1.0 - r.nextDouble()) / rate;
 
     }
 

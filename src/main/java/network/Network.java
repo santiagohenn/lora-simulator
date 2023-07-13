@@ -54,8 +54,13 @@ public class Network {
                 + " | frameGenerationRate = " + this.frameGenerationRate);
     }
 
+    public void boostRate(int factor) {
+
+        this.frameGenerationRate *= factor;
+    }
+
     public void scale(int factor) {
-//        this.timeOnAirMS /= factor;
+        this.timeOnAirMS /= factor;
         this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
         this.frameGenerationRate *= factor;
         Log.info("Starting simulation with: toa(ms) = " + timeOnAirMS
@@ -79,9 +84,9 @@ public class Network {
         }
 
         accessIntervals = intervals;
-
         TrafficFactory tf = new TrafficFactory(this);
         transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+
     }
 
     public void simulateTraffic() {

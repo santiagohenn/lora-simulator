@@ -41,7 +41,7 @@ public class NetworkAnalyzer {
             int finalNgw = gwId;
             Iterator<Transmission> transmissionIterator = transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw)
-                    .sorted(Comparator.comparingLong(Transmission::getStartTransmissionTimestamp))
+                    .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
                     .iterator();
 
             // TODO: Check this
@@ -102,21 +102,21 @@ public class NetworkAnalyzer {
 
         long sampleStepMS = (long) (sampleStepSeconds * 1000); // To ms
         long epochTimeMS = 0;
-        long successfulPackets;
-        long collidedPackets;
-        long partialFrames;
-        long totalPackets;
+        long successfulPackets = 0;
+        long collidedPackets = 0;
+        long partialFrames = 0;
+        long totalPackets = 0;
 
         for (long time = Utils.stamp2unix(network.getSimulationStartTime()) + sampleStepMS;
              time <= Utils.stamp2unix(network.getSimulationEndTime()); time += sampleStepMS) {
 
             long currentTime = time;
 
-            totalPackets = network.getTransmissions().stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime))
-                    .distinct()
-                    .count();
+//            totalPackets = network.getTransmissions().stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime))
+//                    .distinct()
+//                    .count();
 
             // TODO: Try distinct here
 
@@ -138,18 +138,18 @@ public class NetworkAnalyzer {
 //                            && t.getStartTransmissionTimestamp() < currentTime))
 //                    .count();
 
-            collidedPackets = collisions.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime
-                            && (t.getStatus() == 1 || t.getStatus() == 4)))
-                    .count();
-
-            partialFrames = network.getTransmissions().stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime
-                            && (t.getStatus() == 3 || t.getStatus() == 4)))
-                    .distinct()
-                    .count();
+//            collidedPackets = collisions.stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime
+//                            && (t.getStatus() == 1 || t.getStatus() == 4)))
+//                    .count();
+//
+//            partialFrames = network.getTransmissions().stream()
+//                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
+//                            && t.getStartTransmissionTimestamp() < currentTime
+//                            && (t.getStatus() == 3 || t.getStatus() == 4)))
+//                    .distinct()
+//                    .count();
 
             // Compute the channel usage for partial frames that successfully reached a GW:
             double partialFrameChannelUsageSeconds = 0;

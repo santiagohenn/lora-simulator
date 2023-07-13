@@ -20,8 +20,8 @@ public class Transmitter {
         block();
     }
 
-    public void updateStatus(long timeMS) {
-        if (this.isBlocked() && this.lastTransmission.getEndDutyCycleSilentTime() <= timeMS) {
+    public void updateStatus(double time) {
+        if (this.isBlocked() && this.lastTransmission.getEndDutyCycleSilentTime() <= time) {
             this.unblock();
         }
     }

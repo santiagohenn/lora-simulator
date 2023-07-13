@@ -96,7 +96,7 @@ public class ReportFactory {
     public void printTransmissions(List<Transmission> transmissions) {
         System.out.println("### Transmissions ###");
         transmissions.forEach(System.out::println);
-        transmissions.forEach(t -> System.out.println(Utils.unix2stamp(t.getStartTransmissionTimestamp()) + " -> " + t));
+        transmissions.forEach(t -> System.out.println(Utils.unix2stamp((long) t.getStartTransmissionTimestamp()) + " -> " + t));
     }
 
     public void printSatelliteInfo(Satellite sat) {

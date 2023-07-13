@@ -8,19 +8,19 @@ import java.util.List;
 public class Transmission implements Comparable<Transmission> {
 
     private final int transmissionHash;
-    private final long startTransmissionTimestamp;
+    private final double startTransmissionTimestamp;
     private final List<Integer> toAssets;
     private final int fromId;
     private final int channel;
-    private long endTransmissionTimestamp;
-    private long endDutyCycleSilentTime;
-    private long timeOnAirMilliSeconds;
+    private double endTransmissionTimestamp;
+    private double endDutyCycleSilentTime;
+    private double timeOnAirMilliSeconds;
     private int status = 0;
 
     /**
      * Single gateway constructor
      **/
-    public Transmission(long startTransmissionTimestamp, long endTransmissionTimestamp, long endDutyCycleSilentTime,
+    public Transmission(double startTransmissionTimestamp, double endTransmissionTimestamp, double endDutyCycleSilentTime,
                         int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = startTransmissionTimestamp;
         this.endTransmissionTimestamp = endTransmissionTimestamp;
@@ -35,7 +35,7 @@ public class Transmission implements Comparable<Transmission> {
     /**
      * Multi gateway constructor
      **/
-    public Transmission(long startTransmissionTimestamp, long endTransmissionTimestamp, long endDutyCycleSilentTime,
+    public Transmission(double startTransmissionTimestamp, double endTransmissionTimestamp, double endDutyCycleSilentTime,
                         int fromId, List<Integer> toAssets, int channel) {
         this.endTransmissionTimestamp = endTransmissionTimestamp;
         this.endDutyCycleSilentTime = endDutyCycleSilentTime;
@@ -46,7 +46,7 @@ public class Transmission implements Comparable<Transmission> {
         this.transmissionHash = hashCode();
     }
 
-    public long getStartTransmissionTimestamp() {
+    public double getStartTransmissionTimestamp() {
         return startTransmissionTimestamp;
     }
 
@@ -67,7 +67,7 @@ public class Transmission implements Comparable<Transmission> {
         return channel;
     }
 
-    public long getEndTransmissionTimestamp() {
+    public double getEndTransmissionTimestamp() {
         return endTransmissionTimestamp;
     }
 
@@ -76,7 +76,7 @@ public class Transmission implements Comparable<Transmission> {
         this.endDutyCycleSilentTime = endTransmissionTimestamp;
     }
 
-    public long getTimeOnAirMilliSeconds() {
+    public double getTimeOnAirMilliSeconds() {
         return timeOnAirMilliSeconds;
     }
 
@@ -84,7 +84,7 @@ public class Transmission implements Comparable<Transmission> {
         this.timeOnAirMilliSeconds = timeOnAirMilliSeconds;
     }
 
-    public long getEndDutyCycleSilentTime() {
+    public double getEndDutyCycleSilentTime() {
         return endDutyCycleSilentTime;
     }
 
@@ -124,7 +124,7 @@ public class Transmission implements Comparable<Transmission> {
         if (o.equals(this)) {
             return 0;
         }
-        return Long.compare(this.startTransmissionTimestamp, o.startTransmissionTimestamp);
+        return Double.compare(this.startTransmissionTimestamp, o.startTransmissionTimestamp);
     }
 
     @Override
