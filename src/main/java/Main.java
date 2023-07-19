@@ -18,9 +18,9 @@ public class Main {
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
 
         double timeStepSeconds = 60.0;
-        double timeOnAirMS = 20;
+        double timeOnAirMS = 200;
         double dutyCyclePercentage = 1;
-        double frameGenerationRate = 10;
+        double frameGenerationRate = 1;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
         Network network = new Network(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
@@ -34,19 +34,12 @@ public class Main {
         NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(30);
         ReportFactory rf = new ReportFactory(outputPath);
 
-        if (satellites.size() == 1) {
-            Log.warn("N of Satellites = " + satellites.size() + " => Satellites == 1 => SG mode");
-        } else {
-            Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
-        }
-
-        int nOfRuns = 10;
+        int nOfRuns = 5;
 
         for (int nodes = 20; nodes <= 80; nodes += 20) {
 
-            long simTime = 0;
+            long simTime;
 
-            List<String> averageStats = new ArrayList<>();
             List<List<double[]>> analysisDataSets = new ArrayList<>();
 
             positionsFactory.setParams(nodes, -31.6, -65.9, 7.1957);

@@ -155,12 +155,12 @@ public class NetworkAnalyzer {
     private boolean checkCollision(Transmission t1, Transmission t2) {
 
         if (t2.getStartTransmissionTimestamp() >= t1.getStartTransmissionTimestamp()
-                && t2.getStartTransmissionTimestamp() <= t1.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
+                && t2.getStartTransmissionTimestamp() < t1.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
             return true;
         }
 
         if (t1.getStartTransmissionTimestamp() >= t2.getStartTransmissionTimestamp()
-                && t1.getStartTransmissionTimestamp() <= t2.getEndTransmissionTimestamp()) {
+                && t1.getStartTransmissionTimestamp() < t2.getEndTransmissionTimestamp()) {
             return true;
         }
 

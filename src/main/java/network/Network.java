@@ -46,27 +46,11 @@ public class Network {
         double avgInterArrivalTime = (timeOnAirMS / 1000.0) / frameGenerationRate;
         this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
         this.dutyCyclePercentage = dutyCyclePercentage;
-//        this.frameGenerationRate = ( timeOnAirSeconds / frameGenerationRate );
         this.frameGenerationRate = frameGenerationRate;
         Log.info("Starting simulation with: toa(ms) = " + timeOnAirMS
                 + " | avg IAT(s) = " + avgInterArrivalTime
                 + " | dc_silent(ms) = " + this.dutyCycleSilentTimeMS
                 + " | frameGenerationRate = " + this.frameGenerationRate);
-    }
-
-    public void boostRate(int factor) {
-
-        this.frameGenerationRate *= factor;
-    }
-
-    public void scale(int factor) {
-        this.timeOnAirMS /= factor;
-        this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
-        this.frameGenerationRate *= factor;
-        Log.info("Starting simulation with: toa(ms) = " + timeOnAirMS
-                + " | avg IAT(s) = " + (timeOnAirMS / 1000.0) / frameGenerationRate
-                + " | dc_silent(ms) = " + dutyCycleSilentTimeMS
-                + " | frameGenerationRate = " + frameGenerationRate);
     }
 
     public void testContinuousCoverage() {
@@ -180,6 +164,11 @@ public class Network {
     }
 
     public void setSatellites(List<Satellite> satellites) {
+        if (satellites.size() == 1) {
+            Log.warn("N of Satellites = " + satellites.size() + " => Satellites == 1 => SG mode");
+        } else {
+            Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
+        }
         this.satellites = satellites;
     }
 
