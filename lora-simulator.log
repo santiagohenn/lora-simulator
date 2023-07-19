@@ -2245,3 +2245,61 @@
 [INFO ] 2023-07-19 15:04:18.312 [main] Log - Run 4/10 for 60 nodes
 [WARN ] 2023-07-19 15:04:18.354 [main] Network - Mocking 100% coverage
 [DEBUG] 2023-07-19 15:04:18.355 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:07:10.439 [main] NetworkAnalyzer - debug total TX in GW: 51421
+[DEBUG] 2023-07-19 15:07:10.439 [main] NetworkAnalyzer - debug successful: 16620
+[DEBUG] 2023-07-19 15:07:10.439 [main] NetworkAnalyzer - debug collisions: 34801
+[DEBUG] 2023-07-19 15:07:10.454 [main] NetworkAnalyzer - debug partial and successful: 1
+[DEBUG] 2023-07-19 15:07:10.454 [main] NetworkAnalyzer - debug partial and collided: 0
+[INFO ] 2023-07-19 15:07:10.548 [main] Log - Run 5/10 for 60 nodes
+[WARN ] 2023-07-19 15:07:10.564 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:07:10.564 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:10:05.051 [main] NetworkAnalyzer - debug total TX in GW: 51424
+[DEBUG] 2023-07-19 15:10:05.051 [main] NetworkAnalyzer - debug successful: 16445
+[DEBUG] 2023-07-19 15:10:05.051 [main] NetworkAnalyzer - debug collisions: 34979
+[DEBUG] 2023-07-19 15:10:05.051 [main] NetworkAnalyzer - debug partial and successful: 0
+[DEBUG] 2023-07-19 15:10:05.067 [main] NetworkAnalyzer - debug partial and collided: 2
+[INFO ] 2023-07-19 15:10:05.161 [main] Log - Run 6/10 for 60 nodes
+[WARN ] 2023-07-19 15:10:05.176 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:10:05.176 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:12:59.805 [main] NetworkAnalyzer - debug total TX in GW: 51415
+[DEBUG] 2023-07-19 15:12:59.805 [main] NetworkAnalyzer - debug successful: 16576
+[DEBUG] 2023-07-19 15:12:59.805 [main] NetworkAnalyzer - debug collisions: 34838
+[DEBUG] 2023-07-19 15:12:59.805 [main] NetworkAnalyzer - debug partial and successful: 0
+[DEBUG] 2023-07-19 15:12:59.805 [main] NetworkAnalyzer - debug partial and collided: 2
+[INFO ] 2023-07-19 15:12:59.915 [main] Log - Run 7/10 for 60 nodes
+[WARN ] 2023-07-19 15:12:59.930 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:12:59.930 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:15:36.955 [main] NetworkAnalyzer - debug total TX in GW: 51414
+[DEBUG] 2023-07-19 15:15:36.955 [main] NetworkAnalyzer - debug successful: 16662
+[DEBUG] 2023-07-19 15:15:36.955 [main] NetworkAnalyzer - debug collisions: 34752
+[DEBUG] 2023-07-19 15:15:36.956 [main] NetworkAnalyzer - debug partial and successful: 0
+[DEBUG] 2023-07-19 15:15:36.957 [main] NetworkAnalyzer - debug partial and collided: 0
+[INFO ] 2023-07-19 15:15:37.045 [main] Log - Run 8/10 for 60 nodes
+[WARN ] 2023-07-19 15:15:37.061 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:15:37.061 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:18:14.092 [main] NetworkAnalyzer - debug total TX in GW: 51414
+[DEBUG] 2023-07-19 15:18:14.092 [main] NetworkAnalyzer - debug successful: 16519
+[DEBUG] 2023-07-19 15:18:14.092 [main] NetworkAnalyzer - debug collisions: 34895
+[DEBUG] 2023-07-19 15:18:14.092 [main] NetworkAnalyzer - debug partial and successful: 1
+[DEBUG] 2023-07-19 15:18:14.092 [main] NetworkAnalyzer - debug partial and collided: 0
+[INFO ] 2023-07-19 15:18:14.201 [main] Log - Run 9/10 for 60 nodes
+[WARN ] 2023-07-19 15:18:14.217 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:18:14.217 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:21:01.432 [main] NetworkAnalyzer - debug total TX in GW: 51434
+[DEBUG] 2023-07-19 15:21:01.432 [main] NetworkAnalyzer - debug successful: 16587
+[DEBUG] 2023-07-19 15:21:01.432 [main] NetworkAnalyzer - debug collisions: 34847
+[DEBUG] 2023-07-19 15:21:01.432 [main] NetworkAnalyzer - debug partial and successful: 0
+[DEBUG] 2023-07-19 15:21:01.432 [main] NetworkAnalyzer - debug partial and collided: 0
+[INFO ] 2023-07-19 15:21:01.542 [main] Log - Run 10/10 for 60 nodes
+[WARN ] 2023-07-19 15:21:01.557 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:21:01.557 [main] Log - Time shift before interval: 460 [ms]
+[DEBUG] 2023-07-19 15:23:35.729 [main] NetworkAnalyzer - debug total TX in GW: 51424
+[DEBUG] 2023-07-19 15:23:35.729 [main] NetworkAnalyzer - debug successful: 16435
+[DEBUG] 2023-07-19 15:23:35.729 [main] NetworkAnalyzer - debug collisions: 34988
+[DEBUG] 2023-07-19 15:23:35.729 [main] NetworkAnalyzer - debug partial and successful: 1
+[DEBUG] 2023-07-19 15:23:35.729 [main] NetworkAnalyzer - debug partial and collided: 0
+[DEBUG] 2023-07-19 15:23:35.823 [main] Log - Time elapsed for 60 nodes: 161185 [ms]
+[INFO ] 2023-07-19 15:23:35.823 [main] Log - Saving data for 60 nodes
+[INFO ] 2023-07-19 15:23:36.121 [main] Log - Run 1/10 for 80 nodes
+[WARN ] 2023-07-19 15:23:36.137 [main] Network - Mocking 100% coverage
+[DEBUG] 2023-07-19 15:23:36.137 [main] Log - Time shift before interval: 460 [ms]

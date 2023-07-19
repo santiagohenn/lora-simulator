@@ -9,7 +9,6 @@ import satellite.tools.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class Main {
 
@@ -28,9 +27,6 @@ public class Main {
 
         Log.info("avg inter-arrival time (ms): " + (timeOnAirMS / frameGenerationRate));
 
-//        network.boostRate(10);
-//        network.scale(10);
-//        Network network = new Network(60.0, 10, 1, 1);
         network.setSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
         network.setSatellites(satellites);
 
@@ -83,52 +79,5 @@ public class Main {
 
     }
 
-    private static void averageSimulationResult(int nOfRuns, List<String> averageStats, List<String> newMeasure) {
-
-        if (averageStats.isEmpty()) {
-
-            for (int i = 0; i < newMeasure.size(); i++) {
-
-                StringBuilder sb = new StringBuilder();
-                String[] newDataPoints = newMeasure.get(i).split(",");
-
-                sb.append(newDataPoints[0]); // Time
-                for (int j = 1; j <= newDataPoints.length - 1; j++) {
-                    sb.append(",");
-                    double metric = Double.parseDouble(newDataPoints[j]) / nOfRuns;
-                    sb.append(roundDouble(metric, 2));
-                }
-
-                averageStats.add(sb.toString());
-
-            }
-
-        } else {
-
-            for (int i = 0; i < newMeasure.size(); i++) {
-
-                StringBuilder sb = new StringBuilder();
-                String[] newDataPoints = newMeasure.get(i).split(",");
-                String[] currentAverage = averageStats.get(i).split(",");
-
-                sb.append(newDataPoints[0]); // Time
-                for (int j = 1; j <= newDataPoints.length - 1; j++) {
-                    sb.append(",");
-                    double metric = Double.parseDouble(currentAverage[j]) + Double.parseDouble(newDataPoints[j]) / nOfRuns;
-                    sb.append(roundDouble(metric, 2));
-                }
-
-                averageStats.set(i, sb.toString());
-
-            }
-
-        }
-
-    }
-
-    public static String roundDouble(double number, int decimalPlaces) {
-        double roundedNumber = Math.round(number * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
-        return String.format(Locale.ROOT, "%." + decimalPlaces + "f", roundedNumber);
-    }
 
 }

@@ -168,34 +168,8 @@ public class TrafficFactory {
      * Compute the elapsed time with an X% chance of containing an event given a certain rate
      * using the CDF (Cumulative Distribution Function)
      * **/
-//    public double poissonInterval(double lambda, double probability) {
-//        PoissonDistribution poisson = new PoissonDistribution(lambda);
-//        double cdf = 0.0;
-//        int t = 0;
-//        while (cdf < probability) {
-//            cdf += poisson.probability(t);
-//            t++;
-//        }
-//        return t / lambda;
-//    }
-
-    /**
-     * Compute the elapsed time with an X% chance of containing an event given a certain rate
-     * using the CDF (Cumulative Distribution Function)
-     * **/
     public double poissonInterval(double lambda, double probability) {
         return - Math.log(1 - probability) / lambda;
-    }
-
-    private long generateRandomLong(long min, long max) {
-
-        if (min >= max) {
-            throw new IllegalArgumentException("Invalid range: min must be less than max");
-        }
-
-        long range = max - min + 1;
-        return min + (long) (getRandomDouble() * range);
-
     }
 
     private double generateRandomDouble(double min, double max) {
