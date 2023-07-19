@@ -19,9 +19,9 @@ public class Main {
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
 
         double timeStepSeconds = 60.0;
-        double timeOnAirMS = 200;
+        double timeOnAirMS = 20;
         double dutyCyclePercentage = 1;
-        double frameGenerationRate = 1;
+        double frameGenerationRate = 10;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
         Network network = new Network(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
@@ -73,13 +73,13 @@ public class Main {
 
             simTime = System.currentTimeMillis() - tic;
             Log.debug("Time elapsed for " + nodes + " nodes: " + simTime/nOfRuns + " [ms]");
-
             Log.info("Saving data for " + nodes + " nodes");
-            networkAnalyzer.setPacketStatistics(averageStats);
             networkAnalyzer.saveData(network, outputPath, nodes + "N");
             rf.saveAsJSON(analysisDataSets, nodes + "_N");
 
         }
+
+        rf.saveAsJSON(positionsFactory.generateUniformRandomPositions(), "PositionsTest");
 
     }
 
