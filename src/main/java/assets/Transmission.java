@@ -5,6 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Status table:
+ * 0 = Complete packet reached the gateway
+ * 1 = Complete packet reached the gateway and collided
+ * 2 = Complete packet unheard by the gateway
+ * 3 = Partial packet reached the gateway
+ * 4 = Partial packet reached the gateway and collided
+ * */
 public class Transmission implements Comparable<Transmission> {
 
     private final int transmissionHash;
@@ -108,6 +116,10 @@ public class Transmission implements Comparable<Transmission> {
 
     public int getTransmissionHash() {
         return transmissionHash;
+    }
+
+    public boolean reachedDestination() {
+        return status == 0 || status == 3;
     }
 
     @Override

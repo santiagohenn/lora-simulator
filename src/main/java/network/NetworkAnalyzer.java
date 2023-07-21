@@ -27,41 +27,38 @@ public class NetworkAnalyzer {
 
         // Filter transmissions that where sent to the void // TODO add conditional depending on policy
         List<Transmission> transmissionsHeard = transmissions.stream()
-                .filter(t -> t.getStatus() != 2) // TODO WARNING HERE
+                .filter(Transmission::reachedDestination) // TODO WARNING HERE
                 .collect(Collectors.toList());
-
-        HashSet<Transmission> collisions = new HashSet<>();
 
         // For each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
 //            Log.warn("Analyzing for gw ID " + gwId);
 
             int finalNgw = gwId;
-            Iterator<Transmission> transmissionIterator = transmissionsHeard.stream()
+            Iterator<Transmission> transmissionsOnGateway = transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw)
                     .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
                     .iterator();
             // TODO: up here replace Comparator.comparing double with lambda since intervals have the compareTo method overwritten
 
-            // TODO: Check this
-            if (!transmissionIterator.hasNext()) {
-                Log.warn("No transmissions heard by gw id " + gwId);
+            if (!transmissionsOnGateway.hasNext()) {
+                Log.warn("No transmissions heard by gw ID " + gwId);
                 continue;
             }
 
             // Take the first transmission
-            Transmission transmissionInGateway = transmissionIterator.next();
+            Transmission transmissionInGateway = transmissionsOnGateway.next();
 
-            if (!transmissionIterator.hasNext()) {
-                Log.warn("Only one transmission heard by gw id " + gwId);
+            if (!transmissionsOnGateway.hasNext()) {
+                Log.warn("Only one transmission heard by gw ID " + gwId);
                 continue;
             }
 
             // While there are other transmissions
-            while (transmissionIterator.hasNext()) {
+            while (transmissionsOnGateway.hasNext()) {
 
                 // Take the next transmission
-                Transmission nextTransmission = transmissionIterator.next();
+                Transmission nextTransmission = transmissionsOnGateway.next();
 
                 // If this transmission collides with the previous one, both are lost
                 if (checkCollision(transmissionInGateway, nextTransmission)) {
@@ -75,8 +72,6 @@ public class NetworkAnalyzer {
                     } else {
                         nextTransmission.setStatus(1);
                     }
-//                    collisions.add(transmissionInGateway);
-//                    collisions.add(nextTransmission);
                 }
 
                 transmissionInGateway = nextTransmission;
@@ -86,9 +81,8 @@ public class NetworkAnalyzer {
             Log.debug("debug total TX in GW {}: {}", gwId, transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw).count());
             Log.debug("debug successful in GW {}: {}", gwId, transmissionsHeard.stream()
-                    .filter(t -> t.getToId() == finalNgw).count());
+                    .filter(t -> t.getToId() == finalNgw && t.reachedDestination()).count());
             Log.debug("debug successful partial size: {}", transmissionsHeard.size());
-//            Log.debug("debug collisions: {}", collisions.size());
             Log.debug("debug partial and successful: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 3).count());
             Log.debug("debug partial and collided: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 4).count());
 
