@@ -57,8 +57,8 @@ public class Main {
 
         int nOfRuns = 1;
         int initialNodes = 20;
-        int maxNodes = 20;
         int stepNodes = 10;
+        int maxNodes = 100;
         double centerLatDegrees = -31.6;
         double centerLongitudeDegrees = -65.9;
         double radiusDegrees = 7.1957;

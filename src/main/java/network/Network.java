@@ -181,7 +181,7 @@ public class Network {
     }
 
     public void setSimulationInterval(String scenarioStartTime, String scenarioEndTime) {
-        Log.info("Simulation start unix timestamp: {} ", Utils.stamp2unix(scenarioStartTime));
+        Log.debug("Simulation start unix timestamp: {} ", Utils.stamp2unix(scenarioStartTime));
         this.scenarioStartTime = scenarioStartTime;
         this.scenarioEndTime = scenarioEndTime;
         simulation.setStartTime(scenarioStartTime);
@@ -194,6 +194,14 @@ public class Network {
 
     public String getSimulationEndTime() {
         return scenarioEndTime;
+    }
+
+    public long getSimulationStartTimestamp() {
+        return Utils.stamp2unix(scenarioStartTime);
+    }
+
+    public long getSimulationEndTimestamp() {
+        return Utils.stamp2unix(scenarioEndTime);
     }
 
     public List<Position> getEarthPositions() {
@@ -243,7 +251,7 @@ public class Network {
         public boolean equals(Object obj) {
             if (obj instanceof Event) {
                 Event objAsEvent = (Event) obj;
-                return objAsEvent.getFromID() == this.fromID && objAsEvent.getToID() == this.toID ;
+                return objAsEvent.getFromID() == this.fromID && objAsEvent.getToID() == this.toID;
             } else {
                 return false;
             }

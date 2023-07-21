@@ -11,6 +11,7 @@ public class Transmission implements Comparable<Transmission> {
     private final double startTransmissionTimestamp;
     private final List<Integer> toAssets;
     private final int fromId;
+    private final int toId;
     private final int channel;
     private double endTransmissionTimestamp;
     private double endDutyCycleSilentTime;
@@ -28,6 +29,7 @@ public class Transmission implements Comparable<Transmission> {
         this.fromId = fromId;
         toAssets = new ArrayList<>(1);
         toAssets.add(toId);
+        this.toId = toId;
         this.channel = channel;
         this.transmissionHash = hashCode();
     }
@@ -42,6 +44,11 @@ public class Transmission implements Comparable<Transmission> {
         this.startTransmissionTimestamp = startTransmissionTimestamp;
         this.fromId = fromId;
         this.toAssets = toAssets;
+        if (toAssets.size() == 1) {
+            this.toId = toAssets.get(0);
+        } else {
+            this.toId = -1;
+        }
         this.channel = channel;
         this.transmissionHash = hashCode();
     }
@@ -49,7 +56,6 @@ public class Transmission implements Comparable<Transmission> {
     public double getStartTransmissionTimestamp() {
         return startTransmissionTimestamp;
     }
-
 
     public List<Integer> getToAssets() {
         return toAssets;
@@ -60,7 +66,7 @@ public class Transmission implements Comparable<Transmission> {
     }
 
     public int getToId() {
-        return toAssets.get(0);
+        return this.toId;
     }
 
     public int getChannel() {

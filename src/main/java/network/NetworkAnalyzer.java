@@ -4,10 +4,11 @@ import assets.Transmission;
 import generators.ReportFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import satellite.tools.utils.Utils;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NetworkAnalyzer {
 
@@ -30,7 +31,6 @@ public class NetworkAnalyzer {
                 .collect(Collectors.toList());
 
         HashSet<Transmission> collisions = new HashSet<>();
-        HashSet<Transmission> successful = new HashSet<>();
 
         // For each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
@@ -41,10 +41,11 @@ public class NetworkAnalyzer {
                     .filter(t -> t.getToId() == finalNgw)
                     .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
                     .iterator();
-            // TODO: up here replace Comparator.comparing double with lambda since intervals have the compareTo method override
+            // TODO: up here replace Comparator.comparing double with lambda since intervals have the compareTo method overwritten
 
             // TODO: Check this
             if (!transmissionIterator.hasNext()) {
+                Log.warn("No transmissions heard by gw id " + gwId);
                 continue;
             }
 
@@ -52,7 +53,7 @@ public class NetworkAnalyzer {
             Transmission transmissionInGateway = transmissionIterator.next();
 
             if (!transmissionIterator.hasNext()) {
-                successful.add(transmissionInGateway);
+                Log.warn("Only one transmission heard by gw id " + gwId);
                 continue;
             }
 
@@ -74,35 +75,35 @@ public class NetworkAnalyzer {
                     } else {
                         nextTransmission.setStatus(1);
                     }
-                    collisions.add(transmissionInGateway);
-                    collisions.add(nextTransmission);
+//                    collisions.add(transmissionInGateway);
+//                    collisions.add(nextTransmission);
                 }
 
                 transmissionInGateway = nextTransmission;
 
             }
 
-            successful.addAll(transmissionsHeard.stream()
-                    .filter(t -> (t.getToId() == finalNgw && t.getStatus() != 1 && t.getStatus() != 4)).collect(Collectors.toList()));
-
-            Log.debug("debug total TX in GW {}: {}", gwId,transmissionsHeard.stream()
+            Log.debug("debug total TX in GW {}: {}", gwId, transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw).count());
-            Log.debug("debug successful in this GW {}: {}", gwId, successful.stream()
+            Log.debug("debug successful in GW {}: {}", gwId, transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw).count());
-            Log.debug("debug successful partial size: {}", successful.size());
-            Log.debug("debug collisions: {}", collisions.size());
+            Log.debug("debug successful partial size: {}", transmissionsHeard.size());
+//            Log.debug("debug collisions: {}", collisions.size());
             Log.debug("debug partial and successful: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 3).count());
             Log.debug("debug partial and collided: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 4).count());
 
         }
 
-        Log.debug("debug successful final size: {}", successful.size());
-        Log.debug("debug successful final distinct size: {}", successful.stream().distinct().count());
-        sampledAnalysis(network, collisions, successful);
+        Log.debug("debug successful final size: {}", transmissionsHeard.stream()
+                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
+        Log.debug("debug successful final distinct size: {}", transmissionsHeard.stream()
+                .distinct()
+                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
+        sampledAnalysis(network);
 
     }
 
-    private void sampledAnalysis(Network network, HashSet<Transmission> collisions, HashSet<Transmission> successful) {
+    private void sampledAnalysis(Network network) {
 
         long sampleStepMS = (long) (sampleStepSeconds * 1000); // To ms
         long epochTimeMS = 0;
@@ -110,20 +111,27 @@ public class NetworkAnalyzer {
         long collidedPackets = 0;
         long partialFrames = 0;
         long totalPackets = 0;
+        long distinctPackets = 0;
 
-        for (long time = Utils.stamp2unix(network.getSimulationStartTime()) + sampleStepMS;
-             time <= Utils.stamp2unix(network.getSimulationEndTime()); time += sampleStepMS) {
+        List<Transmission> transmissionsOnServer = network.getTransmissions();
+
+        for (long time = network.getSimulationStartTimestamp() + sampleStepMS;
+             time <= network.getSimulationEndTimestamp(); time += sampleStepMS) {
 
             long currentTime = time;
 
-            successfulPackets = successful.stream()
-                    .distinct()
+            Supplier<Stream<Transmission>> transmissionsOnSample
+                    = () -> transmissionsOnServer.stream()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime))
-                    .count();
+                            && t.getStartTransmissionTimestamp() < currentTime));
 
-            dataPoints.add(new double[]{epochTimeMS, successfulPackets, collidedPackets, totalPackets, partialFrames});
+            totalPackets = transmissionsOnSample.get().count();
+            distinctPackets = transmissionsOnSample.get().distinct().count();
+            successfulPackets = transmissionsOnSample.get().filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count();
+            collidedPackets = totalPackets - successfulPackets;
+            partialFrames = transmissionsOnSample.get().filter(t -> (t.getStatus() == 3 || t.getStatus() == 4)).count();
 
+            dataPoints.add(new double[]{epochTimeMS, successfulPackets, collidedPackets, totalPackets, distinctPackets, partialFrames});
             epochTimeMS += sampleStepMS;
 
         }
