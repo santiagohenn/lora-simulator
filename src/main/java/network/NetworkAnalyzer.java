@@ -72,11 +72,11 @@ public class NetworkAnalyzer {
 
         }
 
-        Log.debug("debug successful final size: {}", transmissionsHeard.stream()
-                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
-        Log.debug("debug successful final distinct size: {}", transmissionsHeard.stream()
-                .distinct()
-                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
+//        Log.debug("debug successful final size: {}", transmissionsHeard.stream()
+//                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
+//        Log.debug("debug successful final distinct size: {}", transmissionsHeard.stream()
+//                .distinct()
+//                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
         sampledAnalysis(network);
 
     }
