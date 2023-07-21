@@ -48,10 +48,13 @@ public class TrafficFactory {
 
         Transmission transmissionPending = null;
 
-        // Each interval corresponds to an end device
+        // Each interval corresponds to an end device to 1+ GWs
         while (intervalIterator.hasNext()) {
 
             Interval i = intervalIterator.next();
+//
+//            System.out.println("Generating packets for interval: " + i);
+//            System.out.println("From " + i.getFirstFrom() + " to " + i.getToAssets());
 //            long timeMS;
 
             // Check for pending packets
@@ -76,14 +79,13 @@ public class TrafficFactory {
 
                 double nextTransmissionAfterMS =  (1000.0 * generatePoissonEvent(frameGenerationRate));
                 timeMS += nextTransmissionAfterMS;
-//                Log.debug("-> " + nextTransmissionAfterMS);
 
                 // Update status of transmitter
-                transmitters.get(i.getFirstFrom()).updateStatus(timeMS); // TODO Make this return status and avoid next statement
+                transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
+                // TODO Make this return status and avoid next statement
 
                 // Check if transmitter is blocked
-                if (transmitters.get(i.getFirstFrom()).isBlocked()) { // This is the next statement
-//                    txBlockedDC++;
+                if (transmitters.get(i.getFirstFrom()).isBlocked()) {
                     continue;
                 }
 
@@ -96,7 +98,6 @@ public class TrafficFactory {
                 Transmission transmissionInDevice = new Transmission(startTransmissionTimestamp,
                         endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
                         i.getToAssets(), 1);
-
 
                 // If the transmission stops before the start of the satellite access interval
                 // transmit and block the device, but no frame is received by any GW
@@ -140,7 +141,6 @@ public class TrafficFactory {
                     transmissions.add(transmissionInGateway);
                 }
             }
-
         }
 
         return transmissions;

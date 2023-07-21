@@ -9,40 +9,76 @@ import satellite.tools.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
     public static void main(String[] args) {
 
+        String simulationParamsJSON = """
+                {
+                  "outputPath": "C:\\Projects\\throughput_pipeline\\outputs_santi\\",
+                  "satellitePath": "C:\\Projects\\throughput_pipeline\\satellites.csv",
+                  "startTime": "2022-01-01T16:00:00.000",
+                  "endTime": "2022-01-01T16:30:00.000",
+                  "startTimestamp": 1641052800000,
+                  "endTimestamp": 1641051000000,
+                  "timeStepSeconds": 60.0,
+                  "timeOnAirMS": 100,
+                  "dutyCyclePercentage": 1,
+                  "frameGenerationRate": 5,
+                  "nOfRuns": 10,
+                  "initialNodes": 10,
+                  "maxNodes": 80,
+                  "stepNodes": 10,
+                  "centerLatDegrees": -31.6,
+                  "centerLongitudeDegrees": -65.9,
+                  "radiusDegrees": 7.1957,
+                  "sampleStepSeconds": 30
+                }
+                """;
+//
+//        Gson gson = new Gson();
+//        JsonObject properties = gson.fromJson(simulationParamsJSON, JsonObject.class);
+
+        // Paths
         String outputPath = "C:\\Projects\\throughput_pipeline\\outputs_santi\\";
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
 
+        // Scenario parameters
+        String startTime = "2022-01-01T16:00:00.000";
+        String endTime = "2022-01-01T16:30:00.000";
+        long startTimestamp = Utils.stamp2unix(startTime);
+        long endTimestamp = Utils.stamp2unix(endTime);
         double timeStepSeconds = 60.0;
-        double timeOnAirMS = 200;
+        double timeOnAirMS = 100;
         double dutyCyclePercentage = 1;
-        double frameGenerationRate = 1;
+        double frameGenerationRate = 5;
+
+        int nOfRuns = 1;
+        int initialNodes = 20;
+        int maxNodes = 20;
+        int stepNodes = 10;
+        double centerLatDegrees = -31.6;
+        double centerLongitudeDegrees = -65.9;
+        double radiusDegrees = 7.1957;
+        double sampleStepSeconds = 30;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
         Network network = new Network(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
+        network.setSimulationInterval(startTime, endTime);
+        network.setSatellites(satellites);
+        PositionsFactory positionsFactory = new PositionsFactory(initialNodes, centerLatDegrees, centerLongitudeDegrees, radiusDegrees);
+        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(sampleStepSeconds);
+        ReportFactory rf = new ReportFactory(outputPath);
 
         Log.info("avg inter-arrival time (ms): " + (timeOnAirMS / frameGenerationRate));
 
-        network.setSimulationInterval("2022-01-01T16:00:00.000", "2022-01-01T16:30:00.000");
-        network.setSatellites(satellites);
-
-        PositionsFactory positionsFactory = new PositionsFactory();
-        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(30);
-        ReportFactory rf = new ReportFactory(outputPath);
-
-        int nOfRuns = 5;
-
-        for (int nodes = 20; nodes <= 80; nodes += 20) {
-
-            long simTime;
+        for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
 
             List<List<double[]>> analysisDataSets = new ArrayList<>();
 
-            positionsFactory.setParams(nodes, -31.6, -65.9, 7.1957);
+            positionsFactory.setNOfNodes(nodes);
 
             long tic = System.currentTimeMillis();
             for (int run = 0; run < nOfRuns; run++) {
@@ -50,20 +86,24 @@ public class Main {
                 Log.info("Run " + (run + 1) + "/" + nOfRuns + " for " + nodes + " nodes");
 
                 ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
-//                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
                 network.setEarthPositions(uniformRandomPositions);
-                // network.getCurrentIntervals().forEach(i -> System.out.println(i.getStart() + " , " + i.getEnd() + " , " + i.getFromAssets() + " to " + i.getToAssets()));
-//                network.simulateTraffic();
-                network.testContinuousCoverage();
+                network.simulateTraffic();
+//                network.testContinuousCoverage();
                 networkAnalyzer.analyzeTraffic(network);
                 analysisDataSets.add(networkAnalyzer.getDataPoints());
+//                network.getAccessIntervals().forEach(interval -> System.out.println(interval.getToAssets().size()));
 
             }
 
-            simTime = System.currentTimeMillis() - tic;
-            Log.debug("Time elapsed for " + nodes + " nodes: " + simTime/nOfRuns + " [ms]");
+            Log.debug("Avg. computation time for " + nodes + " nodes: "
+                    + (System.currentTimeMillis() - tic) / nOfRuns + " [ms]");
+
             Log.info("Saving data for " + nodes + " nodes");
-            networkAnalyzer.saveData(network, outputPath, nodes + "N");
+            rf.saveAsJSON(network.getTransmissions(), "TX_" + nodes + "N");
+            rf.saveAsJSON(network.getAccessIntervals()
+                    .stream().map(interval -> new long[]{interval.getFirstFrom(),
+                            interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
+                    .collect(Collectors.toList()), "intervals_" + nodes + "N");
             rf.saveAsJSON(analysisDataSets, nodes + "_N");
 
         }

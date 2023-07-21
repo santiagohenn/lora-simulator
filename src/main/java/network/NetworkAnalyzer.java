@@ -41,6 +41,7 @@ public class NetworkAnalyzer {
                     .filter(t -> t.getToId() == finalNgw)
                     .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
                     .iterator();
+            // TODO: up here replace Comparator.comparing double with lambda since intervals have the compareTo method override
 
             // TODO: Check this
             if (!transmissionIterator.hasNext()) {
@@ -82,16 +83,21 @@ public class NetworkAnalyzer {
             }
 
             successful.addAll(transmissionsHeard.stream()
-                    .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).collect(Collectors.toList()));
+                    .filter(t -> (t.getToId() == finalNgw && t.getStatus() != 1 && t.getStatus() != 4)).collect(Collectors.toList()));
 
-            Log.debug("debug total TX in GW: {}", transmissionsHeard.size());
-            Log.debug("debug successful: {}", successful.size());
+            Log.debug("debug total TX in GW {}: {}", gwId,transmissionsHeard.stream()
+                    .filter(t -> t.getToId() == finalNgw).count());
+            Log.debug("debug successful in this GW {}: {}", gwId, successful.stream()
+                    .filter(t -> t.getToId() == finalNgw).count());
+            Log.debug("debug successful partial size: {}", successful.size());
             Log.debug("debug collisions: {}", collisions.size());
             Log.debug("debug partial and successful: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 3).count());
             Log.debug("debug partial and collided: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 4).count());
 
         }
 
+        Log.debug("debug successful final size: {}", successful.size());
+        Log.debug("debug successful final distinct size: {}", successful.stream().distinct().count());
         sampledAnalysis(network, collisions, successful);
 
     }
@@ -111,9 +117,9 @@ public class NetworkAnalyzer {
             long currentTime = time;
 
             successfulPackets = successful.stream()
+                    .distinct()
                     .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
                             && t.getStartTransmissionTimestamp() < currentTime))
-                    .distinct()
                     .count();
 
             dataPoints.add(new double[]{epochTimeMS, successfulPackets, collidedPackets, totalPackets, partialFrames});
