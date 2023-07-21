@@ -1,11 +1,13 @@
 package network;
 
 import assets.Transmission;
-import generators.ReportFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,14 +27,15 @@ public class NetworkAnalyzer {
         dataPoints = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
-        // Filter transmissions that where sent to the void // TODO add conditional depending on policy
+        // Exclude transmissions that where sent to the void
         List<Transmission> transmissionsHeard = transmissions.stream()
-                .filter(Transmission::reachedDestination) // TODO WARNING HERE
+                .filter(Transmission::reachedDestination)
                 .collect(Collectors.toList());
 
         // For each gateway
         for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
-//            Log.warn("Analyzing for gw ID " + gwId);
+
+            Log.debug("Analyzing for gw ID " + gwId);
 
             int finalNgw = gwId;
             Iterator<Transmission> transmissionsOnGateway = transmissionsHeard.stream()
@@ -60,31 +63,12 @@ public class NetworkAnalyzer {
                 // Take the next transmission
                 Transmission nextTransmission = transmissionsOnGateway.next();
 
-                // If this transmission collides with the previous one, both are lost
-                if (checkCollision(transmissionInGateway, nextTransmission)) {
-                    if (transmissionInGateway.getStatus() == 3) {
-                        transmissionInGateway.setStatus(4);
-                    } else {
-                        transmissionInGateway.setStatus(1);
-                    }
-                    if (nextTransmission.getStatus() == 3) {
-                        nextTransmission.setStatus(4);
-                    } else {
-                        nextTransmission.setStatus(1);
-                    }
-                }
+                // Check collisions and set corresponding status
+                checkCollision(transmissionInGateway, nextTransmission);
 
                 transmissionInGateway = nextTransmission;
 
             }
-
-            Log.debug("debug total TX in GW {}: {}", gwId, transmissionsHeard.stream()
-                    .filter(t -> t.getToId() == finalNgw).count());
-            Log.debug("debug successful in GW {}: {}", gwId, transmissionsHeard.stream()
-                    .filter(t -> t.getToId() == finalNgw && t.reachedDestination()).count());
-            Log.debug("debug successful partial size: {}", transmissionsHeard.size());
-            Log.debug("debug partial and successful: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 3).count());
-            Log.debug("debug partial and collided: {}", transmissionsHeard.stream().filter(t -> t.getStatus() == 4).count());
 
         }
 
@@ -121,7 +105,7 @@ public class NetworkAnalyzer {
 
             totalPackets = transmissionsOnSample.get().count();
             distinctPackets = transmissionsOnSample.get().distinct().count();
-            successfulPackets = transmissionsOnSample.get().filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count();
+            successfulPackets = transmissionsOnSample.get().filter(Transmission::reachedDestination).count();
             collidedPackets = totalPackets - successfulPackets;
             partialFrames = transmissionsOnSample.get().filter(t -> (t.getStatus() == 3 || t.getStatus() == 4)).count();
 
@@ -140,17 +124,6 @@ public class NetworkAnalyzer {
         }
     }
 
-    public void saveData(Network network, String path, String name) {
-
-        ReportFactory rf = new ReportFactory(path);
-        rf.saveAsJSON(network.getTransmissions(), "TX_" + name);
-        rf.saveAsJSON(network.getAccessIntervals()
-                .stream().map(interval -> new long[]{interval.getFirstFrom(),
-                        interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
-                .collect(Collectors.toList()), "intervals_" + name);
-
-    }
-
     public List<double[]> getDataPoints() {
         return dataPoints;
     }
@@ -160,19 +133,41 @@ public class NetworkAnalyzer {
      * t1 |------------|                   t1 |------------|
      * _____ t2 |------------|       t2 |------------|
      **/
-    private boolean checkCollision(Transmission t1, Transmission t2) {
+    private void checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
 
-        if (t2.getStartTransmissionTimestamp() >= t1.getStartTransmissionTimestamp()
-                && t2.getStartTransmissionTimestamp() < t1.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
-            return true;
+        if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getStartTransmissionTimestamp()
+                && nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
+
+            if (transmissionInGateway.getStatus() == 3) {
+                transmissionInGateway.setStatus(4);
+            } else {
+                transmissionInGateway.setStatus(1);
+            }
+            if (nextTransmission.getStatus() == 3) {
+                nextTransmission.setStatus(4);
+            } else {
+                nextTransmission.setStatus(1);
+            }
+
+            return;
+
         }
 
-        if (t1.getStartTransmissionTimestamp() >= t2.getStartTransmissionTimestamp()
-                && t1.getStartTransmissionTimestamp() < t2.getEndTransmissionTimestamp()) {
-            return true;
-        }
+        if (transmissionInGateway.getStartTransmissionTimestamp() >= nextTransmission.getStartTransmissionTimestamp()
+                && transmissionInGateway.getStartTransmissionTimestamp() < nextTransmission.getEndTransmissionTimestamp()) {
 
-        return false;
+            if (transmissionInGateway.getStatus() == 3) {
+                transmissionInGateway.setStatus(4);
+            } else {
+                transmissionInGateway.setStatus(1);
+            }
+            if (nextTransmission.getStatus() == 3) {
+                nextTransmission.setStatus(4);
+            } else {
+                nextTransmission.setStatus(1);
+            }
+
+        }
 
     }
 
