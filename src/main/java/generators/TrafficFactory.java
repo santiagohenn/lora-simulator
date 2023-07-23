@@ -10,6 +10,7 @@ import satellite.tools.utils.Log;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TrafficFactory {
 
@@ -41,10 +42,10 @@ public class TrafficFactory {
         }
 
         // Sort intervals. TODO: Maybe this is not necessary
-//        ListIterator<Interval> intervalIterator = intervals.stream()
-//                .sorted(Comparator.comparingLong(Interval::getStart))
-//                .collect(Collectors.toList()).listIterator();
-        ListIterator<Interval> intervalIterator = intervals.listIterator();
+        ListIterator<Interval> intervalIterator = intervals.stream()
+                .sorted(Comparator.comparingLong(Interval::getStart))
+                .collect(Collectors.toList()).listIterator();
+//        ListIterator<Interval> intervalIterator = intervals.listIterator();
 
         Transmission transmissionPending = null;
 
@@ -52,29 +53,19 @@ public class TrafficFactory {
         while (intervalIterator.hasNext()) {
 
             Interval i = intervalIterator.next();
-//
-//            System.out.println("Generating packets for interval: " + i);
-//            System.out.println("From " + i.getFirstFrom() + " to " + i.getToAssets());
-//            long timeMS;
-
-            // Check for pending packets
-//            if (transmissionPending != null && transmissionPending.getFromId() == i.getFirstFrom()) {
-//
-//                // TODO
-//                Log.warn("PENDING PACKET");
-//                timeMS = transmissionPending.getEndTransmissionTimestamp();
-//
-//            } else {
-//                transmissionPending = null;
-//                timeMS = generateRandomLong(i.getStart() - timeShiftBackMS, i.getStart());
-//
-//            }
-
-//            timeMS
-//            int txBlockedDC = 0;
 
             double endTime = i.getEnd();
-            double timeMS = generateRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+            double timeMS;
+
+            // Check whether the transmitter was already transmitting
+            if (transmitters.get(i.getFirstFrom()).getLastTransmission() != null) {
+//                Log.debug("Transmitter was transmitting");
+                timeMS = transmitters.get(i.getFirstFrom()).getLastTransmission().getEndDutyCycleSilentTime();
+            } else { // TODO: Add condition to test how long ago the transmission happened and transmit timeShiftBack seconds if sufficiently long
+//                Log.debug("First transmission");
+                timeMS = generateRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+            }
+
             while (timeMS <= endTime) {
 
                 double nextTransmissionAfterMS =  (1000.0 * generatePoissonEvent(frameGenerationRate));
@@ -120,7 +111,6 @@ public class TrafficFactory {
                     // Insert a pending packet
                     packetStatus = 2;
                     transmissionInDevice.setStatus(packetStatus);
-                    transmissionPending = transmissionInDevice;
                     break;
                 }
 

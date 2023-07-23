@@ -37,7 +37,7 @@ public class NetworkAnalyzer {
 
             Log.debug("Analyzing for gw ID " + gwId);
 
-            int finalNgw = gwId; // TODO: debugging here
+            int finalNgw = gwId;
             Iterator<Transmission> transmissionsOnGateway = transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw)
                     .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
