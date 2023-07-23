@@ -37,12 +37,11 @@ public class NetworkAnalyzer {
 
             Log.debug("Analyzing for gw ID " + gwId);
 
-            int finalNgw = gwId;
+            int finalNgw = gwId; // TODO: debugging here
             Iterator<Transmission> transmissionsOnGateway = transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw)
                     .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
                     .iterator();
-            // TODO: up here replace Comparator.comparing double with lambda since intervals have the compareTo method overwritten
 
             if (!transmissionsOnGateway.hasNext()) {
                 Log.warn("No transmissions heard by gw ID " + gwId);
@@ -59,15 +58,9 @@ public class NetworkAnalyzer {
 
             // While there are other transmissions
             while (transmissionsOnGateway.hasNext()) {
-
-                // Take the next transmission
-                Transmission nextTransmission = transmissionsOnGateway.next();
-
-                // Check collisions and set corresponding status
-                checkCollision(transmissionInGateway, nextTransmission);
-
+                Transmission nextTransmission = transmissionsOnGateway.next(); // Take the next transmission
+                checkCollision(transmissionInGateway, nextTransmission); // Check collisions and set corresponding status
                 transmissionInGateway = nextTransmission;
-
             }
 
         }
@@ -86,10 +79,11 @@ public class NetworkAnalyzer {
         long sampleStepMS = (long) (sampleStepSeconds * 1000); // To ms
         long epochTimeMS = 0;
         long successfulPackets = 0;
-        long collidedPackets = 0;
         long partialFrames = 0;
         long totalPackets = 0;
-        long distinctPackets = 0;
+        long totalDistinct = 0;
+        long successfulDistinct = 0;
+        long sentToTheVoid = 0;
 
         List<Transmission> transmissionsOnServer = network.getTransmissions();
 
@@ -104,12 +98,14 @@ public class NetworkAnalyzer {
                             && t.getStartTransmissionTimestamp() < currentTime));
 
             totalPackets = transmissionsOnSample.get().count();
-            distinctPackets = transmissionsOnSample.get().distinct().count();
+            totalDistinct = transmissionsOnSample.get().distinct().count();
             successfulPackets = transmissionsOnSample.get().filter(Transmission::reachedDestination).count();
-            collidedPackets = totalPackets - successfulPackets;
+            successfulDistinct = transmissionsOnSample.get().distinct().filter(Transmission::reachedDestination).count();
             partialFrames = transmissionsOnSample.get().filter(t -> (t.getStatus() == 3 || t.getStatus() == 4)).count();
+            sentToTheVoid = transmissionsOnSample.get().filter(t -> (t.getStatus() == 2)).count();
 
-            dataPoints.add(new double[]{epochTimeMS, successfulPackets, collidedPackets, totalPackets, distinctPackets, partialFrames});
+            dataPoints.add(new double[]{epochTimeMS, totalPackets, totalDistinct, successfulPackets, successfulDistinct, partialFrames, sentToTheVoid});
+
             epochTimeMS += sampleStepMS;
 
         }

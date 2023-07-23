@@ -34,7 +34,7 @@ public class TrafficFactory {
         // TODO: use variable for channel
 
         long timeShiftBackMS = (long) (1000.0 * poissonInterval(frameGenerationRate, 0.99));
-        Log.debug("Time shift before interval: " + timeShiftBackMS + " [ms]");
+//        Log.debug("Time shift before interval: " + timeShiftBackMS + " [ms]");
         if (intervals.isEmpty()) {
             Log.warn("No access intervals to generate traffic");
             return transmissions;
@@ -48,7 +48,7 @@ public class TrafficFactory {
 
         Transmission transmissionPending = null;
 
-        // Each interval corresponds to an end device to 1+ GWs
+        // Each interval corresponds to an end device to 1(+) GWs
         while (intervalIterator.hasNext()) {
 
             Interval i = intervalIterator.next();
@@ -130,6 +130,7 @@ public class TrafficFactory {
 
                 if (packetStatus == 2) {
                     // If no one hears the transmission, continue
+                    transmissions.add(transmissionInDevice);
                     continue;
                 }
 
@@ -152,15 +153,7 @@ public class TrafficFactory {
      */
     public double generatePoissonEvent(double rate) {
 
-        Random r;
-        try {
-            r = SecureRandom.getInstanceStrong();
-        } catch (NoSuchAlgorithmException e) {
-            Log.error("Random NoSuchAlgorithmException error");
-            e.printStackTrace();
-            return -1L;
-        }
-        return - Math.log(1.0 - r.nextDouble()) / rate;
+        return - Math.log(1.0 - generateRandomDouble()) / rate;
 
     }
 
@@ -179,11 +172,11 @@ public class TrafficFactory {
         }
 
         double range = max - min + 1D;
-        return min + (getRandomDouble() * range);
+        return min + (generateRandomDouble() * range);
 
     }
 
-    private double getRandomDouble() {
+    private double generateRandomDouble() {
         Random r;
         try {
             r = SecureRandom.getInstanceStrong();

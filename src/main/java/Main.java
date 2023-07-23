@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    private static long timer;
+    public static long timer;
 
     public static void main(String[] args) {
 
@@ -57,7 +57,7 @@ public class Main {
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 5;
 
-        int nOfRuns = 10;
+        int nOfRuns = 1;
         int initialNodes = 20;
         int stepNodes = 10;
         int maxNodes = 100;
@@ -92,9 +92,8 @@ public class Main {
 
                 Log.debug("Simulating traffic ! " + tic());
                 network.simulateTraffic();
+                //                network.simulateContinuousCoverage();
                 Log.debug("Traffic simulation took " + toc() + " [ms.]");
-
-//                network.testContinuousCoverage();
                 Log.debug("Analyzing traffic ! " + tic());
                 networkAnalyzer.analyzeTraffic(network);
                 analysisDataSets.add(networkAnalyzer.getDataPoints());

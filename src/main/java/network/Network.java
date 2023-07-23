@@ -53,7 +53,7 @@ public class Network {
                 + " | frameGenerationRate = " + this.frameGenerationRate);
     }
 
-    public void testContinuousCoverage() {
+    public void simulateContinuousCoverage() {
 
         long start = simulation.getStartTimeUnix();
         long end = simulation.getEndTimeUnix();
@@ -75,11 +75,14 @@ public class Network {
 
     public void simulateTraffic() {
         if (lastSimHash != getSimHashCode() || lastSimHash == 0) {
-            Log.info("Computing access intervals");
+            Log.debug("[Start] Computing access intervals");
             computeAccessIntervals();
+            Log.debug("[End] Computing access intervals");
         }
         TrafficFactory tf = new TrafficFactory(this); //TODO: add params to the constructor
+        Log.debug("[Start] Generating traffic with policy 3");
         transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        Log.debug("[End] Generating traffic with policy 3");
     }
 
     public void computeAccessIntervals() {
