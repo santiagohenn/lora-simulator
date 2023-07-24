@@ -16,8 +16,17 @@ public class TrafficFactory {
 
     Map<Integer, Transmitter> transmitters;
     Network network;
+    private Random r;
 
     public TrafficFactory(Network network) {
+
+        try {
+            r = SecureRandom.getInstanceStrong();
+        } catch (NoSuchAlgorithmException e) {
+            Log.error("Random NoSuchAlgorithmException error");
+            e.printStackTrace();
+        }
+
         this.network = network;
         transmitters = new HashMap<>();
         populateTransmitters();
@@ -35,7 +44,7 @@ public class TrafficFactory {
         // TODO: use variable for channel
 
         long timeShiftBackMS = (long) (1000.0 * poissonInterval(frameGenerationRate, 0.99));
-//        Log.debug("Time shift before interval: " + timeShiftBackMS + " [ms]");
+        //        Log.debug("Time shift before interval: " + timeShiftBackMS + " [ms]");
         if (intervals.isEmpty()) {
             Log.warn("No access intervals to generate traffic");
             return transmissions;
@@ -45,39 +54,27 @@ public class TrafficFactory {
         ListIterator<Interval> intervalIterator = intervals.stream()
                 .sorted(Comparator.comparingLong(Interval::getStart))
                 .collect(Collectors.toList()).listIterator();
-//        ListIterator<Interval> intervalIterator = intervals.listIterator();
-
-        Transmission transmissionPending = null;
+        //        ListIterator<Interval> intervalIterator = intervals.listIterator();
 
         // Each interval corresponds to an end device to 1(+) GWs
         while (intervalIterator.hasNext()) {
 
             Interval i = intervalIterator.next();
+            Transmitter transmitter = transmitters.get(i.getFirstFrom());
 
-            double endTime = i.getEnd();
             double timeMS;
 
             // Check whether the transmitter was already transmitting
-            if (transmitters.get(i.getFirstFrom()).getLastTransmission() != null) {
-//                Log.debug("Transmitter was transmitting");
-                timeMS = transmitters.get(i.getFirstFrom()).getLastTransmission().getEndDutyCycleSilentTime();
+            if (transmitter.getLastTransmission() != null) {
+                timeMS = transmitter.getLastTransmission().getEndTransmissionTimestamp();
             } else { // TODO: Add condition to test how long ago the transmission happened and transmit timeShiftBack seconds if sufficiently long
-//                Log.debug("First transmission");
                 timeMS = generateRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
             }
 
-            while (timeMS <= endTime) {
+            while (timeMS <= i.getEnd()) {
 
-                double nextTransmissionAfterMS =  (1000.0 * generatePoissonEvent(frameGenerationRate));
-                timeMS += nextTransmissionAfterMS;
-
-                // Update status of transmitter
-                transmitters.get(i.getFirstFrom()).updateStatus(timeMS);
-                // TODO Make this return status and avoid next statement
-
-                // Check if transmitter is blocked
-                if (transmitters.get(i.getFirstFrom()).isBlocked()) {
-                    continue;
+                while (!transmitter.updateStatus(timeMS)) {
+                    timeMS += (1000.0 * generatePoissonEvent(frameGenerationRate));
                 }
 
                 // Prepare new transmission
@@ -91,7 +88,7 @@ public class TrafficFactory {
                         i.getToAssets(), 1);
 
                 // If the transmission stops before the start of the satellite access interval
-                // transmit and block the device, but no frame is received by any GW
+                // transmit and block the device. no frame is received by any GW
                 if (endTransmissionTimestamp <= i.getStart()) {
                     packetStatus = 2; // 2 = transmitted to the void
                     // Else if access to the GW is gained in the middle of the transmission, create
@@ -108,7 +105,6 @@ public class TrafficFactory {
                     endTransmissionTimestamp = i.getEnd();
                     // If the next transmission happens after the end of this interval
                 } else if (startTransmissionTimestamp >= i.getEnd()) {
-                    // Insert a pending packet
                     packetStatus = 2;
                     transmissionInDevice.setStatus(packetStatus);
                     break;
@@ -116,7 +112,7 @@ public class TrafficFactory {
 
                 // MG Transmission, used to store last transmission in the transmitter
                 transmissionInDevice.setStatus(packetStatus);
-                transmitters.get(i.getFirstFrom()).transmit(transmissionInDevice);
+                transmitter.transmit(transmissionInDevice);
 
                 if (packetStatus == 2) {
                     // If no one hears the transmission, continue
@@ -142,9 +138,7 @@ public class TrafficFactory {
      * Rate is in events per second
      */
     public double generatePoissonEvent(double rate) {
-
-        return - Math.log(1.0 - generateRandomDouble()) / rate;
-
+        return - Math.log(1.0 - r.nextDouble()) / rate;
     }
 
     /**
@@ -162,20 +156,9 @@ public class TrafficFactory {
         }
 
         double range = max - min + 1D;
-        return min + (generateRandomDouble() * range);
+        return min + (r.nextDouble() * range);
 
     }
 
-    private double generateRandomDouble() {
-        Random r;
-        try {
-            r = SecureRandom.getInstanceStrong();
-        } catch (NoSuchAlgorithmException e) {
-            Log.error("Random NoSuchAlgorithmException error");
-            e.printStackTrace();
-            return 0D;
-        }
-        return r.nextDouble();
-    }
 
 }

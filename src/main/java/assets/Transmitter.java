@@ -4,11 +4,11 @@ public class Transmitter {
 
     private final int id;
     private Transmission lastTransmission;
-    private boolean blocked;
+    private boolean ready;
 
     public Transmitter(int id) {
         this.id = id;
-        blocked = false;
+        ready = true;
     }
 
     public Transmission getLastTransmission() {
@@ -20,26 +20,33 @@ public class Transmitter {
         block();
     }
 
-    public void updateStatus(double time) {
-        if (this.isBlocked() && this.lastTransmission.getEndDutyCycleSilentTime() <= time) {
+    public boolean updateStatus(double time) {
+
+        if (this.lastTransmission == null) {
+            this.ready = true;
+            return isReady();
+        }
+
+        if (this.lastTransmission.getEndDutyCycleSilentTime() <= time) {
             this.unblock();
         }
+        return isReady();
     }
 
-    public boolean isBlocked() {
-        return blocked;
+    public boolean isReady() {
+        return ready;
     }
 
     public void unblock() {
-        setBlocked(false);
+        setReady(true);
     }
 
     public void block() {
-        setBlocked(true);
+        setReady(false);
     }
 
-    private void setBlocked(boolean blocked) {
-        this.blocked = blocked;
+    private void setReady(boolean ready) {
+        this.ready = ready;
     }
 
     public int getId() {
