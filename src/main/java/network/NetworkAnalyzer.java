@@ -5,7 +5,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -30,6 +29,7 @@ public class NetworkAnalyzer {
         // Exclude transmissions that where sent to the void
         List<Transmission> transmissionsHeard = transmissions.stream()
                 .filter(Transmission::reachedDestination)
+                .sorted()
                 .collect(Collectors.toList());
 
         // For each gateway
@@ -40,7 +40,7 @@ public class NetworkAnalyzer {
             int finalNgw = gwId;
             Iterator<Transmission> transmissionsOnGateway = transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw)
-                    .sorted(Comparator.comparingDouble(Transmission::getStartTransmissionTimestamp))
+                    .sorted()
                     .iterator();
 
             if (!transmissionsOnGateway.hasNext()) {
@@ -59,7 +59,12 @@ public class NetworkAnalyzer {
             // While there are other transmissions
             while (transmissionsOnGateway.hasNext()) {
                 Transmission nextTransmission = transmissionsOnGateway.next(); // Take the next transmission
-                checkCollision(transmissionInGateway, nextTransmission); // Check collisions and set corresponding status
+                checkCollision(transmissionInGateway, nextTransmission);
+                // DEBUG
+//                if (checkCollision(transmissionInGateway, nextTransmission)) {
+//                    Transmission finalTransmissionInGateway = transmissionInGateway;
+//                    transmissionsHeard.stream().filter(t -> t.equals(finalTransmissionInGateway)).forEach(transmission -> transmission.setStatus(1));
+//                } // Check collisions and set corresponding status
                 transmissionInGateway = nextTransmission;
             }
 
@@ -76,7 +81,7 @@ public class NetworkAnalyzer {
 
     private void sampledAnalysis(Network network) {
 
-        long sampleStepMS = (long) (sampleStepSeconds * 1000); // To ms
+        double sampleStepMS = sampleStepSeconds * 1000; // To ms
         long epochTimeMS = 0;
         long successfulPackets = 0;
         long partialFrames = 0;
@@ -87,10 +92,10 @@ public class NetworkAnalyzer {
 
         List<Transmission> transmissionsOnServer = network.getTransmissions();
 
-        for (long time = network.getSimulationStartTimestamp() + sampleStepMS;
+        for (double time = network.getSimulationStartTimestamp() + sampleStepMS;
              time <= network.getSimulationEndTimestamp(); time += sampleStepMS) {
 
-            long currentTime = time;
+            double currentTime = time;
 
             Supplier<Stream<Transmission>> transmissionsOnSample
                     = () -> transmissionsOnServer.stream()
@@ -129,7 +134,7 @@ public class NetworkAnalyzer {
      * t1 |------------|                   t1 |------------|
      * _____ t2 |------------|       t2 |------------|
      **/
-    private void checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
+    private boolean checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
 
         if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getStartTransmissionTimestamp()
                 && nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
@@ -145,13 +150,13 @@ public class NetworkAnalyzer {
                 nextTransmission.setStatus(1);
             }
 
-            return;
+            return true;
 
         }
 
         if (transmissionInGateway.getStartTransmissionTimestamp() >= nextTransmission.getStartTransmissionTimestamp()
                 && transmissionInGateway.getStartTransmissionTimestamp() < nextTransmission.getEndTransmissionTimestamp()) {
-
+            Log.error("This should not happen");
             if (transmissionInGateway.getStatus() == 3) {
                 transmissionInGateway.setStatus(4);
             } else {
@@ -163,7 +168,11 @@ public class NetworkAnalyzer {
                 nextTransmission.setStatus(1);
             }
 
+            return true;
+
         }
+
+        return false;
 
     }
 

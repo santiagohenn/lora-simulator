@@ -139,9 +139,6 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public int compareTo(@NotNull Transmission o) {
-        if (o.equals(this)) {
-            return 0;
-        }
         return Double.compare(this.startTransmissionTimestamp, o.startTransmissionTimestamp);
     }
 

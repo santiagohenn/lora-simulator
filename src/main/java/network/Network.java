@@ -5,6 +5,8 @@ import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.orekit.frames.FramesFactory;
+import org.orekit.utils.IERSConventions;
 import satellite.tools.Simulation;
 import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
@@ -87,27 +89,28 @@ public class Network {
 
     public void computeAccessIntervals() {
 
-        boolean includeCoverageGaps = false;
         this.lastSimHash = getSimHashCode();
-//        accessIntervals.clear();
         List<Interval> allAccesses = new ArrayList<>();
 
         if (earthPositions.isEmpty() || satellites.isEmpty()) {
-            Log.warn("Check assets! Earth Positions empty? " + earthPositions.isEmpty() + " satellites empty? " + satellites.isEmpty());
+            Log.warn("Check assets! Earth Positions size: " + earthPositions.isEmpty() + " N° of satellites: " + satellites.isEmpty());
             return;
         }
 
+        // Compute intervals for each pair position -> satellite
         for (Position earthPos : earthPositions) {
 
             List<Interval> thisPositionIntervals = new ArrayList<>();
 
             for (Satellite satellite : satellites) {
                 simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
+                simulation.setInertialFrame(FramesFactory.getEME2000());
+                simulation.setFixedFrame(FramesFactory.getITRF(IERSConventions.IERS_2010, true));
                 simulation.computeAccess();
                 thisPositionIntervals.addAll(simulation.getIntervals());
             }
 
-            thisPositionIntervals.sort((i1, i2) -> (int) (i1.getStart() - i2.getStart()));
+            thisPositionIntervals.sort(Comparator.comparingLong(Interval::getStart));
 
             if (satellites.size() == 1) {
                 allAccesses.addAll(thisPositionIntervals);
@@ -117,15 +120,20 @@ public class Network {
             List<Interval> combinedIntervals = new ArrayList<>();
             Set<Integer> inContact = new LinkedHashSet<>();
             List<Event> eventList = intervals2events(thisPositionIntervals);
-            eventList = eventList.subList(1, eventList.size()); // TODO: replace with iterator
 
-            var currentInterval = thisPositionIntervals.get(0);
+            Iterator<Event> eventIterator = eventList.stream()
+                    .sorted(Comparator.comparingLong(Event::getTime)).iterator();
+            eventIterator.next();
+
+            var firstInterval = thisPositionIntervals.get(0);
+            var currentInterval = new Interval(firstInterval.getStart(), firstInterval.getEnd(), firstInterval.getFromAssets(), firstInterval.getToAssets());
             inContact.add(currentInterval.getFirstTo());
 
-            for (Event event : eventList) {
+            while (eventIterator.hasNext()) {
+                Event event = eventIterator.next();
                 if (!inContact.contains(event.toID)) {  // If I establish contact with a new asset
                     inContact.add(event.toID);
-                    if (includeCoverageGaps || !currentInterval.getToAssets().isEmpty()) {
+                    if (!currentInterval.getToAssets().isEmpty()) {
                         combinedIntervals.add(new Interval(currentInterval.getStart(), event.getTime(), currentInterval.getFromAssets(), currentInterval.getToAssets()));
                     }
                     currentInterval.addTo(event.toID);
@@ -153,11 +161,10 @@ public class Network {
         List<Event> eventsList = new ArrayList<>();
 
         for (Interval interval : intervals) {
-            eventsList.add(new Event(interval.getStart(), interval.getFirstFrom(), interval.getFirstTo()));
-            eventsList.add(new Event(interval.getEnd(), interval.getFirstFrom(), interval.getFirstTo()));
+            eventsList.add(new Event(interval.getStart(), interval.getFirstFrom(), interval.getFirstTo(), true));
+            eventsList.add(new Event(interval.getEnd(), interval.getFirstFrom(), interval.getFirstTo(), false));
         }
 
-        eventsList.sort((e1, e2) -> (int) (e1.getTime() - e2.getTime()));
         return eventsList;
 
     }
@@ -231,11 +238,13 @@ public class Network {
         private final long time;
         private final int fromID;
         private final int toID;
+        private final boolean type; // 1: gain contact, 0: lost contact
 
-        public Event(long time, int fromID, int toID) {
+        public Event(long time, int fromID, int toID, boolean type) {
             this.time = time;
             this.fromID = fromID;
             this.toID = toID;
+            this.type = type;
         }
 
         public long getTime() {
@@ -248,6 +257,15 @@ public class Network {
 
         public int getToID() {
             return toID;
+        }
+
+        public boolean gainedContact() {
+            return type;
+        }
+
+        @Override
+        public String toString() {
+            return time + "," + fromID + "," + toID;
         }
 
         @Override

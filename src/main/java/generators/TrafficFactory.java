@@ -50,16 +50,11 @@ public class TrafficFactory {
             return transmissions;
         }
 
-        // Sort intervals. TODO: Maybe this is not necessary
-        ListIterator<Interval> intervalIterator = intervals.stream()
-                .sorted(Comparator.comparingLong(Interval::getStart))
-                .collect(Collectors.toList()).listIterator();
-        //        ListIterator<Interval> intervalIterator = intervals.listIterator();
-
         // Each interval corresponds to an end device to 1(+) GWs
-        while (intervalIterator.hasNext()) {
+        for (Interval i : intervals.stream()
+                .sorted(Comparator.comparingLong(Interval::getStart))
+                .collect(Collectors.toList())) {
 
-            Interval i = intervalIterator.next();
             Transmitter transmitter = transmitters.get(i.getFirstFrom());
 
             double timeMS;
@@ -73,6 +68,7 @@ public class TrafficFactory {
 
             while (timeMS <= i.getEnd()) {
 
+//                timeMS += (1000.0 * generatePoissonEvent(frameGenerationRate));
                 while (!transmitter.updateStatus(timeMS)) {
                     timeMS += (1000.0 * generatePoissonEvent(frameGenerationRate));
                 }
@@ -116,8 +112,9 @@ public class TrafficFactory {
 
                 if (packetStatus == 2) {
                     // If no one hears the transmission, continue
-                    transmissions.add(transmissionInDevice);
+//                    transmissions.add(transmissionInDevice);
                     continue;
+//                    packetStatus = 0;
                 }
 
                 // SG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda

@@ -57,14 +57,14 @@ public class Main {
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 5;
 
-        int nOfRuns = 1;
-        int initialNodes = 20;
+        int nOfRuns = 10;
+        int initialNodes = 100;
         int stepNodes = 10;
         int maxNodes = 100;
         double centerLatDegrees = -31.6;
         double centerLongitudeDegrees = -65.9;
         double radiusDegrees = 7.1957;
-        double sampleStepSeconds = 30;
+        double sampleStepSeconds = 60;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
         Network network = new Network(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
@@ -92,7 +92,7 @@ public class Main {
 
                 Log.debug("Simulating traffic ! " + tic());
                 network.simulateTraffic();
-                //                network.simulateContinuousCoverage();
+//                network.simulateContinuousCoverage();
                 Log.debug("Traffic simulation took " + toc() + " [ms.]");
                 Log.debug("Analyzing traffic ! " + tic());
                 networkAnalyzer.analyzeTraffic(network);
