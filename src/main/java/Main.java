@@ -39,7 +39,7 @@ public class Main {
                   "sampleStepSeconds": 30
                 }
                 """;
-//
+
 //        Gson gson = new Gson();
 //        JsonObject properties = gson.fromJson(simulationParamsJSON, JsonObject.class);
 
@@ -58,9 +58,9 @@ public class Main {
         double frameGenerationRate = 5;
 
         int nOfRuns = 10;
-        int initialNodes = 100;
+        int initialNodes = 50;
         int stepNodes = 10;
-        int maxNodes = 100;
+        int maxNodes = 150;
         double centerLatDegrees = -31.6;
         double centerLongitudeDegrees = -65.9;
         double radiusDegrees = 7.1957;

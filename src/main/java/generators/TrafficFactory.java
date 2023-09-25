@@ -63,7 +63,7 @@ public class TrafficFactory {
             if (transmitter.getLastTransmission() != null) {
                 timeMS = transmitter.getLastTransmission().getEndTransmissionTimestamp();
             } else { // TODO: Add condition to test how long ago the transmission happened and transmit timeShiftBack seconds if sufficiently long
-                timeMS = generateRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+                timeMS = getRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
             }
 
             while (timeMS <= i.getEnd()) {
@@ -117,13 +117,21 @@ public class TrafficFactory {
 //                    packetStatus = 0;
                 }
 
-                // SG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
-                for (Integer gwIdx : i.getToAssets()) {
-                    Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
-                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
-                    transmissionInGateway.setStatus(packetStatus);
-                    transmissions.add(transmissionInGateway);
-                }
+//                // SG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
+//                for (Integer gwIdx : i.getToAssets()) {
+//                    Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
+//                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+//                    transmissionInGateway.setStatus(packetStatus);
+//                    transmissions.add(transmissionInGateway);
+//                }
+
+                // Random gw
+                int gwIdx = i.getToAssets().get(r.nextInt(i.getToAssets().size()));
+                Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
+                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+                transmissionInGateway.setStatus(packetStatus);
+                transmissions.add(transmissionInGateway);
+
             }
         }
 
@@ -135,18 +143,18 @@ public class TrafficFactory {
      * Rate is in events per second
      */
     public double generatePoissonEvent(double rate) {
-        return - Math.log(1.0 - r.nextDouble()) / rate;
+        return -Math.log(1.0 - r.nextDouble()) / rate;
     }
 
     /**
      * Compute the elapsed time with an X% chance of containing an event given a certain rate
      * using the CDF (Cumulative Distribution Function)
-     * **/
+     **/
     public double poissonInterval(double lambda, double probability) {
-        return - Math.log(1 - probability) / lambda;
+        return -Math.log(1 - probability) / lambda;
     }
 
-    private double generateRandomDouble(double min, double max) {
+    private double getRandomDouble(double min, double max) {
 
         if (min >= max) {
             throw new IllegalArgumentException("Invalid range: min must be less than max");
@@ -155,6 +163,13 @@ public class TrafficFactory {
         double range = max - min + 1D;
         return min + (r.nextDouble() * range);
 
+    }
+
+    private int getRandomInteger(int min, int max) {
+        if (min >= max) {
+            throw new IllegalArgumentException("Invalid interval. 'min' should be less than 'max'.");
+        }
+        return r.nextInt(max - min + 1) + min;
     }
 
 
