@@ -15,6 +15,7 @@ public class NetworkAnalyzer {
 
     private double sampleStepSeconds;
     private List<double[]> dataPoints;
+    private List<long[]> destinations;
     static final Logger Log = LogManager.getLogger(NetworkAnalyzer.class);
 
     public NetworkAnalyzer(double sampleStepSeconds) {
@@ -24,6 +25,7 @@ public class NetworkAnalyzer {
     public void analyzeTraffic(Network network) {
 
         dataPoints = new ArrayList<>();
+        destinations = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
 
         // Exclude transmissions that where sent to the void
@@ -109,7 +111,17 @@ public class NetworkAnalyzer {
             partialFrames = transmissionsOnSample.get().filter(t -> (t.getStatus() == 3 || t.getStatus() == 4)).count();
             sentToTheVoid = transmissionsOnSample.get().filter(t -> (t.getStatus() == 2)).count();
 
-            dataPoints.add(new double[]{epochTimeMS, totalPackets, totalDistinct, successfulPackets, successfulDistinct, partialFrames, sentToTheVoid});
+            dataPoints.add(new double[]{epochTimeMS, totalPackets, totalDistinct, successfulPackets,
+                    successfulDistinct, partialFrames, sentToTheVoid});
+
+            // For each gateway
+            long[] toGwCount = new long[network.getSatellites().size()];
+            for (int gwId = 0; gwId < network.getSatellites().size(); gwId++) {
+                int finalGwId = gwId;
+                toGwCount[gwId] = transmissionsOnSample.get().filter(t -> t.getToId() == finalGwId).count();
+            }
+
+            destinations.add(toGwCount);
 
             epochTimeMS += sampleStepMS;
 
@@ -129,6 +141,10 @@ public class NetworkAnalyzer {
         return dataPoints;
     }
 
+    public List<long[]> getDestinations() {
+        return destinations;
+    }
+
     /**
      * Checked cases:
      * t1 |------------|                   t1 |------------|
@@ -137,8 +153,12 @@ public class NetworkAnalyzer {
     private boolean checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
 
         if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getStartTransmissionTimestamp()
-                && nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
+                && nextTransmission.getStartTransmissionTimestamp() <= transmissionInGateway.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
 
+            transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
+            nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
+
+            /*
             if (transmissionInGateway.getStatus() == 3) {
                 transmissionInGateway.setStatus(4);
             } else {
@@ -148,7 +168,7 @@ public class NetworkAnalyzer {
                 nextTransmission.setStatus(4);
             } else {
                 nextTransmission.setStatus(1);
-            }
+            }*/
 
             return true;
 

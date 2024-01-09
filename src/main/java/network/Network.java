@@ -29,6 +29,7 @@ public class Network {
     private long dutyCycleSilentTimeMS;
     private double frameGenerationRate;
     private double dutyCyclePercentage;
+    private double visibilityThresholdDegrees;
     private String scenarioStartTime;
     private String scenarioEndTime;
     private Simulation simulation;
@@ -38,7 +39,7 @@ public class Network {
     public Network(double timeStepSeconds, double timeOnAirMS, double dutyCyclePercentage, double frameGenerationRatePacketsPerSecond) {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRatePacketsPerSecond);
         simulation = new Simulation();
-        simulation.setVisibilityThreshold(25);
+        simulation.setVisibilityThreshold(visibilityThresholdDegrees);
         accessIntervals = new ArrayList<>();
     }
 
@@ -103,7 +104,7 @@ public class Network {
             List<Interval> thisPositionIntervals = new ArrayList<>();
 
             for (Satellite satellite : satellites) {
-                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, 25); // TODO: do not hardcode th
+                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, visibilityThresholdDegrees); // TODO: do not hardcode th
                 simulation.setInertialFrame(FramesFactory.getEME2000());
                 simulation.setFixedFrame(FramesFactory.getITRF(IERSConventions.IERS_2010, true));
                 simulation.computeAccess();
@@ -231,6 +232,10 @@ public class Network {
 
         // Apply a hash function to the combined value
         return combinedHash ^ (combinedHash >>> 16);
+    }
+
+    public void setVisibilityThresholdDegrees(double visibilityThresholdDegrees) {
+        this.visibilityThresholdDegrees = visibilityThresholdDegrees;
     }
 
     class Event implements Comparable<Event> {

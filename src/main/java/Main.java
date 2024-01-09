@@ -25,7 +25,7 @@ public class Main {
                   "endTime": "2022-01-01T16:30:00.000",
                   "startTimestamp": 1641052800000,
                   "endTimestamp": 1641051000000,
-                  "timeStepSeconds": 60.0,
+                  "propagatorTimeStepSeconds": 60.0,
                   "timeOnAirMS": 100,
                   "dutyCyclePercentage": 1,
                   "frameGenerationRate": 5,
@@ -52,24 +52,26 @@ public class Main {
         String endTime = "2022-01-01T16:30:00.000";
         long startTimestamp = Utils.stamp2unix(startTime);
         long endTimestamp = Utils.stamp2unix(endTime);
-        double timeStepSeconds = 60.0;
+        double propagatorTimeStepSeconds = 5.0;
+        double visibilityThresholdDegrees = 20;
         double timeOnAirMS = 100;
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 5;
 
-        int nOfRuns = 10;
-        int initialNodes = 50;
+        int nOfRuns = 30;
+        int initialNodes = 30;
         int stepNodes = 10;
-        int maxNodes = 150;
+        int maxNodes = 140;
         double centerLatDegrees = -31.6;
         double centerLongitudeDegrees = -65.9;
-        double radiusDegrees = 7.1957;
-        double sampleStepSeconds = 60;
+        double radiusDegrees = 7.1946;
+        double sampleStepSeconds = 30;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
-        Network network = new Network(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
+        Network network = new Network(propagatorTimeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
         network.setSimulationInterval(startTime, endTime);
         network.setSatellites(satellites);
+        network.setVisibilityThresholdDegrees(visibilityThresholdDegrees);
         PositionsFactory positionsFactory = new PositionsFactory(initialNodes, centerLatDegrees, centerLongitudeDegrees, radiusDegrees);
         NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(sampleStepSeconds);
         ReportFactory rf = new ReportFactory(outputPath);
@@ -111,6 +113,7 @@ public class Main {
                             interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
                     .collect(Collectors.toList()), "intervals_" + nodes + "N");
             rf.saveAsJSON(analysisDataSets, nodes + "_N");
+            rf.saveAsJSON(networkAnalyzer.getDestinations(), "destinations_" + nodes + "N");
 
         }
 

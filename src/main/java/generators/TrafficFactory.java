@@ -125,7 +125,7 @@ public class TrafficFactory {
 //                    transmissions.add(transmissionInGateway);
 //                }
 
-                // Random gw
+//                 Random gw
                 int gwIdx = i.getToAssets().get(r.nextInt(i.getToAssets().size()));
                 Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
                         endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
