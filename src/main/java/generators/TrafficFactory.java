@@ -27,6 +27,7 @@ public class TrafficFactory {
             e.printStackTrace();
         }
 
+
         this.network = network;
         transmitters = new HashMap<>();
         populateTransmitters();
@@ -117,20 +118,20 @@ public class TrafficFactory {
 //                    packetStatus = 0;
                 }
 
-//                // SG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
-//                for (Integer gwIdx : i.getToAssets()) {
-//                    Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
-//                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
-//                    transmissionInGateway.setStatus(packetStatus);
-//                    transmissions.add(transmissionInGateway);
-//                }
+                // SG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
+                for (Integer gwIdx : i.getToAssets()) {
+                    Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
+                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+                    transmissionInGateway.setStatus(packetStatus);
+                    transmissions.add(transmissionInGateway);
+                }
 
 //                 Random gw
-                int gwIdx = i.getToAssets().get(r.nextInt(i.getToAssets().size()));
-                Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
-                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
-                transmissionInGateway.setStatus(packetStatus);
-                transmissions.add(transmissionInGateway);
+//                int gwIdx = i.getToAssets().get(r.nextInt(i.getToAssets().size()));
+//                Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
+//                        endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+//                transmissionInGateway.setStatus(packetStatus);
+//                transmissions.add(transmissionInGateway);
 
             }
         }

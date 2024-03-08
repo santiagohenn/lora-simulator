@@ -58,12 +58,12 @@ public class Main {
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 5;
 
-        int nOfRuns = 30;
-        int initialNodes = 30;
+        int nOfRuns = 10;
+        int initialNodes = 10;
         int stepNodes = 10;
-        int maxNodes = 140;
-        double centerLatDegrees = -31.6;
-        double centerLongitudeDegrees = -65.9;
+        int maxNodes = 130;
+        double centerLatDegrees = -21.0;
+        double centerLongitudeDegrees = -58.0;
         double radiusDegrees = 7.1946;
         double sampleStepSeconds = 30;
 

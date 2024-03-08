@@ -111,6 +111,11 @@ public class Network {
                 thisPositionIntervals.addAll(simulation.getIntervals());
             }
 
+//            if (thisPositionIntervals.isEmpty()) {
+//                Log.warn("No access intervals for position ID: " + earthPos.getId());
+//                continue;
+//            }
+
             thisPositionIntervals.sort(Comparator.comparingLong(Interval::getStart));
 
             if (satellites.size() == 1) {
