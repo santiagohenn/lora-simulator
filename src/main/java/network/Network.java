@@ -12,6 +12,7 @@ import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Utils;
+import structures.EnhancedInterval;
 
 import java.util.*;
 
@@ -108,13 +109,19 @@ public class Network {
                 simulation.setInertialFrame(FramesFactory.getEME2000());
                 simulation.setFixedFrame(FramesFactory.getITRF(IERSConventions.IERS_2010, true));
                 simulation.computeAccess();
-                thisPositionIntervals.addAll(simulation.getIntervals());
+
+                List<Interval> intervals = new ArrayList<>(simulation.getIntervals());
+                intervals.forEach(interval -> {
+                    simulation.computePVDBetween(interval.getStart(), interval.getEnd());
+                    thisPositionIntervals.add(new EnhancedInterval(interval, simulation.getEphemerisList()));
+                });
+
             }
 
-//            if (thisPositionIntervals.isEmpty()) {
-//                Log.warn("No access intervals for position ID: " + earthPos.getId());
-//                continue;
-//            }
+            if (thisPositionIntervals.isEmpty()) {
+                Log.warn("No access intervals for position ID: " + earthPos.getId());
+                continue;
+            }
 
             thisPositionIntervals.sort(Comparator.comparingLong(Interval::getStart));
 
