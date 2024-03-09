@@ -112,13 +112,10 @@ public class TrafficFactory {
                 transmitter.transmit(transmissionInDevice);
 
                 if (packetStatus == 2) {
-                    // If no one hears the transmission, continue
-//                    transmissions.add(transmissionInDevice);
                     continue;
-//                    packetStatus = 0;
                 }
 
-                // SG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
+                // MG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
                 for (Integer gwIdx : i.getToAssets()) {
                     Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
                             endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);

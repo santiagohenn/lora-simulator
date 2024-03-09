@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Status table:
+ * Status reference:
  * 0 = Complete packet reached the gateway
  * 1 = Complete packet reached the gateway and collided
  * 2 = Complete packet unheard by the gateway
@@ -22,8 +22,10 @@ public class Transmission implements Comparable<Transmission> {
     private final int toId;
     private final int channel;
     private double endTransmissionTimestamp;
-    private double endDutyCycleSilentTime;
+    private double endDutyCycleSilentTimestamp;
     private double timeOnAirMilliSeconds;
+    private double startReceptionTimestamp;
+    private double endReceptionTimestamp;
     private int status = 0;
 
     /**
@@ -33,7 +35,8 @@ public class Transmission implements Comparable<Transmission> {
                         int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = startTransmissionTimestamp;
         this.endTransmissionTimestamp = endTransmissionTimestamp;
-        this.endDutyCycleSilentTime = endDutyCycleSilentTime;
+        this.timeOnAirMilliSeconds = endTransmissionTimestamp - startTransmissionTimestamp;
+        this.endDutyCycleSilentTimestamp = endDutyCycleSilentTime;
         this.fromId = fromId;
         toAssets = new ArrayList<>(1);
         toAssets.add(toId);
@@ -48,7 +51,7 @@ public class Transmission implements Comparable<Transmission> {
     public Transmission(double startTransmissionTimestamp, double endTransmissionTimestamp, double endDutyCycleSilentTime,
                         int fromId, List<Integer> toAssets, int channel) {
         this.endTransmissionTimestamp = endTransmissionTimestamp;
-        this.endDutyCycleSilentTime = endDutyCycleSilentTime;
+        this.endDutyCycleSilentTimestamp = endDutyCycleSilentTime;
         this.startTransmissionTimestamp = startTransmissionTimestamp;
         this.fromId = fromId;
         this.toAssets = toAssets;
@@ -87,7 +90,7 @@ public class Transmission implements Comparable<Transmission> {
 
     public void setEndTransmissionTimestamp(long endTransmissionTimestamp) {
         this.endTransmissionTimestamp = endTransmissionTimestamp;
-        this.endDutyCycleSilentTime = endTransmissionTimestamp;
+        this.endDutyCycleSilentTimestamp = endTransmissionTimestamp;
     }
 
     public double getTimeOnAirMilliSeconds() {
@@ -98,12 +101,28 @@ public class Transmission implements Comparable<Transmission> {
         this.timeOnAirMilliSeconds = timeOnAirMilliSeconds;
     }
 
-    public double getEndDutyCycleSilentTime() {
-        return endDutyCycleSilentTime;
+    public double getEndDutyCycleSilentTimestamp() {
+        return endDutyCycleSilentTimestamp;
     }
 
-    public void setEndDutyCycleSilentTime(long endDutyCycleSilentTime) {
-        this.endDutyCycleSilentTime = endDutyCycleSilentTime;
+    public void setEndDutyCycleSilentTimestamp(long endDutyCycleSilentTimestamp) {
+        this.endDutyCycleSilentTimestamp = endDutyCycleSilentTimestamp;
+    }
+
+    public double getStartReceptionTimestamp() {
+        return startReceptionTimestamp;
+    }
+
+    public void setStartReceptionTimestamp(double startReceptionTimestamp) {
+        this.startReceptionTimestamp = startReceptionTimestamp;
+    }
+
+    public double getEndReceptionTimestamp() {
+        return endReceptionTimestamp;
+    }
+
+    public void setEndReceptionTimestamp(double endReceptionTimestamp) {
+        this.endReceptionTimestamp = endReceptionTimestamp;
     }
 
     public int getStatus() {

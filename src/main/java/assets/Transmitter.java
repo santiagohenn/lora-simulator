@@ -27,7 +27,7 @@ public class Transmitter {
             return isReady();
         }
 
-        if (this.lastTransmission.getEndDutyCycleSilentTime() <= time) {
+        if (this.lastTransmission.getEndDutyCycleSilentTimestamp() <= time) {
             this.unblock();
         }
         return isReady();
