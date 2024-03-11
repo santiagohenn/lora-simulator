@@ -35,6 +35,8 @@ public class Transmission implements Comparable<Transmission> {
                         int fromId, int toId, int channel) {
         this.startTransmissionTimestamp = startTransmissionTimestamp;
         this.endTransmissionTimestamp = endTransmissionTimestamp;
+        this.startReceptionTimestamp = startTransmissionTimestamp;
+        this.endReceptionTimestamp = endTransmissionTimestamp;
         this.timeOnAirMilliSeconds = endTransmissionTimestamp - startTransmissionTimestamp;
         this.endDutyCycleSilentTimestamp = endDutyCycleSilentTime;
         this.fromId = fromId;
@@ -143,8 +145,15 @@ public class Transmission implements Comparable<Transmission> {
 
     @Override
     public String toString() {
-        return startTransmissionTimestamp + "," + fromId + "," + toAssets + "," + channel
-                + "," + status + ",#" + transmissionHash;
+        return "Start Transmission Timestamp: " + startTransmissionTimestamp + "\n" +
+                "End Transmission Timestamp: " + endTransmissionTimestamp + "\n" +
+                "Start Reception Timestamp: " + startReceptionTimestamp + "\n" +
+                "End Reception Timestamp: " + endReceptionTimestamp + "\n" +
+                "From ID: " + fromId + "\n" +
+                "To Assets: " + toAssets + "\n" +
+                "Channel: " + channel + "\n" +
+                "Status: " + status + "\n" +
+                "Transmission Hash: #" + transmissionHash;
     }
 
     @Override

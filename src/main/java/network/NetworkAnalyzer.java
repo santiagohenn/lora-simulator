@@ -152,23 +152,11 @@ public class NetworkAnalyzer {
      **/
     private boolean checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
 
-        if (nextTransmission.getStartTransmissionTimestamp() >= transmissionInGateway.getStartTransmissionTimestamp()
-                && nextTransmission.getStartTransmissionTimestamp() < transmissionInGateway.getEndTransmissionTimestamp()) { // TODO: the less or equal here might not be necessary
+        if (nextTransmission.getStartReceptionTimestamp() >= transmissionInGateway.getStartReceptionTimestamp()
+                && nextTransmission.getStartReceptionTimestamp() < transmissionInGateway.getEndReceptionTimestamp()) { // TODO: the less or equal here might not be necessary
 
             transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
             nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
-
-            /*
-            if (transmissionInGateway.getStatus() == 3) {
-                transmissionInGateway.setStatus(4);
-            } else {
-                transmissionInGateway.setStatus(1);
-            }
-            if (nextTransmission.getStatus() == 3) {
-                nextTransmission.setStatus(4);
-            } else {
-                nextTransmission.setStatus(1);
-            }*/
 
             return true;
 

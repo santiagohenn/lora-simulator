@@ -58,7 +58,7 @@ public class Main {
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 5;
 
-        int nOfRuns = 10;
+        int nOfRuns = 100;
         int initialNodes = 10;
         int stepNodes = 10;
         int maxNodes = 130;

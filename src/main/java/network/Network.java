@@ -250,6 +250,10 @@ public class Network {
         this.visibilityThresholdDegrees = visibilityThresholdDegrees;
     }
 
+    public Simulation getSimulation() {
+        return simulation;
+    }
+
     class Event implements Comparable<Event> {
 
         private final long time;

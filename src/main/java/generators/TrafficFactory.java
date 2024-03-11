@@ -4,8 +4,10 @@ import assets.Transmission;
 import assets.Transmitter;
 import network.Network;
 import org.jetbrains.annotations.NotNull;
+import satellite.tools.structures.Ephemeris;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Log;
+import satellite.tools.utils.Utils;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -17,6 +19,7 @@ public class TrafficFactory {
     Map<Integer, Transmitter> transmitters;
     Network network;
     private Random r;
+    private boolean usePropagationDelay = true;
 
     public TrafficFactory(Network network) {
 
@@ -86,6 +89,7 @@ public class TrafficFactory {
 
                 // If the transmission stops before the start of the satellite access interval
                 // transmit and block the device. no frame is received by any GW
+                // TODO: add the border condition for true visibility of the device
                 if (endTransmissionTimestamp <= i.getStart()) {
                     packetStatus = 2; // 2 = transmitted to the void
                     // Else if access to the GW is gained in the middle of the transmission, create
@@ -115,11 +119,27 @@ public class TrafficFactory {
                     continue;
                 }
 
+                // Set the device's position on Earth in the simulator
+                network.getSimulation().setDevice(network.getEarthPositions().get(i.getFirstFrom()));
+
                 // MG Transmissions to each gateway, used for collision analysis // TODO: replace with lambda
-                for (Integer gwIdx : i.getToAssets()) {
+                for (Integer gwId : i.getToAssets()) {
                     Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
-                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwIdx, 1);
+                            endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwId, 1);
                     transmissionInGateway.setStatus(packetStatus);
+
+                    if (usePropagationDelay) {
+                        network.getSimulation().setSatellite(network.getSatellites().get(gwId));
+                        Ephemeris e = network.getSimulation()
+                                .computeTopocentricEphemeris(Utils.unix2stamp((long) startTransmissionTimestamp));
+                        transmissionInGateway.setStartReceptionTimestamp(startTransmissionTimestamp + (e.getRange() / Utils.C_VACUUM) * 1000.0);
+                        e = network.getSimulation()
+                                .computeTopocentricEphemeris(Utils.unix2stamp((long) endTransmissionTimestamp));
+                        transmissionInGateway.setEndReceptionTimestamp(endTransmissionTimestamp + (e.getRange() / Utils.C_VACUUM) * 1000.0);
+                    }
+
+//                    System.out.println(transmissionInGateway);
+
                     transmissions.add(transmissionInGateway);
                 }
 
