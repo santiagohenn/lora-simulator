@@ -67,12 +67,11 @@ public class TrafficFactory {
             if (transmitter.getLastTransmission() != null) {
                 timeMS = transmitter.getLastTransmission().getEndTransmissionTimestamp();
             } else { // TODO: Add condition to test how long ago the transmission happened and transmit timeShiftBack seconds if sufficiently long
-                timeMS = getRandomDouble(i.getStart() - (timeShiftBackMS + dutyCycleSilentTimeMS), i.getStart());
+                timeMS = getRandomDouble(i.getStart() - timeShiftBackMS, i.getStart());
             }
 
             while (timeMS <= i.getEnd()) {
 
-//                timeMS += (1000.0 * generatePoissonEvent(frameGenerationRate));
                 while (!transmitter.updateStatus(timeMS)) {
                     timeMS += (1000.0 * generatePoissonEvent(frameGenerationRate));
                 }
@@ -137,8 +136,6 @@ public class TrafficFactory {
                                 .computeTopocentricEphemeris(Utils.unix2stamp((long) endTransmissionTimestamp));
                         transmissionInGateway.setEndReceptionTimestamp(endTransmissionTimestamp + (e.getRange() / Utils.C_VACUUM) * 1000.0);
                     }
-
-//                    System.out.println(transmissionInGateway);
 
                     transmissions.add(transmissionInGateway);
                 }

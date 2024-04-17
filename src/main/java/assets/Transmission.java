@@ -1,6 +1,7 @@
 package assets;
 
 import org.jetbrains.annotations.NotNull;
+import structures.TransmissionStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class Transmission implements Comparable<Transmission> {
     private double startReceptionTimestamp;
     private double endReceptionTimestamp;
     private int status = 0;
+    private TransmissionStatus transmissionStatus;
 
     /**
      * Single gateway constructor
@@ -133,6 +135,14 @@ public class Transmission implements Comparable<Transmission> {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public TransmissionStatus getTransmissionStatus() {
+        return transmissionStatus;
+    }
+
+    public void setTransmissionStatus(TransmissionStatus transmissionStatus) {
+        this.transmissionStatus = transmissionStatus;
     }
 
     public int getTransmissionHash() {

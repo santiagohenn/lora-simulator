@@ -44,19 +44,19 @@ public class Main {
 //        JsonObject properties = gson.fromJson(simulationParamsJSON, JsonObject.class);
 
         // Paths
-        String outputPath = "C:\\Projects\\throughput_pipeline\\outputs_santi\\";
-        String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
+        String outputPath = "C:\\Projects\\throughput_pipeline\\case_study_south_america\\network_data";
+        String satellitePath = "C:/Projects/throughput_pipeline/case_study_south_america/scenario_data/satellites.csv";
 
         // Scenario parameters
-        String startTime = "2022-01-01T16:00:00.000";
-        String endTime = "2022-01-01T16:30:00.000";
+        String startTime = "2025-01-01T16:00:00.000";
+        String endTime = "2025-01-01T16:30:00.000";
         long startTimestamp = Utils.stamp2unix(startTime);
         long endTimestamp = Utils.stamp2unix(endTime);
         double propagatorTimeStepSeconds = 5.0;
         double visibilityThresholdDegrees = 20;
-        double timeOnAirMS = 100;
+        double timeOnAirMS = 500;
         double dutyCyclePercentage = 1;
-        double frameGenerationRate = 5;
+        double frameGenerationRate = 0.1;
 
         int nOfRuns = 100;
         int initialNodes = 10;
