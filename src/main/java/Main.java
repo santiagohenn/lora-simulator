@@ -48,7 +48,9 @@ public class Main {
 //        JsonObject properties = gson.fromJson(simulationParamsJSON, JsonObject.class);
 
         // Paths
-        String outputPath = "C:\\Projects\\throughput_pipeline\\case_study_south_america\\network_data";
+//        String outputPath = "C:\\Projects\\throughput_pipeline\\case_study_south_america\\network_data";
+        String outputPath = "D:\\network_data";
+
         String satellitePath = "C:/Projects/throughput_pipeline/case_study_south_america/scenario_data/satellites.csv";
 
         // Scenario parameters
@@ -58,19 +60,19 @@ public class Main {
         long endTimestamp = Utils.stamp2unix(endTime);
         double propagatorTimeStepSeconds = 5.0;
         double visibilityThresholdDegrees = 20;
-        double timeOnAirMS = 250;
+        double timeOnAirMS = 500;
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 0.1;
 
-        int nOfRuns = 100;
+        int nOfRuns = 200;
         int initialNodes = 60;
         int stepNodes = 60;
-        int maxNodes = 60;
+        int maxNodes = 100;
         double centerLatDegrees = -21.0;
         double centerLongitudeDegrees = -58.0;
         double radiusDegrees = 7.1946;
-        double sampleStepMilliseconds = 250;
-        double sampleStepSeconds = sampleStepMilliseconds / 1000.0;
+        double sampleStepMS = 125;
+        double sampleStepSeconds = sampleStepMS / 1000.0;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
         Network network = new Network(propagatorTimeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
@@ -84,58 +86,80 @@ public class Main {
         Log.info("avg inter-arrival time (ms): " + (timeOnAirMS / frameGenerationRate)
                 + " | " + "avg inter-arrival time Poisson (ms):" + (1 / frameGenerationRate));
 
-        for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
+        while (sampleStepMS <= 512000 && timeOnAirMS <= 16000) {
 
-            List<List<double[]>> analysisDataSets = new ArrayList<>();
+            Log.info("Averaging " + nOfRuns + " simulations | sample step = "
+                    + sampleStepMS + " [ms] | time on air = " + timeOnAirMS + " [ms]");
+            networkAnalyzer.setSampleStepSeconds(sampleStepMS / 1000.0);
+            network.setTimeOnAirMS(timeOnAirMS);
 
-            positionsFactory.setNOfNodes(nodes);
+            for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
 
-            long tic = System.currentTimeMillis();
-            System.out.print("[SIMULATING] ");
-            printProgress(0);
-            for (int run = 0; run < nOfRuns; run++) {
-                printProgress(((double) run) / nOfRuns * 100.0);
-                Log.debug("Run " + String.format("%03d", (run + 1)) + "/" + nOfRuns);
+                List<List<double[]>> analysisDataSets = new ArrayList<>();
 
-                ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
+                positionsFactory.setNOfNodes(nodes);
+
+                long tic = System.currentTimeMillis();
+                System.out.print("[SIMULATING] ");
+                printProgress(0);
+
+                for (int run = 0; run < nOfRuns; run++) {
+                    printProgress(((double) run) / nOfRuns * 100.0);
+                    Log.debug("Run " + String.format("%03d", (run + 1)) + "/" + nOfRuns);
+
+                    ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
 //                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
-                network.setEarthPositions(uniformRandomPositions);
+                    network.setEarthPositions(uniformRandomPositions);
 
-                Log.debug("Simulating traffic ! " + tic());
-                network.simulateTraffic();
+                    Log.debug("Simulating traffic ! " + tic());
+                    network.simulateTraffic();
 //                network.simulateContinuousCoverage();
-                Log.debug("Traffic simulation took " + toc() + " [ms.]");
-                Log.debug("Analyzing traffic ! " + tic());
-                networkAnalyzer.analyzeTraffic(network);
-                analysisDataSets.add(networkAnalyzer.getDataPoints());
-                Log.debug("Traffic Analysis took " + toc() + " [ms.]");
+                    Log.debug("Traffic simulation took " + toc() + " [ms.]");
+                    Log.debug("Analyzing traffic ! " + tic());
+                    networkAnalyzer.analyzeTraffic(network);
+                    analysisDataSets.add(networkAnalyzer.getDataPoints());
+                    Log.debug("Traffic Analysis took " + toc() + " [ms.]");
+                }
+                printProgress(100);
+
+                Log.debug("Avg. computation time for " + nodes + " nodes: "
+                        + (System.currentTimeMillis() - tic) / nOfRuns + " [ms]");
+
+                if (saveTransmissions) {
+                    Log.info("Saving transmissions dataset for " + nodes + " nodes");
+                    rf.saveAsJSON(network.getTransmissions(), "TX_" + nodes + "N");
+                }
+
+                if (saveAccessIntervals) {
+                    Log.info("Saving access intervals dataset for " + nodes + " nodes");
+                    rf.saveAsJSON(network.getAccessIntervals()
+                            .stream().map(interval -> new long[]{interval.getFirstFrom(),
+                                    interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
+                            .collect(Collectors.toList()), "intervals_" + nodes + "N");
+                }
+
+                if (saveAnalysisDatasets) {
+                    Log.info("Saving analysis datasets for " + nodes + " nodes");
+                    rf.saveAsJSON(analysisDataSets, nodes + "ED_" + ((int) sampleStepMS) + "ms_" + ((int) timeOnAirMS) + "ms");
+                }
+
+                if (saveDestinations) {
+                    Log.info("Saving destinations datasets for " + nodes + " nodes");
+                    rf.saveAsJSON(networkAnalyzer.getDestinations(), "destinations_" + nodes + "N");
+                }
+
             }
-            printProgress(100);
 
-            Log.debug("Avg. computation time for " + nodes + " nodes: "
-                    + (System.currentTimeMillis() - tic) / nOfRuns + " [ms]");
+//            sampleStepMS *= 2;
+//            continue;
 
-            if (saveTransmissions) {
-                Log.info("Saving transmissions dataset for " + nodes + " nodes");
-                rf.saveAsJSON(network.getTransmissions(), "TX_" + nodes + "N");
-            }
-
-            if (saveAccessIntervals) {
-                Log.info("Saving access intervals dataset for " + nodes + " nodes");
-                rf.saveAsJSON(network.getAccessIntervals()
-                        .stream().map(interval -> new long[]{interval.getFirstFrom(),
-                                interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
-                        .collect(Collectors.toList()), "intervals_" + nodes + "N");
-            }
-
-            if (saveAnalysisDatasets) {
-                Log.info("Saving analysis datasets for " + nodes + " nodes");
-                rf.saveAsJSON(analysisDataSets, nodes + "ED_" + ((int) sampleStepMilliseconds) + "ms");
-            }
-
-            if (saveDestinations) {
-                Log.info("Saving destinations datasets for " + nodes + " nodes");
-                rf.saveAsJSON(networkAnalyzer.getDestinations(), "destinations_" + nodes + "N");
+//            timeOnAirMS *= 2;
+            timeOnAirMS += 500;
+//
+            if (timeOnAirMS > 16000) {
+                timeOnAirMS = 500;
+                sampleStepMS *= 2;
+//                sampleStepSeconds *= 2;
             }
 
         }
@@ -160,7 +184,9 @@ public class Main {
             return;
         }
         System.out.print("\b\b\b\b\b\b");
-        System.out.print("█");
+        if (progress % 2 == 0) {
+            System.out.print("█");
+        }
         System.out.printf(" %03d", progress);
         System.out.print(" %");
         if (percentage == 100) {

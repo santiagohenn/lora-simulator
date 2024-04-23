@@ -182,6 +182,14 @@ public class Network {
 
     }
 
+    public double getTimeOnAirMS() {
+        return timeOnAirMS;
+    }
+
+    public void setTimeOnAirMS(double timeOnAirMS) {
+        this.timeOnAirMS = timeOnAirMS;
+    }
+
     public void setEarthPositions(List<Position> earthPositions) {
         this.earthPositions = earthPositions;
     }
