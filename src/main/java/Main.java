@@ -1,210 +1,58 @@
-import generators.PositionsFactory;
-import generators.ReportFactory;
-import network.Network;
-import network.NetworkAnalyzer;
-import satellite.tools.assets.entities.Position;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Main {
 
-    public static long timer;
-    static boolean saveTransmissions = false;
-    static boolean saveAccessIntervals = false;
-    static boolean saveAnalysisDatasets = true;
-    static boolean saveDestinations = false;
-
     public static void main(String[] args) {
 
-        String simulationParamsJSON = """
-                {
-                  "outputPath": "C:\\Projects\\throughput_pipeline\\outputs_santi\\",
-                  "satellitePath": "C:\\Projects\\throughput_pipeline\\satellites.csv",
-                  "startTime": "2022-01-01T16:00:00.000",
-                  "endTime": "2022-01-01T16:30:00.000",
-                  "startTimestamp": 1641052800000,
-                  "endTimestamp": 1641051000000,
-                  "propagatorTimeStepSeconds": 60.0,
-                  "timeOnAirMS": 100,
-                  "dutyCyclePercentage": 1,
-                  "frameGenerationRate": 5,
-                  "nOfRuns": 10,
-                  "initialNodes": 10,
-                  "maxNodes": 80,
-                  "stepNodes": 10,
-                  "centerLatDegrees": -31.6,
-                  "centerLongitudeDegrees": -65.9,
-                  "radiusDegrees": 7.1957,
-                  "sampleStepSeconds": 30
-                }
-                """;
-
-//        Gson gson = new Gson();
-//        JsonObject properties = gson.fromJson(simulationParamsJSON, JsonObject.class);
-
-        // Paths
-//        String outputPath = "C:\\Projects\\throughput_pipeline\\case_study_south_america\\network_data";
         String outputPath = "D:\\network_data";
+        Simulator simulator = new Simulator(outputPath);
+
+        simulator.setSaveActions(false, true, false, false);
 
         String satellitePath = "C:/Projects/throughput_pipeline/case_study_south_america/scenario_data/satellites.csv";
+        List<Satellite> satelliteList = Utils.satellitesFromFile(satellitePath);
 
         // Scenario parameters
-        String startTime = "2025-01-01T16:00:00.000";
-        String endTime = "2025-01-01T16:30:00.000";
-        long startTimestamp = Utils.stamp2unix(startTime);
-        long endTimestamp = Utils.stamp2unix(endTime);
-        double propagatorTimeStepSeconds = 5.0;
-        double visibilityThresholdDegrees = 20;
-        double timeOnAirMS = 500;
-        double dutyCyclePercentage = 1;
-        double frameGenerationRate = 0.1;
-        double averageInterArrivalTime = 60;
+        simulator.setScenarioParameters(
+                "2025-01-01T16:00:00.000",
+                "2025-01-01T16:30:00.000",
+                5.0,
+                20
+        );
 
-        int nOfRuns = 10;
+        simulator.setSatellites(satelliteList);
+        simulator.setDeploymentArea(-21.0, -58.0, 7.1946);
+
+        // Network parameters
+        simulator.setNetworkParameters(
+                500,
+                1,
+                60,
+                250);
+
+        simulator.setNumberOfRuns(10);
+        Log.info(simulator.toString());
+
         int initialNodes = 20;
         int stepNodes = 40;
         int maxNodes = 100;
-        double centerLatDegrees = -21.0;
-        double centerLongitudeDegrees = -58.0;
-        double radiusDegrees = 7.1946;
-        double sampleStepMS = 250;
-        double sampleStepSeconds = sampleStepMS / 1000.0;
 
-        List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
-        Network network = new Network(propagatorTimeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRate);
-        network.setSimulationInterval(startTime, endTime);
-        network.setSatellites(satellites);
-        network.setVisibilityThresholdDegrees(visibilityThresholdDegrees);
-        PositionsFactory positionsFactory = new PositionsFactory(initialNodes, centerLatDegrees, centerLongitudeDegrees, radiusDegrees);
-        NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(sampleStepSeconds);
-        ReportFactory rf = new ReportFactory(outputPath);
+        double[] sampleSteps = new double[]{250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000,
+                16000, 18000, 20000, 22000, 24000, 26000, 28000, 30000, 32000, 34000, 36000, 38000, 40000};
+        double[] toaSteps = new double[]{500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
 
-        Log.info("avg inter-arrival time (ms): " + averageInterArrivalTime);
-
-        while (sampleStepMS <= 40000 && timeOnAirMS <= 10000) {
-
-            Log.info("Averaging " + nOfRuns + " simulations | sample step = "
-                    + sampleStepMS + " [ms] | time on air = " + timeOnAirMS + " [ms]");
-            networkAnalyzer.setSampleStepSeconds(sampleStepMS / 1000.0);
-
-//            network.setTimeOnAirMS(timeOnAirMS);
-            double avgFrameGenerationRate = (timeOnAirMS / 1000.0) / averageInterArrivalTime;
-            network.setParams(timeOnAirMS, avgFrameGenerationRate);
-
-            for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
-
-                List<List<double[]>> analysisDataSets = new ArrayList<>();
-
-                positionsFactory.setNOfNodes(nodes);
-
-                long tic = System.currentTimeMillis();
-                System.out.print("[SIMULATING] ");
-                printProgress(0);
-
-                for (int run = 0; run < nOfRuns; run++) {
-                    printProgress(((double) run) / nOfRuns * 100.0);
-                    Log.debug("Run " + String.format("%03d", (run + 1)) + "/" + nOfRuns);
-
-                    ArrayList<Position> uniformRandomPositions = positionsFactory.generateUniformRandomPositions();
-//                ArrayList<Position> uniformRandomPositions = positionsFactory.generatePoissonPointProcessPositions(nodes);
-                    network.setEarthPositions(uniformRandomPositions);
-
-                    Log.debug("Simulating traffic ! " + tic());
-                    network.simulateTraffic();
-//                network.simulateContinuousCoverage();
-                    Log.debug("Traffic simulation took " + toc() + " [ms.]");
-                    Log.debug("Analyzing traffic ! " + tic());
-                    networkAnalyzer.analyzeTraffic(network);
-                    analysisDataSets.add(networkAnalyzer.getDataPoints());
-                    Log.debug("Traffic Analysis took " + toc() + " [ms.]");
+        for (int nodes = initialNodes; nodes < maxNodes; nodes += stepNodes) {
+            simulator.setNumberOfNodes(nodes);
+            for (double sampleStepMS : sampleSteps) {
+                for (double toaStepMS : toaSteps) {
+                    simulator.setTimeOnAirAndSampleStep(toaStepMS, sampleStepMS);
+                    simulator.run();
                 }
-                printProgress(100);
-
-                Log.debug("Avg. computation time for " + nodes + " nodes: "
-                        + (System.currentTimeMillis() - tic) / nOfRuns + " [ms]");
-
-                if (saveTransmissions) {
-                    Log.info("Saving transmissions dataset for " + nodes + " nodes");
-                    rf.saveAsJSON(network.getTransmissions(), "TX_" + nodes + "N");
-                }
-
-                if (saveAccessIntervals) {
-                    Log.info("Saving access intervals dataset for " + nodes + " nodes");
-                    rf.saveAsJSON(network.getAccessIntervals()
-                            .stream().map(interval -> new long[]{interval.getFirstFrom(),
-                                    interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
-                            .collect(Collectors.toList()), "intervals_" + nodes + "N");
-                }
-
-                if (saveAnalysisDatasets) {
-                    Log.info("Saving analysis datasets for " + nodes + " nodes");
-                    rf.saveAsJSON(analysisDataSets, nodes + "ED_" + ((int) sampleStepMS) + "ms_" + ((int) timeOnAirMS) + "ms");
-                }
-
-                if (saveDestinations) {
-                    Log.info("Saving destinations datasets for " + nodes + " nodes");
-                    rf.saveAsJSON(networkAnalyzer.getDestinations(), "destinations_" + nodes + "N");
-                }
-
             }
-
-//            sampleStepMS *= 2;
-//            continue;
-
-//            timeOnAirMS *= 2;
-            if (timeOnAirMS < 1000) {
-                timeOnAirMS += 250;
-            } else {
-                timeOnAirMS += 1000;
-            }
-
-//
-            if (timeOnAirMS > 10000) {
-                timeOnAirMS = 500;
-                if (sampleStepMS < 1000) {
-                    sampleStepMS += 250;
-                } else if (sampleStepMS == 1000) {
-                    sampleStepMS += 1000;
-                } else {
-                    sampleStepMS += 2000;
-                }
-//                sampleStepSeconds *= 2;
-            }
-
-        }
-
-    }
-
-    public static long tic() {
-        timer = System.currentTimeMillis();
-        return timer;
-    }
-
-    public static long toc() {
-        return System.currentTimeMillis() - timer;
-    }
-
-    public static void printProgress(double percentage) {
-
-        int progress = (int) percentage;
-
-        if (percentage == 0) {
-            System.out.print("   ");
-            return;
-        }
-        System.out.print("\b\b\b\b\b\b");
-        if (progress % 2 == 0) {
-            System.out.print("█");
-        }
-        System.out.printf(" %03d", progress);
-        System.out.print(" %");
-        if (percentage == 100) {
-            System.out.println();
         }
 
     }

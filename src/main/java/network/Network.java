@@ -37,6 +37,11 @@ public class Network {
 
     private int lastSimHash = 0;
 
+    public Network() {
+        simulation = new Simulation();
+        accessIntervals = new ArrayList<>();
+    }
+
     public Network(double timeStepSeconds, double timeOnAirMS, double dutyCyclePercentage, double frameGenerationRatePacketsPerSecond) {
         setParams(timeStepSeconds, timeOnAirMS, dutyCyclePercentage, frameGenerationRatePacketsPerSecond);
         simulation = new Simulation();
@@ -82,6 +87,7 @@ public class Network {
     }
 
     public void simulateTraffic() {
+        accessIntervals = new ArrayList<>();
         if (lastSimHash != getSimHashCode() || lastSimHash == 0) {
             Log.debug("[Start] Computing access intervals");
             computeAccessIntervals();
@@ -95,12 +101,14 @@ public class Network {
 
     public void computeAccessIntervals() {
 
+        checkScenarioParams();
+
         this.lastSimHash = getSimHashCode();
         List<Interval> allAccesses = new ArrayList<>();
 
         if (earthPositions.isEmpty() || satellites.isEmpty()) {
             Log.warn("Check assets! Earth Positions size: " + earthPositions.isEmpty() + " N° of satellites: " + satellites.isEmpty());
-            return;
+            System.exit(1);
         }
 
         // Compute intervals for each pair position -> satellite
@@ -109,7 +117,7 @@ public class Network {
             List<Interval> thisPositionIntervals = new ArrayList<>();
 
             for (Satellite satellite : satellites) {
-                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, visibilityThresholdDegrees); // TODO: do not hardcode th
+                simulation = new Simulation(scenarioStartTime, scenarioEndTime, earthPos, satellite, timeStepSeconds, visibilityThresholdDegrees);
                 simulation.setInertialFrame(FramesFactory.getEME2000());
                 simulation.setFixedFrame(FramesFactory.getITRF(IERSConventions.IERS_2010, true));
                 simulation.computeAccess();
@@ -253,6 +261,26 @@ public class Network {
 
     public void setFrameGenerationRate(double frameGenerationRate) {
         this.frameGenerationRate = frameGenerationRate;
+    }
+
+    public double getTimeStepSeconds() {
+        return timeStepSeconds;
+    }
+
+    public void setTimeStepSeconds(double timeStepSeconds) {
+        this.timeStepSeconds = timeStepSeconds;
+    }
+
+    private void checkScenarioParams() {
+        if (timeStepSeconds == 0 || visibilityThresholdDegrees < 0
+                || scenarioStartTime == null || scenarioEndTime == null) {
+            String sb = "Time Step Seconds: " + timeStepSeconds + "\n" +
+                    "Visibility Threshold Degrees: " + visibilityThresholdDegrees + "\n" +
+                    "Scenario Start Time: " + scenarioStartTime + "\n" +
+                    "Scenario End Time: " + scenarioEndTime + "\n";
+            Log.error("Check scenario parameters! " + sb);
+            System.exit(1);
+        }
     }
 
     private int getSimHashCode() {

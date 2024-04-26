@@ -18,6 +18,10 @@ public class NetworkAnalyzer {
     private List<long[]> destinations;
     static final Logger Log = LogManager.getLogger(NetworkAnalyzer.class);
 
+    public NetworkAnalyzer() {
+
+    }
+
     public NetworkAnalyzer(double sampleStepSeconds) {
         setSampleStepSeconds(sampleStepSeconds);
     }
@@ -129,12 +133,15 @@ public class NetworkAnalyzer {
 
     }
 
+    public void setSampleStepMS(double sampleStepMS) {
+        setSampleStepSeconds(sampleStepMS / 1000.0);
+    }
+
     public void setSampleStepSeconds(double sampleStepSeconds) {
+        this.sampleStepSeconds = sampleStepSeconds;
         if (sampleStepSeconds <= 0) {
             this.sampleStepSeconds = 1;
-            Log.error("Sample time must be greater than 0");
-        } else {
-            this.sampleStepSeconds = sampleStepSeconds;
+            Log.error("Sample time must be greater than 0. Defaulting to 1 second.");
         }
     }
 
