@@ -45,8 +45,9 @@ public class Main {
                 16000, 18000, 20000, 22000, 24000, 26000, 28000, 30000, 32000, 34000, 36000, 38000, 40000};
         double[] toaSteps = new double[]{500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
 
-        for (int nodes = initialNodes; nodes < maxNodes; nodes += stepNodes) {
+        for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
             simulator.setNumberOfNodes(nodes);
+            Log.info("Running with " + nodes + " nodes | avg inter-arrival time (ms): " + simulator.getAverageInterArrivalTime());
             for (double sampleStepMS : sampleSteps) {
                 for (double toaStepMS : toaSteps) {
                     simulator.setTimeOnAirAndSampleStep(toaStepMS, sampleStepMS);

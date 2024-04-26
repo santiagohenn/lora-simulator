@@ -119,7 +119,6 @@ public class Simulator {
 
     public void run() {
 
-        Log.info("Running with avg inter-arrival time (ms): " + averageInterArrivalTime);
         List<List<double[]>> analysisDataSets = new ArrayList<>();
 
         printProgress(0);
@@ -128,17 +127,17 @@ public class Simulator {
             simulateTraffic();
             analyzeTraffic();
             analysisDataSets.add(networkAnalyzer.getDataPoints());
-            printProgress(((double) run) / numberOfRuns);
+            printProgress(((double) run) * 100.0 / (double) numberOfRuns);
         }
         printProgress(100);
 
         if (saveTransmissions) {
-            Log.info("Saving transmissions dataset for " + numberOfNodes + " nodes");
+            Log.debug("Saving transmissions dataset for " + numberOfNodes + " nodes");
             rf.saveAsJSON(network.getTransmissions(), "TX_" + numberOfNodes + "N");
         }
 
         if (saveAccessIntervals) {
-            Log.info("Saving access intervals dataset for " + numberOfNodes + " nodes");
+            Log.debug("Saving access intervals dataset for " + numberOfNodes + " nodes");
             rf.saveAsJSON(network.getAccessIntervals()
                     .stream().map(interval -> new long[]{interval.getFirstFrom(),
                             interval.getStart(), interval.getEnd(), interval.getToAssets().size()})
@@ -146,12 +145,12 @@ public class Simulator {
         }
 
         if (saveAnalysisDatasets) {
-            Log.info("Saving analysis datasets for " + numberOfNodes + " nodes");
+            Log.debug("Saving analysis datasets for " + numberOfNodes + " nodes");
             rf.saveAsJSON(analysisDataSets, numberOfNodes + "ED_" + ((int) sampleStepMS) + "ms_" + ((int) timeOnAirMS) + "ms");
         }
 
         if (saveDestinations) {
-            Log.info("Saving destinations datasets for " + numberOfNodes + " nodes");
+            Log.debug("Saving destinations datasets for " + numberOfNodes + " nodes");
             rf.saveAsJSON(networkAnalyzer.getDestinations(), "destinations_" + numberOfNodes + "N");
         }
 
@@ -180,6 +179,10 @@ public class Simulator {
         this.numberOfNodes = numberOfNodes;
     }
 
+    public double getAverageInterArrivalTime() {
+        return averageInterArrivalTime;
+    }
+
     public long tic() {
         timer = System.currentTimeMillis();
         return timer;
@@ -189,12 +192,12 @@ public class Simulator {
         return System.currentTimeMillis() - timer;
     }
 
-    public static void printProgress(double percentage) {
+    public void printProgress(double percentage) {
 
         int progress = (int) percentage;
 
         if (percentage == 0) {
-            System.out.print("   ");
+            System.out.print("Simulating " + numberOfRuns + " runs >   ");
             return;
         }
         System.out.print("\b\b\b\b\b\b");
