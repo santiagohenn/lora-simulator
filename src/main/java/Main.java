@@ -63,15 +63,16 @@ public class Main {
         double timeOnAirMS = 500;
         double dutyCyclePercentage = 1;
         double frameGenerationRate = 0.1;
+        double averageInterArrivalTime = 60;
 
-        int nOfRuns = 200;
-        int initialNodes = 60;
-        int stepNodes = 60;
+        int nOfRuns = 10;
+        int initialNodes = 20;
+        int stepNodes = 40;
         int maxNodes = 100;
         double centerLatDegrees = -21.0;
         double centerLongitudeDegrees = -58.0;
         double radiusDegrees = 7.1946;
-        double sampleStepMS = 125;
+        double sampleStepMS = 250;
         double sampleStepSeconds = sampleStepMS / 1000.0;
 
         List<Satellite> satellites = Utils.satellitesFromFile(satellitePath);
@@ -83,15 +84,17 @@ public class Main {
         NetworkAnalyzer networkAnalyzer = new NetworkAnalyzer(sampleStepSeconds);
         ReportFactory rf = new ReportFactory(outputPath);
 
-        Log.info("avg inter-arrival time (ms): " + (timeOnAirMS / frameGenerationRate)
-                + " | " + "avg inter-arrival time Poisson (ms):" + (1 / frameGenerationRate));
+        Log.info("avg inter-arrival time (ms): " + averageInterArrivalTime);
 
-        while (sampleStepMS <= 512000 && timeOnAirMS <= 16000) {
+        while (sampleStepMS <= 40000 && timeOnAirMS <= 10000) {
 
             Log.info("Averaging " + nOfRuns + " simulations | sample step = "
                     + sampleStepMS + " [ms] | time on air = " + timeOnAirMS + " [ms]");
             networkAnalyzer.setSampleStepSeconds(sampleStepMS / 1000.0);
-            network.setTimeOnAirMS(timeOnAirMS);
+
+//            network.setTimeOnAirMS(timeOnAirMS);
+            double avgFrameGenerationRate = (timeOnAirMS / 1000.0) / averageInterArrivalTime;
+            network.setParams(timeOnAirMS, avgFrameGenerationRate);
 
             for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
 
@@ -154,11 +157,22 @@ public class Main {
 //            continue;
 
 //            timeOnAirMS *= 2;
-            timeOnAirMS += 500;
+            if (timeOnAirMS < 1000) {
+                timeOnAirMS += 250;
+            } else {
+                timeOnAirMS += 1000;
+            }
+
 //
-            if (timeOnAirMS > 16000) {
+            if (timeOnAirMS > 10000) {
                 timeOnAirMS = 500;
-                sampleStepMS *= 2;
+                if (sampleStepMS < 1000) {
+                    sampleStepMS += 250;
+                } else if (sampleStepMS == 1000) {
+                    sampleStepMS += 1000;
+                } else {
+                    sampleStepMS += 2000;
+                }
 //                sampleStepSeconds *= 2;
             }
 

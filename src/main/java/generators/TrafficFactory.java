@@ -67,7 +67,7 @@ public class TrafficFactory {
             if (transmitter.getLastTransmission() != null) {
                 timeMS = transmitter.getLastTransmission().getEndTransmissionTimestamp();
             } else { // TODO: Add condition to test how long ago the transmission happened and transmit timeShiftBack seconds if sufficiently long
-                timeMS = getRandomDouble(i.getStart() - timeShiftBackMS, i.getStart());
+                timeMS = getRandomDouble(i.getStart() - timeShiftBackMS - timeOnAirMS, i.getStart());
             }
 
             while (timeMS <= i.getEnd()) {

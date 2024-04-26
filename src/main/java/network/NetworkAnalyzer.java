@@ -83,7 +83,7 @@ public class NetworkAnalyzer {
 
     private void sampledAnalysis(Network network) {
 
-        double sampleStepMS = sampleStepSeconds * 1000; // To ms
+        double sampleStepMS = this.sampleStepSeconds * 1000; // To ms
         long epochTimeMS = 0;
         long successfulPackets = 0;
         long partialFrames = 0;
@@ -131,6 +131,7 @@ public class NetworkAnalyzer {
 
     public void setSampleStepSeconds(double sampleStepSeconds) {
         if (sampleStepSeconds <= 0) {
+            this.sampleStepSeconds = 1;
             Log.error("Sample time must be greater than 0");
         } else {
             this.sampleStepSeconds = sampleStepSeconds;
@@ -164,7 +165,12 @@ public class NetworkAnalyzer {
 
         if (transmissionInGateway.getStartTransmissionTimestamp() >= nextTransmission.getStartTransmissionTimestamp()
                 && transmissionInGateway.getStartTransmissionTimestamp() < nextTransmission.getEndTransmissionTimestamp()) {
-            Log.error("This should not happen");
+            Log.error("This should not happen: | "
+                    + transmissionInGateway.getStartTransmissionTimestamp() + " -> " + transmissionInGateway.getEndTransmissionTimestamp()
+                    + " | " + nextTransmission.getStartTransmissionTimestamp() + " -> " + nextTransmission.getEndTransmissionTimestamp() + " | ");
+
+
+
             if (transmissionInGateway.getStatus() == 3) {
                 transmissionInGateway.setStatus(4);
             } else {

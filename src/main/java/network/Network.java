@@ -47,14 +47,18 @@ public class Network {
     public void setParams(double timeStepSeconds, double timeOnAirMS, double dutyCyclePercentage, double frameGenerationRate) {
         this.timeStepSeconds = timeStepSeconds;
         this.timeOnAirMS = timeOnAirMS;
-        double avgInterArrivalTime = (timeOnAirMS / 1000.0) / frameGenerationRate;
         this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
         this.dutyCyclePercentage = dutyCyclePercentage;
         this.frameGenerationRate = frameGenerationRate;
         Log.info("Starting simulation with: toa(ms) = " + timeOnAirMS
-                + " | avg IAT(s) = " + avgInterArrivalTime
                 + " | dc_silent(ms) = " + this.dutyCycleSilentTimeMS
                 + " | frameGenerationRate = " + this.frameGenerationRate);
+    }
+
+    public void setParams(double timeOnAirMS, double frameGenerationRate) {
+        this.timeOnAirMS = timeOnAirMS;
+        this.dutyCycleSilentTimeMS = (long) ((100.0 - dutyCyclePercentage) * timeOnAirMS);
+        this.frameGenerationRate = frameGenerationRate;
     }
 
     public void simulateContinuousCoverage() {
@@ -241,6 +245,14 @@ public class Network {
 
     public List<Satellite> getSatellites() {
         return satellites;
+    }
+
+    public double getFrameGenerationRate() {
+        return frameGenerationRate;
+    }
+
+    public void setFrameGenerationRate(double frameGenerationRate) {
+        this.frameGenerationRate = frameGenerationRate;
     }
 
     private int getSimHashCode() {
