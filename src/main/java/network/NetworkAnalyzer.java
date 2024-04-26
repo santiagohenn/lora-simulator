@@ -28,6 +28,8 @@ public class NetworkAnalyzer {
 
     public void analyzeTraffic(Network network) {
 
+        checkNetworkParams();
+
         dataPoints = new ArrayList<>();
         destinations = new ArrayList<>();
         List<Transmission> transmissions = network.getTransmissions();
@@ -66,21 +68,11 @@ public class NetworkAnalyzer {
             while (transmissionsOnGateway.hasNext()) {
                 Transmission nextTransmission = transmissionsOnGateway.next(); // Take the next transmission
                 checkCollision(transmissionInGateway, nextTransmission);
-                // DEBUG
-//                if (checkCollision(transmissionInGateway, nextTransmission)) {
-//                    Transmission finalTransmissionInGateway = transmissionInGateway;
-//                    transmissionsHeard.stream().filter(t -> t.equals(finalTransmissionInGateway)).forEach(transmission -> transmission.setStatus(1));
-//                } // Check collisions and set corresponding status
                 transmissionInGateway = nextTransmission;
             }
 
         }
 
-//        Log.debug("debug successful final size: {}", transmissionsHeard.stream()
-//                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
-//        Log.debug("debug successful final distinct size: {}", transmissionsHeard.stream()
-//                .distinct()
-//                .filter(t -> (t.getStatus() != 1 && t.getStatus() != 4)).count());
         sampledAnalysis(network);
 
     }
@@ -165,36 +157,30 @@ public class NetworkAnalyzer {
 
             transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
             nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
-
             return true;
-
         }
 
-        if (transmissionInGateway.getStartTransmissionTimestamp() >= nextTransmission.getStartTransmissionTimestamp()
-                && transmissionInGateway.getStartTransmissionTimestamp() < nextTransmission.getEndTransmissionTimestamp()) {
+        if (transmissionInGateway.getStartReceptionTimestamp() >= nextTransmission.getStartReceptionTimestamp()
+                && transmissionInGateway.getStartReceptionTimestamp() < nextTransmission.getEndReceptionTimestamp()) {
             Log.error("This should not happen: | "
-                    + transmissionInGateway.getStartTransmissionTimestamp() + " -> " + transmissionInGateway.getEndTransmissionTimestamp()
-                    + " | " + nextTransmission.getStartTransmissionTimestamp() + " -> " + nextTransmission.getEndTransmissionTimestamp() + " | ");
+                    + transmissionInGateway.getStartReceptionTimestamp() + " -> " + transmissionInGateway.getEndReceptionTimestamp()
+                    + " | " + nextTransmission.getStartReceptionTimestamp() + " -> " + nextTransmission.getEndReceptionTimestamp() + " | ");
 
-
-
-            if (transmissionInGateway.getStatus() == 3) {
-                transmissionInGateway.setStatus(4);
-            } else {
-                transmissionInGateway.setStatus(1);
-            }
-            if (nextTransmission.getStatus() == 3) {
-                nextTransmission.setStatus(4);
-            } else {
-                nextTransmission.setStatus(1);
-            }
-
+            transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
+            nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
             return true;
-
         }
 
         return false;
 
+    }
+
+    private void checkNetworkParams() {
+        if (sampleStepSeconds <= 0) {
+            String sb = "sampleStepSeconds: " + sampleStepSeconds + "\n";
+            Log.error("Check scenario parameters! " + sb);
+            System.exit(1);
+        }
     }
 
 }

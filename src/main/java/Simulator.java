@@ -70,7 +70,8 @@ public class Simulator {
     }
 
     public void setTimeOnAirAndSampleStep(double timeOnAirMS, double sampleStepMS) {
-        this.network.setTimeOnAirMS(timeOnAirMS);
+        this.sampleStepMS = sampleStepMS;
+        this.timeOnAirMS = timeOnAirMS;
         this.networkAnalyzer.setSampleStepMS(sampleStepMS);
         double avgFrameGenerationRate = (timeOnAirMS / 1000.0) / averageInterArrivalTime;
         this.network.setParams(timeOnAirMS, avgFrameGenerationRate);
@@ -121,7 +122,7 @@ public class Simulator {
 
         List<List<double[]>> analysisDataSets = new ArrayList<>();
 
-        printProgress(0);
+        printProgress(999);
         for (int run = 0; run < numberOfRuns; run++) {
             deployNodes();
             simulateTraffic();
@@ -196,8 +197,9 @@ public class Simulator {
 
         int progress = (int) percentage;
 
-        if (percentage == 0) {
-            System.out.print("Simulating " + numberOfRuns + " runs >   ");
+        if (percentage == 999) {
+            System.out.print("Simulating | ToA = " + timeOnAirMS + " [ms] | sample step = "
+                    + sampleStepMS + " [ms] | " + numberOfRuns + " runs >       ");
             return;
         }
         System.out.print("\b\b\b\b\b\b");

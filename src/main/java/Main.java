@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String outputPath = "D:\\network_data";
+        String outputPath = "D:\\network_data_3";
         Simulator simulator = new Simulator(outputPath);
 
         simulator.setSaveActions(false, true, false, false);
@@ -31,26 +31,30 @@ public class Main {
         simulator.setNetworkParameters(
                 500,
                 1,
-                60,
+                1,
                 250);
 
-        simulator.setNumberOfRuns(10);
+        simulator.setNumberOfRuns(100);
         Log.info(simulator.toString());
 
         int initialNodes = 20;
         int stepNodes = 40;
         int maxNodes = 100;
 
-        double[] sampleSteps = new double[]{250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000,
-                16000, 18000, 20000, 22000, 24000, 26000, 28000, 30000, 32000, 34000, 36000, 38000, 40000};
-        double[] toaSteps = new double[]{500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+//        double[] sampleSteps = new double[]{250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000,
+//                16000, 18000, 20000, 22000, 24000, 26000, 28000, 30000, 32000, 34000, 36000, 38000, 40000};
+//        double[] toaSteps = new double[]{500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+
+        double[] sampleSteps = new double[]{30000};
+        double[] toaSteps = new double[]{500, 1000, 2000};
 
         for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
             simulator.setNumberOfNodes(nodes);
-            Log.info("Running with " + nodes + " nodes | avg inter-arrival time (ms): " + simulator.getAverageInterArrivalTime());
+            Log.info("Running with " + nodes + " nodes | avg IAT (ms): "
+                    + simulator.getAverageInterArrivalTime());
             for (double sampleStepMS : sampleSteps) {
-                for (double toaStepMS : toaSteps) {
-                    simulator.setTimeOnAirAndSampleStep(toaStepMS, sampleStepMS);
+                for (double timeOnAirMS : toaSteps) {
+                    simulator.setTimeOnAirAndSampleStep(timeOnAirMS, sampleStepMS);
                     simulator.run();
                 }
             }
