@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -37,7 +38,7 @@ public class NetworkAnalyzer {
         // Exclude transmissions that where sent to the void
         List<Transmission> transmissionsHeard = transmissions.stream()
                 .filter(Transmission::reachedDestination)
-                .sorted()
+                .sorted(Comparator.comparingDouble(Transmission::getStartReceptionTimestamp))
                 .collect(Collectors.toList());
 
         // For each gateway
@@ -48,7 +49,7 @@ public class NetworkAnalyzer {
             int finalNgw = gwId;
             Iterator<Transmission> transmissionsOnGateway = transmissionsHeard.stream()
                     .filter(t -> t.getToId() == finalNgw)
-                    .sorted()
+                    .sorted(Comparator.comparingDouble(Transmission::getStartReceptionTimestamp))
                     .iterator();
 
             if (!transmissionsOnGateway.hasNext()) {
@@ -97,8 +98,8 @@ public class NetworkAnalyzer {
 
             Supplier<Stream<Transmission>> transmissionsOnSample
                     = () -> transmissionsOnServer.stream()
-                    .filter(t -> (t.getStartTransmissionTimestamp() >= (currentTime - sampleStepMS)
-                            && t.getStartTransmissionTimestamp() < currentTime));
+                    .filter(t -> (t.getStartReceptionTimestamp() >= (currentTime - sampleStepMS)
+                            && t.getStartReceptionTimestamp() < currentTime));
 
             totalPackets = transmissionsOnSample.get().count();
             totalDistinct = transmissionsOnSample.get().distinct().count();

@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String outputPath = "D:\\network_data_3";
+        String outputPath = "D:\\network_data";
         Simulator simulator = new Simulator(outputPath);
 
         simulator.setSaveActions(false, true, false, false);
@@ -34,19 +34,23 @@ public class Main {
                 1,
                 250);
 
-        simulator.setNumberOfRuns(100);
+        simulator.setNumberOfRuns(200);
         Log.info(simulator.toString());
 
-        int initialNodes = 20;
-        int stepNodes = 40;
-        int maxNodes = 100;
+        int initialNodes = 10;
+        int stepNodes = 10;
+        int maxNodes = 130;
 
 //        double[] sampleSteps = new double[]{250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000,
 //                16000, 18000, 20000, 22000, 24000, 26000, 28000, 30000, 32000, 34000, 36000, 38000, 40000};
 //        double[] toaSteps = new double[]{500, 750, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
 
-        double[] sampleSteps = new double[]{30000};
-        double[] toaSteps = new double[]{500, 1000, 2000};
+        double[] sampleSteps = new double[]{250, 500, 750, 1000, 2000, 4000, 6000, 8000, 10000, 12000, 14000,
+                16000, 18000, 20000};
+        double[] toaSteps = new double[]{250, 500, 750, 1000, 2000, 3000, 4000, 5000, 6000};
+
+//        double[] sampleSteps = new double[]{30000};
+//        double[] toaSteps = new double[]{500, 1000, 2000};
 
         for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
             simulator.setNumberOfNodes(nodes);
