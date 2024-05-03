@@ -131,7 +131,7 @@ public class Network {
             }
 
             if (thisPositionIntervals.isEmpty()) {
-                Log.warn("No access intervals for position ID: " + earthPos.getId());
+                Log.debug("No access intervals for position ID: " + earthPos.getId());
                 continue;
             }
 
@@ -208,10 +208,11 @@ public class Network {
 
     public void setSatellites(List<Satellite> satellites) {
         if (satellites.size() == 1) {
-            Log.warn("N of Satellites = " + satellites.size() + " => Satellites == 1 => SG mode");
+            Log.debug("N of Satellites = " + satellites.size() + " => Satellites == 1 => SG mode");
         } else {
-            Log.warn("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
+            Log.debug("N of Satellites = " + satellites.size() + " => Satellites > 1 => MG mode");
         }
+        Log.info("Satellite elements: " + satellites.get(0).getElements());
         this.satellites = satellites;
     }
 

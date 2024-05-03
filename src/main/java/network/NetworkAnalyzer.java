@@ -53,7 +53,7 @@ public class NetworkAnalyzer {
                     .iterator();
 
             if (!transmissionsOnGateway.hasNext()) {
-                Log.warn("No transmissions heard by gw ID " + gwId);
+                Log.debug("No transmissions heard by gw ID " + gwId);
                 continue;
             }
 
@@ -61,7 +61,7 @@ public class NetworkAnalyzer {
             Transmission transmissionInGateway = transmissionsOnGateway.next();
 
             if (!transmissionsOnGateway.hasNext()) {
-                Log.warn("Only one transmission heard by gw ID " + gwId);
+                Log.debug("Only one transmission heard by gw ID " + gwId);
                 continue;
             }
 

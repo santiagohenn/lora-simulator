@@ -53,7 +53,6 @@ public class Simulator {
     }
 
     public void setNetworkParameters(double timeOnAirMS, double dutyCyclePercentage, double averageInterArrivalTime, double sampleStepMS) {
-        this.timeOnAirMS = timeOnAirMS;
         this.dutyCyclePercentage = dutyCyclePercentage;
         this.averageInterArrivalTime = averageInterArrivalTime;
         setTimeOnAirAndSampleStep(timeOnAirMS, sampleStepMS);
@@ -70,8 +69,8 @@ public class Simulator {
     }
 
     public void setTimeOnAirAndSampleStep(double timeOnAirMS, double sampleStepMS) {
-        this.sampleStepMS = sampleStepMS;
         this.timeOnAirMS = timeOnAirMS;
+        this.sampleStepMS = sampleStepMS;
         this.networkAnalyzer.setSampleStepMS(sampleStepMS);
         double avgFrameGenerationRate = (timeOnAirMS / 1000.0) / averageInterArrivalTime;
         this.network.setParams(timeOnAirMS, avgFrameGenerationRate);
@@ -147,7 +146,9 @@ public class Simulator {
 
         if (saveAnalysisDatasets) {
             Log.debug("Saving analysis datasets for " + numberOfNodes + " nodes");
-            rf.saveAsJSON(analysisDataSets, numberOfNodes + "ED_" + ((int) sampleStepMS) + "ms_" + ((int) timeOnAirMS) + "ms");
+            rf.saveAsJSON(analysisDataSets, numberOfNodes + "ED_" + ((int) sampleStepMS) + "ms_"
+                    + ((int) timeOnAirMS) + "ms"
+                    + ((int) (satellites.get(0).getElements().getSemiMajorAxis() / 1000)) + "km");
         }
 
         if (saveDestinations) {
