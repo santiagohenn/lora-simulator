@@ -1,9 +1,0 @@
-generators\PositionsFactory.class
-Main.class
-network\NetworkAnalyzer.class
-assets\IOTDevice.class
-assets\Transmisor.class
-assets\Transmission.class
-generators\ReportFactory.class
-generators\TrafficFactory.class
-network\Network.class

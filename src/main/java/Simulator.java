@@ -147,7 +147,7 @@ public class Simulator {
         if (saveAnalysisDatasets) {
             Log.debug("Saving analysis datasets for " + numberOfNodes + " nodes");
             rf.saveAsJSON(analysisDataSets, numberOfNodes + "ED_" + ((int) sampleStepMS) + "ms_"
-                    + ((int) timeOnAirMS) + "ms"
+                    + ((int) timeOnAirMS) + "ms_"
                     + ((int) (satellites.get(0).getElements().getSemiMajorAxis() / 1000)) + "km");
         }
 
