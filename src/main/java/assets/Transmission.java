@@ -27,7 +27,6 @@ public class Transmission implements Comparable<Transmission> {
     private double timeOnAirMilliSeconds;
     private double startReceptionTimestamp;
     private double endReceptionTimestamp;
-    private int status = 0;
     private TxStatus txStatus;
 
     /**
@@ -129,14 +128,6 @@ public class Transmission implements Comparable<Transmission> {
         this.endReceptionTimestamp = endReceptionTimestamp;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
     public TxStatus getTransmissionStatus() {
         return txStatus;
     }
@@ -162,7 +153,7 @@ public class Transmission implements Comparable<Transmission> {
                 "From ID: " + fromId + "\n" +
                 "To Assets: " + toAssets + "\n" +
                 "Channel: " + channel + "\n" +
-                "Status: " + status + "\n" +
+                "Status: " + txStatus + "\n" +
                 "Transmission Hash: #" + transmissionHash;
     }
 
