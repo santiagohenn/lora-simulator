@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Simulator {
+public class NetworkSimulator {
 
     Network network;
     NetworkAnalyzer networkAnalyzer;
@@ -46,7 +46,7 @@ public class Simulator {
     private boolean fakeContinuousCoverage = false;
     private boolean usePoissonProcessForNodes = false;
 
-    public Simulator(String outputPath) {
+    public NetworkSimulator(String outputPath) {
         network = new Network();
         networkAnalyzer = new NetworkAnalyzer();
         rf = new ReportFactory(outputPath);

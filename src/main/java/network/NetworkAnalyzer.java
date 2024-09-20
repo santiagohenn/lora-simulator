@@ -3,6 +3,7 @@ package network;
 import assets.Transmission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import structures.TxStatus;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -151,14 +152,16 @@ public class NetworkAnalyzer {
      * t1 |------------|                   t1 |------------|
      * _____ t2 |------------|       t2 |------------|
      **/
-    private boolean checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
+    private void checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
 
         if (nextTransmission.getStartReceptionTimestamp() >= transmissionInGateway.getStartReceptionTimestamp()
                 && nextTransmission.getStartReceptionTimestamp() < transmissionInGateway.getEndReceptionTimestamp()) { // TODO: the less or equal here might not be necessary
 
+            transmissionInGateway.setTransmissionStatus(transmissionInGateway.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
+            nextTransmission.setTransmissionStatus(nextTransmission.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
             transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
             nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
-            return true;
+            return;
         }
 
         if (transmissionInGateway.getStartReceptionTimestamp() >= nextTransmission.getStartReceptionTimestamp()
@@ -167,12 +170,11 @@ public class NetworkAnalyzer {
                     + transmissionInGateway.getStartReceptionTimestamp() + " -> " + transmissionInGateway.getEndReceptionTimestamp()
                     + " | " + nextTransmission.getStartReceptionTimestamp() + " -> " + nextTransmission.getEndReceptionTimestamp() + " | ");
 
+            transmissionInGateway.setTransmissionStatus(transmissionInGateway.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
+            nextTransmission.setTransmissionStatus(nextTransmission.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
             transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
             nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
-            return true;
         }
-
-        return false;
 
     }
 

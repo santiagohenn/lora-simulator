@@ -1,7 +1,7 @@
 package assets;
 
 import org.jetbrains.annotations.NotNull;
-import structures.TransmissionStatus;
+import structures.TxStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class Transmission implements Comparable<Transmission> {
     private double startReceptionTimestamp;
     private double endReceptionTimestamp;
     private int status = 0;
-    private TransmissionStatus transmissionStatus;
+    private TxStatus txStatus;
 
     /**
      * Single gateway constructor
@@ -137,12 +137,12 @@ public class Transmission implements Comparable<Transmission> {
         this.status = status;
     }
 
-    public TransmissionStatus getTransmissionStatus() {
-        return transmissionStatus;
+    public TxStatus getTransmissionStatus() {
+        return txStatus;
     }
 
-    public void setTransmissionStatus(TransmissionStatus transmissionStatus) {
-        this.transmissionStatus = transmissionStatus;
+    public void setTransmissionStatus(TxStatus txStatus) {
+        this.txStatus = txStatus;
     }
 
     public int getTransmissionHash() {
@@ -150,7 +150,7 @@ public class Transmission implements Comparable<Transmission> {
     }
 
     public boolean reachedDestination() {
-        return status == 0 || status == 3;
+        return  this.txStatus == TxStatus.REACHED_GW || this.txStatus == TxStatus.REACHED_GW_PARTIAL;
     }
 
     @Override

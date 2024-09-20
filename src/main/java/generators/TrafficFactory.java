@@ -8,6 +8,7 @@ import satellite.tools.structures.Ephemeris;
 import satellite.tools.structures.Interval;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
+import structures.TxStatus;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -81,6 +82,7 @@ public class TrafficFactory {
                 double endTransmissionTimestamp = startTransmissionTimestamp + timeOnAirMS;
                 double endDutyCycleTimestamp = endTransmissionTimestamp + dutyCycleSilentTimeMS;
                 int packetStatus = 0;
+                TxStatus txStatus = TxStatus.REACHED_GW;
 
                 Transmission transmissionInDevice = new Transmission(startTransmissionTimestamp,
                         endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(),
@@ -91,26 +93,31 @@ public class TrafficFactory {
                 // TODO: add the border condition for true visibility of the device
                 if (endTransmissionTimestamp <= i.getStart()) {
                     packetStatus = 2; // 2 = transmitted to the void
+                    txStatus = TxStatus.LOST_NOT_HEARD;
                     // Else if access to the GW is gained in the middle of the transmission, create
                     // a partial packet to be heard by the GW(s)
                 } else if (startTransmissionTimestamp < i.getStart() && endTransmissionTimestamp >= i.getStart()) {
                     packetStatus = 3; // 3 = partial frame
+                    txStatus = TxStatus.REACHED_GW_PARTIAL;
                     // Set parameters for the transmission in the GW
                     startTransmissionTimestamp = i.getStart();
                     // Else if access to the GW is lost in the middle of the transmission, create a partial packet
                     // to be heard by the GW(s)
                 } else if (startTransmissionTimestamp < i.getEnd() && endTransmissionTimestamp >= i.getEnd()) {
                     packetStatus = 3; // 3 = partial frame
+                    txStatus = TxStatus.REACHED_GW_PARTIAL;
                     // Set parameters for the transmission in the GW
                     endTransmissionTimestamp = i.getEnd();
                     // If the next transmission happens after the end of this interval
                 } else if (startTransmissionTimestamp >= i.getEnd()) {
+                    txStatus = TxStatus.LOST_NOT_HEARD;
                     packetStatus = 2;
                     transmissionInDevice.setStatus(packetStatus);
                     break;
                 }
 
                 // MG Transmission, used to store last transmission in the transmitter
+                transmissionInDevice.setTransmissionStatus(txStatus);
                 transmissionInDevice.setStatus(packetStatus);
                 transmitter.transmit(transmissionInDevice);
 
@@ -126,6 +133,7 @@ public class TrafficFactory {
                     Transmission transmissionInGateway = new Transmission(startTransmissionTimestamp,
                             endTransmissionTimestamp, endDutyCycleTimestamp, i.getFirstFrom(), gwId, 1);
                     transmissionInGateway.setStatus(packetStatus);
+                    transmissionInGateway.setTransmissionStatus(txStatus); // TODO: CHECK THIS IN BRANCH ***
 
                     if (usePropagationDelay) {
                         network.getSimulation().setSatellite(network.getSatellites().get(gwId));
