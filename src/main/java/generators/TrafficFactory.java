@@ -27,8 +27,7 @@ public class TrafficFactory {
         try {
             r = SecureRandom.getInstanceStrong();
         } catch (NoSuchAlgorithmException e) {
-            Log.error("Random NoSuchAlgorithmException error");
-            e.printStackTrace();
+            Log.error("Random NoSuchAlgorithmException error " + e.getMessage());
         }
 
         this.network = network;
@@ -87,7 +86,6 @@ public class TrafficFactory {
 
                 // If the transmission stops before the start of the satellite access interval
                 // transmit and block the device. no frame is received by any GW
-                // TODO: add the border condition for true visibility of the device
                 if (endTransmissionTimestamp <= interval.getStart()) {
                     txStatus = TxStatus.LOST_NOT_HEARD;
                     // Else if access to the GW is gained in the middle of the transmission, create
@@ -190,5 +188,12 @@ public class TrafficFactory {
 
     }
 
+    public void setUsePropagationDelay(boolean usePropagationDelay) {
+        this.usePropagationDelay = usePropagationDelay;
+    }
+
+    public void setUseRandomGW(boolean useRandomGW) {
+        this.useRandomGW = useRandomGW;
+    }
 
 }
