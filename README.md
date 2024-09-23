@@ -1,1 +1,1 @@
-# lora-simulator
+# lora-networkSimulator

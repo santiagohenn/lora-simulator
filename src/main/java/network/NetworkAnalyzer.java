@@ -3,6 +3,7 @@ package network;
 import assets.Transmission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import structures.TxStatus;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -82,12 +83,12 @@ public class NetworkAnalyzer {
 
         double sampleStepMS = this.sampleStepSeconds * 1000; // To ms
         long epochTimeMS = 0;
-        long successfulPackets = 0;
-        long partialFrames = 0;
-        long totalPackets = 0;
-        long totalDistinct = 0;
-        long successfulDistinct = 0;
-        long sentToTheVoid = 0;
+        long successfulPackets = -1;
+        long partialFrames = -1;
+        long totalPackets = -1;
+        long totalDistinct = -1;
+        long successfulDistinct = -1;
+        long sentToTheVoid = -1;
 
         List<Transmission> transmissionsOnServer = network.getTransmissions();
 
@@ -105,8 +106,8 @@ public class NetworkAnalyzer {
             totalDistinct = transmissionsOnSample.get().distinct().count();
             successfulPackets = transmissionsOnSample.get().filter(Transmission::reachedDestination).count();
             successfulDistinct = transmissionsOnSample.get().distinct().filter(Transmission::reachedDestination).count();
-            partialFrames = transmissionsOnSample.get().filter(t -> (t.getStatus() == 3 || t.getStatus() == 4)).count();
-            sentToTheVoid = transmissionsOnSample.get().filter(t -> (t.getStatus() == 2)).count();
+            partialFrames = transmissionsOnSample.get().filter(t -> (t.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL || t.getTransmissionStatus() == TxStatus.LOST_COLLISION_PARTIAL)).count();
+            sentToTheVoid = transmissionsOnSample.get().filter(t -> (t.getTransmissionStatus() == TxStatus.LOST_NOT_HEARD)).count();
 
             dataPoints.add(new double[]{epochTimeMS, totalPackets, totalDistinct, successfulPackets,
                     successfulDistinct, partialFrames, sentToTheVoid});
@@ -151,14 +152,14 @@ public class NetworkAnalyzer {
      * t1 |------------|                   t1 |------------|
      * _____ t2 |------------|       t2 |------------|
      **/
-    private boolean checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
+    private void checkCollision(Transmission transmissionInGateway, Transmission nextTransmission) {
 
         if (nextTransmission.getStartReceptionTimestamp() >= transmissionInGateway.getStartReceptionTimestamp()
                 && nextTransmission.getStartReceptionTimestamp() < transmissionInGateway.getEndReceptionTimestamp()) { // TODO: the less or equal here might not be necessary
 
-            transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
-            nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
-            return true;
+            transmissionInGateway.setTransmissionStatus(transmissionInGateway.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
+            nextTransmission.setTransmissionStatus(nextTransmission.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
+            return;
         }
 
         if (transmissionInGateway.getStartReceptionTimestamp() >= nextTransmission.getStartReceptionTimestamp()
@@ -167,12 +168,9 @@ public class NetworkAnalyzer {
                     + transmissionInGateway.getStartReceptionTimestamp() + " -> " + transmissionInGateway.getEndReceptionTimestamp()
                     + " | " + nextTransmission.getStartReceptionTimestamp() + " -> " + nextTransmission.getEndReceptionTimestamp() + " | ");
 
-            transmissionInGateway.setStatus(transmissionInGateway.getStatus() == 3 ? 4 : 1);
-            nextTransmission.setStatus(nextTransmission.getStatus() == 3 ? 4 : 1);
-            return true;
+            transmissionInGateway.setTransmissionStatus(transmissionInGateway.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
+            nextTransmission.setTransmissionStatus(nextTransmission.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL ? TxStatus.LOST_COLLISION_PARTIAL : TxStatus.LOST_COLLISION);
         }
-
-        return false;
 
     }
 
