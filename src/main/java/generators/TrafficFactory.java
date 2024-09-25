@@ -23,6 +23,7 @@ public class TrafficFactory {
     private boolean usePropagationDelay = true;
     private boolean useRandomGW = false;
     private boolean useCoverageAwareness = false;
+    private boolean limitDutyCycle = false;
     List<TimedMetricsRecord> backOffTimeSeries;
 
     public TrafficFactory(Network network) {
@@ -46,6 +47,8 @@ public class TrafficFactory {
                                                      double timeOnAirMS, double dutyCycleSilentTimeMS) {
 
         List<Transmission> transmissions = new ArrayList<>();
+
+        double minimumDutyCycleSilentTimeMS = dutyCycleSilentTimeMS;
 
         // TODO: use variable for channel
 
@@ -80,6 +83,11 @@ public class TrafficFactory {
                 // Obtain dutyCycleSilentTime
                 if (useCoverageAwareness) {
                     dutyCycleSilentTimeMS = getInterpolatedMetric(backOffTimeSeries, (long) timeMS, interval.getToAssets().size() - 1) * 1000.0;
+                    
+                    if (limitDutyCycle) {
+                        dutyCycleSilentTimeMS = Math.max(dutyCycleSilentTimeMS, minimumDutyCycleSilentTimeMS);
+                    }
+
                 }
 
                 // Prepare new transmission
@@ -250,6 +258,10 @@ public class TrafficFactory {
     public void setBackOffTimeSeries(List<TimedMetricsRecord> backOffTimeSeries) {
         this.backOffTimeSeries = backOffTimeSeries;
         setUseCoverageAwareness(true);
+    }
+
+    public void setLimitDutyCycle(boolean limitDutyCycle) {
+        this.limitDutyCycle = limitDutyCycle;
     }
 
 }
