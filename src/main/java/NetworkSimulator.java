@@ -1,3 +1,4 @@
+import constellation.tools.math.TimedMetricsRecord;
 import generators.PositionsFactory;
 import generators.ReportFactory;
 import network.Network;
@@ -54,6 +55,7 @@ public class NetworkSimulator {
 
     public void setNetworkParameters(double timeOnAirMS, double dutyCyclePercentage, double averageInterArrivalTime, double sampleStepMS) {
         this.dutyCyclePercentage = dutyCyclePercentage;
+        setDutyCycleSilentTime(dutyCyclePercentage);
         this.averageInterArrivalTime = averageInterArrivalTime;
         setTimeOnAirAndSampleStep(timeOnAirMS, sampleStepMS);
     }
@@ -74,6 +76,10 @@ public class NetworkSimulator {
         this.networkAnalyzer.setSampleStepMS(sampleStepMS);
         double avgFrameGenerationRate = (timeOnAirMS / 1000.0) / averageInterArrivalTime;
         this.network.setParams(timeOnAirMS, avgFrameGenerationRate);
+    }
+
+    public void setDutyCycleSilentTime(double dutyCyclePercentage) {
+        this.network.setDutyCycleSilentTimeMS((long) ((100.0 - dutyCyclePercentage) * this.timeOnAirMS));
     }
 
     public void setDeploymentArea(double centerLatDegrees, double centerLongitudeDegrees, double radiusDegrees) {
@@ -100,14 +106,15 @@ public class NetworkSimulator {
         Log.debug(numberOfNodes + " nodes deployed.");
     }
 
-    private void simulateTraffic() {
+    private void simulateContinuousCoverage() {
         Log.debug("Simulating traffic ! " + tic());
-        if (fakeContinuousCoverage) {
-            network.simulateContinuousCoverage();
-            Log.debug("Traffic simulation took " + toc() + " [ms.]");
-            return;
-        }
-        network.simulateTraffic();
+        network.simulateContinuousCoverage();
+        Log.debug("Traffic simulation took " + toc() + " [ms.]");
+    }
+
+    private void simulateTraffic(List<TimedMetricsRecord> backOffTimeSeries, boolean limitDutyCycle) {
+        Log.debug("Simulating traffic ! " + tic());
+        network.simulateTraffic(backOffTimeSeries, limitDutyCycle);
         Log.debug("Traffic simulation took " + toc() + " [ms.]");
     }
 
@@ -117,14 +124,14 @@ public class NetworkSimulator {
         Log.debug("Traffic Analysis took " + toc() + " [ms.]");
     }
 
-    public void run() {
+    public void run(List<TimedMetricsRecord> backOffTimeSeries, boolean limitDutyCycle) {
 
         List<List<double[]>> analysisDataSets = new ArrayList<>();
 
         printProgress(999);
         for (int run = 0; run < numberOfRuns; run++) {
             deployNodes();
-            simulateTraffic();
+            simulateTraffic(backOffTimeSeries, limitDutyCycle);
             analyzeTraffic();
             analysisDataSets.add(networkAnalyzer.getDataPoints());
             printProgress(((double) run) * 100.0 / (double) numberOfRuns);
@@ -155,7 +162,14 @@ public class NetworkSimulator {
             Log.debug("Saving destinations datasets for " + numberOfNodes + " nodes");
             rf.saveAsJSON(networkAnalyzer.getDestinations(), "destinations_" + numberOfNodes + "N");
         }
+    }
 
+    public void run() {
+        run(null, false);
+    }
+
+    public void run(List<TimedMetricsRecord> backOffTimeSeries) {
+        run(backOffTimeSeries, false);
     }
 
     public Network getNetwork() {

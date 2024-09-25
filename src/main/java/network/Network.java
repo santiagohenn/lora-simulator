@@ -1,6 +1,7 @@
 package network;
 
 import assets.Transmission;
+import constellation.tools.math.TimedMetricsRecord;
 import generators.TrafficFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,14 +87,30 @@ public class Network {
 
     public void simulateTraffic() {
         accessIntervals = new ArrayList<>();
+        simulateTraffic(null, false);
+    }
+
+    public void simulateTraffic(List<TimedMetricsRecord> backOffTimeSeries) {
+        accessIntervals = new ArrayList<>();
+        simulateTraffic(backOffTimeSeries, false);
+    }
+
+    public void simulateTraffic(List<TimedMetricsRecord> backOffTimeSeries, boolean limitDutyCycle) {
+        accessIntervals = new ArrayList<>();
         if (lastSimHash != getSimHashCode() || lastSimHash == 0) {
             Log.debug("[Start] Computing access intervals");
             computeAccessIntervals();
             Log.debug("[End] Computing access intervals");
         }
-        TrafficFactory tf = new TrafficFactory(this); //TODO: add params to the constructor
+        TrafficFactory trafficFactory = new TrafficFactory(this); //TODO: add params to the constructor
+        if (backOffTimeSeries != null) {
+            trafficFactory.setBackOffTimeSeries(backOffTimeSeries);
+            trafficFactory.setLimitDutyCycle(limitDutyCycle);
+        } else {
+            trafficFactory.setUseCoverageAwareness(false);
+        }
         Log.debug("[Start] Generating traffic with policy 3");
-        transmissions = tf.generateTrafficPolicy3(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
+        transmissions = trafficFactory.generateTrafficPolicy3(accessIntervals, frameGenerationRate, timeOnAirMS, dutyCycleSilentTimeMS);
         Log.debug("[End] Generating traffic with policy 3");
     }
 
@@ -268,6 +285,10 @@ public class Network {
 
     public void setTimeStepSeconds(double timeStepSeconds) {
         this.timeStepSeconds = timeStepSeconds;
+    }
+
+    public void setDutyCycleSilentTimeMS(long dutyCycleSilentTimeMS) {
+        this.dutyCycleSilentTimeMS = dutyCycleSilentTimeMS;
     }
 
     private void checkScenarioParams() {

@@ -2,6 +2,7 @@ package generators;
 
 import assets.Transmission;
 import assets.Transmitter;
+import constellation.tools.math.TimedMetricsRecord;
 import network.Network;
 import org.jetbrains.annotations.NotNull;
 import satellite.tools.structures.Ephemeris;
@@ -21,6 +22,9 @@ public class TrafficFactory {
     private Random r;
     private boolean usePropagationDelay = true;
     private boolean useRandomGW = false;
+    private boolean useCoverageAwareness = false;
+    private boolean limitDutyCycle = false;
+    List<TimedMetricsRecord> backOffTimeSeries;
 
     public TrafficFactory(Network network) {
 
@@ -43,6 +47,8 @@ public class TrafficFactory {
                                                      double timeOnAirMS, double dutyCycleSilentTimeMS) {
 
         List<Transmission> transmissions = new ArrayList<>();
+
+        double minimumDutyCycleSilentTimeMS = dutyCycleSilentTimeMS;
 
         // TODO: use variable for channel
 
@@ -72,6 +78,16 @@ public class TrafficFactory {
 
                 while (!transmitter.updateStatus(timeMS)) {
                     timeMS += (1000.0 * generatePoissonEvent(frameGenerationRate));
+                }
+
+                // Obtain dutyCycleSilentTime
+                if (useCoverageAwareness) {
+                    dutyCycleSilentTimeMS = getInterpolatedMetric(backOffTimeSeries, (long) timeMS, interval.getToAssets().size() - 1) * 1000.0;
+                    
+                    if (limitDutyCycle) {
+                        dutyCycleSilentTimeMS = Math.max(dutyCycleSilentTimeMS, minimumDutyCycleSilentTimeMS);
+                    }
+
                 }
 
                 // Prepare new transmission
@@ -188,12 +204,64 @@ public class TrafficFactory {
 
     }
 
+
+    public double getInterpolatedMetric(List<TimedMetricsRecord> timeSeries, long targetTime, int nMetric) {
+
+        if (timeSeries.size() < 2) {
+            Log.warn("Time series size less than 2!");
+            throw new IllegalArgumentException("The time series must contain at least two points.");
+        }
+
+        // Handle edge cases where the target time is out of the bounds of the series
+        if (targetTime <= timeSeries.get(0).getTime()) {
+            Log.warn("Time outside of range (<). Defaulting to " + timeSeries.get(0).getMetrics()[nMetric]);
+            return timeSeries.get(0).getMetrics()[nMetric];
+        }
+
+        if (targetTime >= timeSeries.get(timeSeries.size() - 1).getTime()) {
+            Log.warn("Time outside of range (>). Defaulting to " + timeSeries.get(0).getMetrics()[nMetric]);
+            return timeSeries.get(timeSeries.size() - 1).getMetrics()[nMetric];
+        }
+
+        // Find the two closest points around the target time
+        TimedMetricsRecord prev = timeSeries.get(0);
+        TimedMetricsRecord next = timeSeries.get(1);
+
+        //TODO: Start searching from previous time
+        for (int i = 1; i < timeSeries.size() - 1; i++) {
+            next = timeSeries.get(i + 1);
+            if (targetTime >= prev.getTime() && targetTime <= next.getTime()) {
+                break;
+            }
+            prev = next;
+        }
+
+        if (prev.getMetrics()[nMetric] == next.getMetrics()[nMetric]) {
+            return prev.getMetrics()[nMetric];
+        }
+
+        return prev.getMetrics()[nMetric] + ((next.getMetrics()[nMetric] - prev.getMetrics()[nMetric]) / (next.getTime() - prev.getTime())) * (targetTime - prev.getTime());
+    }
+
     public void setUsePropagationDelay(boolean usePropagationDelay) {
         this.usePropagationDelay = usePropagationDelay;
     }
 
     public void setUseRandomGW(boolean useRandomGW) {
         this.useRandomGW = useRandomGW;
+    }
+
+    public void setUseCoverageAwareness(boolean useCoverageAwareness) {
+        this.useCoverageAwareness = useCoverageAwareness;
+    }
+
+    public void setBackOffTimeSeries(List<TimedMetricsRecord> backOffTimeSeries) {
+        this.backOffTimeSeries = backOffTimeSeries;
+        setUseCoverageAwareness(true);
+    }
+
+    public void setLimitDutyCycle(boolean limitDutyCycle) {
+        this.limitDutyCycle = limitDutyCycle;
     }
 
 }
