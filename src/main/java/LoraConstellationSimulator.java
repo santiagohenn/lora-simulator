@@ -3,7 +3,6 @@ import constellation.tools.geometry.GeographicTools;
 import constellation.tools.math.TimedMetricsRecord;
 import constellation.tools.utilities.TimeUtils;
 import org.apache.commons.cli.*;
-import org.jetbrains.annotations.Nullable;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
@@ -13,13 +12,9 @@ import java.util.List;
 
 public class LoraConstellationSimulator {
 
-
-    public static final double EARTH_RADIUS_M = 6371000.0;
+    private static final Options options = configureOptions();
 
     public static void main(String[] args) {
-
-        Options options = getOptionsFromCLI(args);
-        if (options == null) return;
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -139,7 +134,6 @@ public class LoraConstellationSimulator {
 
         GeographicTools geographicTools = new GeographicTools();
         double roiSurface = geographicTools.computeNonEuclideanSurface(ROI);
-//        Log.info("ROI surface: " + roiSurface);
 
         constellationCoverageComputer.setOutputPath(outputPath);
         constellationCoverageComputer.setSatelliteList(satelliteList);
@@ -190,14 +184,14 @@ public class LoraConstellationSimulator {
 
     }
 
-    private static Options getOptionsFromCLI(String[] args) {
+    private static Options configureOptions() {
 
         List<Option> optionList = new ArrayList<>();
 
+        optionList.add(new Option("o", "output", true, "output path"));
         optionList.add(new Option("simulate-pure-aloha", "simulate-pure-aloha", false, "simulate pure aloha scenario"));
         optionList.add(new Option("simulate-with-ca", "simulate-with-coverage-awareness", false, "simulate aloha with coverage awareness"));
         optionList.add(new Option("simulate-with-ca-nr", "simulate-with-coverage-awareness-nr", false, "simulate aloha with coverage awareness with no duty cycle restrictions"));
-        optionList.add(new Option("o", "output", true, "output path"));
         optionList.add(new Option("cov-cfg", "coverage-configs", true, "configurations file path for constellation coverage"));
         optionList.add(new Option("s", "satellites", true, "satellites file"));
         optionList.add(new Option("n", "nodes", true, "nodes steps in the format start,step,end"));

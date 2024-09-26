@@ -1,25 +1,33 @@
-import constellation.tools.ConstellationCoverageComputer;
-import constellation.tools.geometry.GeographicTools;
-import constellation.tools.math.TimedMetricsRecord;
-import constellation.tools.utilities.TimeUtils;
-import org.apache.commons.cli.*;
-import satellite.tools.assets.entities.Satellite;
-import satellite.tools.utils.Log;
-import satellite.tools.utils.Utils;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.*;
 
 public class Main {
-
-    public static final double EARTH_RADIUS_M = 6371000.0;
 
     public static void main(String[] args) {
 
         String[] options = {"--simulate-pure-aloha", "--save-analysis-datasets",
-                "-o", "C:/test/",
+                "-o", "C:/Users/Santi/Desktop/Doctorado/coverage-aware-analysis/pure-aloha/",
                 "-s", "C:/mg_data_test_550/satellites.csv",
-                "-cov-cfg", "C:/Users/Santi/Desktop/Doctorado/d3co_analysis/config.d3co.properties",
+                "-cov-cfg", "C:/Users/Santi/Desktop/Doctorado/coverage-aware-analysis/config.d3co.properties",
+                "-nodes", "10,10,130",
+                "-roi", "-21.0,-58.0,7.1946,150",
+                "-vt", "20.0"};
+
+        LoraConstellationSimulator.main(options);
+
+        options = new String[]{"-simulate-with-ca", "--save-analysis-datasets",
+                "-o", "C:/Users/Santi/Desktop/Doctorado/coverage-aware-analysis/coverage-aware/",
+                "-s", "C:/mg_data_test_550/satellites.csv",
+                "-cov-cfg", "C:/Users/Santi/Desktop/Doctorado/coverage-aware-analysis/config.d3co.properties",
+                "-nodes", "10,10,130",
+                "-roi", "-21.0,-58.0,7.1946,150",
+                "-vt", "20.0"};
+
+        LoraConstellationSimulator.main(options);
+
+        options = new String[]{"-simulate-with-ca-nr", "--save-analysis-datasets",
+                "-o", "C:/Users/Santi/Desktop/Doctorado/coverage-aware-analysis/coverage-aware-nr/",
+                "-s", "C:/mg_data_test_550/satellites.csv",
+                "-cov-cfg", "C:/Users/Santi/Desktop/Doctorado/coverage-aware-analysis/config.d3co.properties",
                 "-nodes", "10,10,130",
                 "-roi", "-21.0,-58.0,7.1946,150",
                 "-vt", "20.0"};
@@ -27,6 +35,5 @@ public class Main {
         LoraConstellationSimulator.main(options);
 
     }
-
 
 }
