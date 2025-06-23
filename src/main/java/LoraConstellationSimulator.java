@@ -29,6 +29,7 @@ public class LoraConstellationSimulator {
             System.out.println(e.getMessage());
             formatter.printHelp("LoraConstellationSimulator", options);
             System.exit(1);
+            return;
         }
 
         String outputPath = cmd.hasOption("o") ? cmd.getOptionValue("o") : "/";

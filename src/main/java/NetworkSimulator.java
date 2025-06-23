@@ -106,6 +106,7 @@ public class NetworkSimulator {
         Log.debug(numberOfNodes + " nodes deployed.");
     }
 
+    @SuppressWarnings("unused")
     private void simulateContinuousCoverage() {
         Log.debug("Simulating traffic ! " + tic());
         network.simulateContinuousCoverage();
