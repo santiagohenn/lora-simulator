@@ -1,8 +1,11 @@
 import constellation.tools.ConstellationCoverageComputer;
 import constellation.tools.geometry.GeographicTools;
 import constellation.tools.math.TimedMetricsRecord;
+import constellation.tools.utilities.AppConfig;
 import constellation.tools.utilities.TimeUtils;
 import org.apache.commons.cli.*;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
@@ -34,6 +37,21 @@ public class LoraConstellationSimulator {
         String satellitePath = cmd.hasOption("satellites") ? cmd.getOptionValue("satellites") : (outputPath + "satellites.csv");
         String configurationsPath = cmd.hasOption("cov-cfg") ? cmd.getOptionValue("cov-cfg") : (outputPath + "config.d3co.properties");
 
+        // Orekit configuration file
+        AppConfig appConfig;
+        String orekitDataPath = ".input/orekit-data";
+        try {
+            appConfig = new AppConfig(configurationsPath);
+            orekitDataPath = appConfig.orekitPath();
+        } catch (ConfigurationException e) {
+            System.err.println("Error loading configuration file: " + configurationsPath);
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Error initializing application configuration.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
         /* Default values */
         double timeOnAir;
         double averageInterArrivalTime = 0.1;
@@ -42,7 +60,7 @@ public class LoraConstellationSimulator {
         int initialNodes = 10;
         int stepNodes = 10;
         int maxNodes = 130;
-        int nOfRuns = 150;
+        int nOfRuns = 10;
         double propagatorTimeStepSeconds = 30.0;
         double visibilityThresholdDegrees = 20.0;
         double sampleStepSeconds = 15.0;
@@ -106,7 +124,7 @@ public class LoraConstellationSimulator {
         List<Satellite> satelliteList = Utils.satellitesFromFile(satellitePath);
 
         // LoRa Simulation
-        NetworkSimulator networkSimulator = new NetworkSimulator(outputPath);
+        NetworkSimulator networkSimulator = new NetworkSimulator(outputPath, orekitDataPath);
         networkSimulator.setSaveActions(saveAccessIntervals, saveAnalysisDatasets, saveDestinations, saveTransmissions);
 
         // Scenario parameters

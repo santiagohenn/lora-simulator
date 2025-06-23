@@ -3,3 +3,10 @@ target
 *.iml
 *.idea
 *.vscode
+
+/inputs/*
+/results/*
+
+
+venv/
+__pycache__/

@@ -47,8 +47,8 @@ public class NetworkSimulator {
     private boolean fakeContinuousCoverage = false;
     private boolean usePoissonProcessForNodes = false;
 
-    public NetworkSimulator(String outputPath) {
-        network = new Network();
+    public NetworkSimulator(String outputPath, String orekitDataPath) {
+        network = new Network(orekitDataPath);
         networkAnalyzer = new NetworkAnalyzer();
         rf = new ReportFactory(outputPath);
     }
