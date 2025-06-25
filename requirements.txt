@@ -3,3 +3,4 @@ matplotlib
 seaborn
 geopandas
 shapely
+scipy
