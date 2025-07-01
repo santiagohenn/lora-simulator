@@ -9,7 +9,16 @@ public class Main {
                 "-nodes", "10,10,130",
                 "-roi", "-21.0,-58.0,7.1946,150",
                 "-vt", "20.0",
-                "-runs", "500"};
+                "-runs", "200"};
+
+        // String[] options = {"--simulate-pure-aloha", "--save-analysis-datasets",
+        //         "-o", "D:/results/",
+        //         "-s", "./inputs/satellites_mg.csv",
+        //         "-cov-cfg", "./inputs/config.d3co.properties",
+        //         "-nodes", "10,10,10",
+        //         "-roi", "50.0,5,3.1442,150",
+        //         "-vt", "20.0",
+        //         "-runs", "1"};
 
         LoraConstellationSimulator.main(options);
 /* 
