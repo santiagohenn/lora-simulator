@@ -37,6 +37,11 @@ public class Network {
 
     private int lastSimHash = 0;
 
+    public Network(String orekitDataPath) {
+        simulation = new Simulation(orekitDataPath);
+        accessIntervals = new ArrayList<>();
+    }
+
     public Network() {
         simulation = new Simulation();
         accessIntervals = new ArrayList<>();

@@ -84,7 +84,8 @@ public class NetworkAnalyzer {
         double sampleStepMS = this.sampleStepSeconds * 1000; // To ms
         long epochTimeMS = 0;
         long successfulPackets = -1;
-        long partialFrames = -1;
+        long partialCollided = -1;
+        long partialSuccessful = -1;
         long totalPackets = -1;
         long totalDistinct = -1;
         long successfulDistinct = -1;
@@ -106,11 +107,12 @@ public class NetworkAnalyzer {
             totalDistinct = transmissionsOnSample.get().distinct().count();
             successfulPackets = transmissionsOnSample.get().filter(Transmission::reachedDestination).count();
             successfulDistinct = transmissionsOnSample.get().distinct().filter(Transmission::reachedDestination).count();
-            partialFrames = transmissionsOnSample.get().filter(t -> (t.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL || t.getTransmissionStatus() == TxStatus.LOST_COLLISION_PARTIAL)).count();
+            partialSuccessful = transmissionsOnSample.get().filter(t -> (t.getTransmissionStatus() == TxStatus.REACHED_GW_PARTIAL)).count();
+            partialCollided = transmissionsOnSample.get().filter(t -> (t.getTransmissionStatus() == TxStatus.LOST_COLLISION_PARTIAL)).count();
             sentToTheVoid = transmissionsOnSample.get().filter(t -> (t.getTransmissionStatus() == TxStatus.LOST_NOT_HEARD)).count();
 
             dataPoints.add(new double[]{epochTimeMS, totalPackets, totalDistinct, successfulPackets,
-                    successfulDistinct, partialFrames, sentToTheVoid});
+                    successfulDistinct, partialSuccessful, partialCollided, sentToTheVoid});
 
             // For each gateway
             long[] toGwCount = new long[network.getSatellites().size()];

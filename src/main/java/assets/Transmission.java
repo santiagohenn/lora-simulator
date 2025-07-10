@@ -7,12 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Status reference:
- * 0 = Complete packet reached the gateway
- * 1 = Complete packet reached the gateway and collided
- * 2 = Complete packet unheard by the gateway
- * 3 = Partial packet reached the gateway
- * 4 = Partial packet reached the gateway and collided
+ * This class represents an information packet travelling through the air, from its transmission to its reception
  * */
 public class Transmission implements Comparable<Transmission> {
 

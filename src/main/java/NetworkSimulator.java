@@ -47,8 +47,8 @@ public class NetworkSimulator {
     private boolean fakeContinuousCoverage = false;
     private boolean usePoissonProcessForNodes = false;
 
-    public NetworkSimulator(String outputPath) {
-        network = new Network();
+    public NetworkSimulator(String outputPath, String orekitDataPath) {
+        network = new Network(orekitDataPath);
         networkAnalyzer = new NetworkAnalyzer();
         rf = new ReportFactory(outputPath);
     }
@@ -106,6 +106,7 @@ public class NetworkSimulator {
         Log.debug(numberOfNodes + " nodes deployed.");
     }
 
+    @SuppressWarnings("unused")
     private void simulateContinuousCoverage() {
         Log.debug("Simulating traffic ! " + tic());
         network.simulateContinuousCoverage();

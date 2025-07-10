@@ -28,8 +28,8 @@ public class PositionsGeneratorTest {
 
     @Test
     public void SSPTest() {
+        
         // Paths
-        String outputPath = "C:\\Projects\\throughput_pipeline\\outputs_santi\\";
         String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
 
         // Scenario parameters
