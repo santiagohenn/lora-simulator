@@ -3,13 +3,13 @@ public class Main {
     public static void main(String[] args) {
 
         String[] options = {"--simulate-pure-aloha", "--save-analysis-datasets",
-                "-o", "D:/results/",
+                "-o", "C:/projects/results/",
                 "-s", "./inputs/satellites.csv",
                 "-cov-cfg", "./inputs/config.d3co.properties",
                 "-nodes", "10,10,130",
                 "-roi", "-21.0,-58.0,7.1946,150",
                 "-vt", "20.0",
-                "-runs", "200"};
+                "-runs", "20"};
 
         // String[] options = {"--simulate-pure-aloha", "--save-analysis-datasets",
         //         "-o", "D:/results/",

@@ -10,7 +10,7 @@ import matplotlib.lines as mlines
 
 from structures.geotools import deploy_roi
 
-OUTPUT_ROOT = 'D:/results'
+OUTPUT_ROOT = 'C:/Projects/results'
 
 def plot_specific_hash(hash, folder):
     # Low res world map

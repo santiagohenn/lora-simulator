@@ -10,15 +10,15 @@ import matplotlib.lines as mlines
 
 from structures.geotools import deploy_roi
 
-scenario_hash = "15a7a35faadaa0b55668f734ecdb360316b026d82d0274e2b655007bca62adfc_1"
-folder = "ss_550"
+scenario_hash = "73d575dcc86cf4911d290f7444b308be57c90c8534b86d8eeb86239284f6f043_1"
+folder = "test1"
 time_instant = 2580000
 gw_in_sight = 1
 
 # Low res world map
-world = gpd.read_file("C:/Users/Santi/Desktop/Doctorado/d3co_analysis/resources/countries/ne_110m_admin_0_countries.shp")
+world = gpd.read_file("plots/resources/countries/ne_110m_admin_0_countries.shp")
 
-with open('C:/Users/Santi/Desktop/Doctorado/d3co_analysis/output/' + folder + '/ne_polygons_' + scenario_hash + '.json') as aap:
+with open('C:/Projects/results/' + folder + '/ne_polygons_' + scenario_hash + '.json') as aap:
     json_data = json.load(aap)
 
 timestamped_aap = [aap_data for aap_data in json_data if aap_data.get("date") == time_instant and aap_data.get("nOfGwsInSight") == gw_in_sight]

@@ -7,8 +7,8 @@ def load_coverage_stats(coverage_dir, HASH):
     coverage_stats = pd.read_csv(file_name, header=None).values
     return coverage_stats
 
-COVERAGE_DIR = "D:/results"
-HASH = "669ef4719491bce06bd0ee97ab4ad9286c2c59ddc15ec4067b7c96157050f6fc"
+COVERAGE_DIR = "C:/Projects/results/test1/"
+HASH = "73d575dcc86cf4911d290f7444b308be57c90c8534b86d8eeb86239284f6f043"
 coverage_stats = load_coverage_stats(COVERAGE_DIR, HASH)
 
 plt.figure(figsize=(6, 4))
@@ -23,7 +23,7 @@ plt.margins(0)
 plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
 plt.ylabel('Coverage (%)', fontsize=12)
 plt.ylim([0, 105])
-plt.xlim([400, 1500])
+plt.xlim([0, 1500])
 plt.xlabel('Time (s)', fontsize=12)
 plt.legend(fontsize=11, loc='lower right', frameon=False)
 plt.tight_layout()

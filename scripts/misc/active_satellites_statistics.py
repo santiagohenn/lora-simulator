@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-parent_dir = os.path.join(os.path.dirname(__file__), 'resources')
+parent_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources')
 earth_gp = 3.986004418E14
 earth_radius = 6371000
 

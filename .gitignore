@@ -7,6 +7,7 @@ target
 /inputs/*
 /results/*
 
-
 venv/
 __pycache__/
+
+/bin

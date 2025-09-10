@@ -40,7 +40,7 @@ public class LoraConstellationSimulator {
 
         // Orekit configuration file
         AppConfig appConfig;
-        String orekitDataPath = ".input/orekit-data";
+        String orekitDataPath = "./input/orekit-data";
         try {
             appConfig = new AppConfig(configurationsPath);
             orekitDataPath = appConfig.orekitPath();
