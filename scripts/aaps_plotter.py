@@ -10,7 +10,7 @@ import matplotlib.lines as mlines
 
 from structures.geotools import deploy_roi
 
-scenario_hash = "73d575dcc86cf4911d290f7444b308be57c90c8534b86d8eeb86239284f6f043_1"
+scenario_hash = "726eca42e2f257ba680f82bcca5e8cf70782e7fe82074233c74d465f7d5e19e4_1"
 folder = "test1"
 time_instant = 2580000
 gw_in_sight = 1

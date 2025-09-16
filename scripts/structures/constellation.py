@@ -53,3 +53,5 @@ class Constellation:
     def sha256(self, input_string: str) -> str:
         return hashlib.sha256(input_string.encode('utf-8')).hexdigest()
     
+    def __str__(self):
+        return "\n".join([str(sat) for sat in self.satellites])

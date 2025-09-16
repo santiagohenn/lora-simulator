@@ -6,10 +6,13 @@ public class Main {
                 "-o", "C:/projects/results/",
                 "-s", "./inputs/satellites.csv",
                 "-cov-cfg", "./inputs/config.d3co.properties",
+                "-time-step", "15.0",
+                "-time-on-air", "0.5",
+                "-duty-cycle-percentage", "1.0",
                 "-nodes", "10,10,130",
                 "-roi", "-21.0,-58.0,7.1946,150",
                 "-vt", "20.0",
-                "-runs", "20"};
+                "-runs", "200"}; 
 
         // String[] options = {"--simulate-pure-aloha", "--save-analysis-datasets",
         //         "-o", "D:/results/",

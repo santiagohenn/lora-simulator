@@ -13,7 +13,7 @@ def get_tput(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_i
     
     n_of_sats = coverage_stats.shape[1] - 1                         # Number of satellites (according to "max_subset_size" property)
     time_steps = coverage_stats.shape[0]                            # Number of time steps
-    time_step = coverage_stats[1, 0] - coverage_stats[0, 0]         # Timestep in ms
+    # time_step = coverage_stats[1, 0] - coverage_stats[0, 0]         # Timestep in ms
     time_vector_model = coverage_stats[:, 0] / 1000.0               # Time vector in seconds
 
     dc_backoff_time = (100 - dc_percentage) * time_on_air           # DC backoff time [seconds]
@@ -43,7 +43,7 @@ def get_tput(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_i
 
         tput_model[ts] = S_aap
 
-    return tput_model
+    return time_vector_model, tput_model
 
 def get_tput_wca(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_inter_arrival_time, area_roi_m2):
 

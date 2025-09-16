@@ -12,8 +12,8 @@ from structures.geotools import deploy_roi
 import matplotlib.patches as mpatches
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-OUTPUT_ROOT = 'D:/results'
-file_hash = "669ef4719491bce06bd0ee97ab4ad9286c2c59ddc15ec4067b7c96157050f6fc"
+OUTPUT_ROOT = 'C:/Projects/results/test1'
+file_hash = "726eca42e2f257ba680f82bcca5e8cf70782e7fe82074233c74d465f7d5e19e4"
 
 n_sats = 3
 save_fig = False

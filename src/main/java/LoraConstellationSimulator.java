@@ -2,6 +2,7 @@ import constellation.tools.ConstellationCoverageComputer;
 import constellation.tools.geometry.GeographicTools;
 import constellation.tools.math.TimedMetricsRecord;
 import constellation.tools.utilities.AppConfig;
+import constellation.tools.utilities.FileUtils;
 import constellation.tools.utilities.TimeUtils;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -54,7 +55,7 @@ public class LoraConstellationSimulator {
         }
 
         /* Default values */
-        double timeOnAir;
+        double timeOnAir = 0.1; // seconds
         double averageInterArrivalTime = 0.1;
         double frameGenerationRate;
         double dutyCyclePercentage = 1.0;
@@ -62,7 +63,7 @@ public class LoraConstellationSimulator {
         int stepNodes = 10;
         int maxNodes = 130;
         int nOfRuns = 10;
-        double propagatorTimeStepSeconds = 30.0;
+        double propagatorTimeStepSeconds = 15.0;
         double visibilityThresholdDegrees = 20.0;
         double sampleStepSeconds = 15.0;
         double centerLatDegrees = 0.0;
@@ -83,11 +84,9 @@ public class LoraConstellationSimulator {
 
         if (cmd.hasOption("time-on-air")) {
             timeOnAir = parseDoubleFromCLI(cmd.getOptionValue("toa"));
-            frameGenerationRate = timeOnAir / averageInterArrivalTime;
-        } else {
-            timeOnAir = 0.5;
-            frameGenerationRate = timeOnAir / averageInterArrivalTime;
-        }
+        } 
+
+        frameGenerationRate = timeOnAir / averageInterArrivalTime;
 
         if (cmd.hasOption("average-inter-arrival-time"))
             averageInterArrivalTime = parseDoubleFromCLI(cmd.getOptionValue("iat"));
@@ -145,9 +144,9 @@ public class LoraConstellationSimulator {
                 sampleStepSeconds * 1000.0);
         networkSimulator.setNumberOfRuns(nOfRuns);
 
+        Log.info("Network Simulator Configuration: ");
         Log.info(networkSimulator.toString());
 
-        Log.info("Running constellation coverage ... ");
         ConstellationCoverageComputer constellationCoverageComputer = new ConstellationCoverageComputer(configurationsPath);
         List<double[]> ROI = GeographicTools.computeSphericalCap(centerLatDegrees, centerLonDegrees, roiSphericalRadius, roiSegments);
 
@@ -157,6 +156,36 @@ public class LoraConstellationSimulator {
         constellationCoverageComputer.setOutputPath(outputPath);
         constellationCoverageComputer.setSatelliteList(satelliteList);
         constellationCoverageComputer.setROI(ROI);
+
+        // Save parameters used in this simulation
+        saveSimulationParameters(outputPath,"simulation-parameters.json",
+                startDate,
+                endDate,
+                propagatorTimeStepSeconds,
+                visibilityThresholdDegrees,
+                satellitePath,
+                roiSurface,
+                configurationsPath,
+                initialNodes,
+                stepNodes,
+                maxNodes,
+                timeOnAir,
+                averageInterArrivalTime,
+                frameGenerationRate,
+                dutyCyclePercentage,
+                nOfRuns,
+                sampleStepSeconds,
+                centerLatDegrees,
+                centerLonDegrees,
+                roiSphericalRadius,
+                roiSegments,
+                saveAccessIntervals,
+                saveAnalysisDatasets,
+                saveDestinations,
+                saveTransmissions,
+                satelliteList);
+
+        Log.info("Running constellation coverage ... ");
         constellationCoverageComputer.run();
         Log.info("... done!");
 
@@ -167,6 +196,8 @@ public class LoraConstellationSimulator {
         //simulator.setTimeOnAirAndSampleStep(timeOnAirMS, sampleStepMS);
 
         Log.info("Minimum DC silent time " + ((100.0 - dutyCyclePercentage) * timeOnAir) + " S.");
+
+        final double finalTimeOnAir = timeOnAir;
 
         for (int nodes = initialNodes; nodes <= maxNodes; nodes += stepNodes) {
 
@@ -180,7 +211,7 @@ public class LoraConstellationSimulator {
                 backOffTimeSeries = coverageData.stream().map(coverageMetric -> {
                     TimedMetricsRecord backOffTimeMetric = new TimedMetricsRecord(coverageMetric.getTime() + TimeUtils.stamp2unix(finalStartDate), coverageMetric.getMetrics().length);
                     for (int i = 0; i < coverageMetric.getMetrics().length; i++) {
-                        double backOffTime = (2 * deviceDensity * roiSurface * coverageMetric.getMetrics()[i] - 1 / finalFrameGenerationRate - 1) * timeOnAir;
+                        double backOffTime = (2 * deviceDensity * roiSurface * coverageMetric.getMetrics()[i] - 1 / finalFrameGenerationRate - 1) * finalTimeOnAir;
                         backOffTimeMetric.addMetric(i, Math.max(backOffTime, 0.0));
                     }
                     return backOffTimeMetric;
@@ -197,9 +228,7 @@ public class LoraConstellationSimulator {
             } else if (cmd.hasOption("simulate-with-ca-nr")) {
                 networkSimulator.run(backOffTimeSeries, false);
             }
-
         }
-
 
     }
 
@@ -266,6 +295,72 @@ public class LoraConstellationSimulator {
             }
         }
         return number;
+    }
+
+    private static void saveSimulationParameters(String filePath, String fileName,
+                                         String startDate,
+                                         String endDate,
+                                         double propagatorTimeStepSeconds,
+                                         double visibilityThresholdDegrees,
+                                         String satellitePath,
+                                         double roiSurface,
+                                         String configurationsPath,
+                                         int initialNodes,
+                                         int stepNodes,
+                                         int maxNodes,
+                                         double timeOnAir,
+                                         double averageInterArrivalTime,
+                                         double frameGenerationRate,
+                                         double dutyCyclePercentage,
+                                         int nOfRuns,
+                                         double sampleStepSeconds,
+                                         double centerLatDegrees,
+                                         double centerLonDegrees,
+                                         double roiSphericalRadius,
+                                         int roiSegments,
+                                         boolean saveAccessIntervals,
+                                         boolean saveAnalysisDatasets,
+                                         boolean saveDestinations,
+                                         boolean saveTransmissions,
+                                         List<Satellite> satelliteList) {
+        List<String> lines = new ArrayList<>();
+        lines.add("{");
+        lines.add("  \"start_date\": \"" + startDate + "\",");
+        lines.add("  \"end_date\": \"" + endDate + "\",");
+        lines.add("  \"propagator_time_step_seconds\": " + propagatorTimeStepSeconds + ",");
+        lines.add("  \"visibility_threshold_degrees\": " + visibilityThresholdDegrees + ",");
+        lines.add("  \"satellites_file\": \"" + satellitePath + "\",");
+        lines.add("  \"roi_surface\": \"" + roiSurface + "\",");
+        lines.add("  \"coverage_configurations_file\": \"" + configurationsPath + "\",");
+        lines.add("  \"initial_nodes\": " + initialNodes + ",");
+        lines.add("  \"step_nodes\": " + stepNodes + ",");
+        lines.add("  \"max_nodes\": " + maxNodes + ",");
+        lines.add("  \"time_on_air_seconds\": " + timeOnAir + ",");
+        lines.add("  \"average_inter_arrival_time_seconds\": " + averageInterArrivalTime + ",");
+        lines.add("  \"frame_generation_rate_fps\": " + frameGenerationRate + ",");
+        lines.add("  \"duty_cycle_percentage\": " + dutyCyclePercentage + ",");
+        lines.add("  \"number_of_runs\": " + nOfRuns + ",");
+        lines.add("  \"sample_step_seconds\": " + sampleStepSeconds + ",");
+        lines.add("  \"deployment_area_center_lat_degrees\": " + centerLatDegrees + ",");
+        lines.add("  \"deployment_area_center_lon_degrees\": " + centerLonDegrees + ",");
+        lines.add("  \"deployment_area_radius_degrees\": " + roiSphericalRadius + ",");
+        lines.add("  \"deployment_area_segments\": " + roiSegments + ",");
+        lines.add("  \"save_access_intervals\": " + saveAccessIntervals + ",");
+        lines.add("  \"save_analysis_datasets\": " + saveAnalysisDatasets + ",");
+        lines.add("  \"save_destinations\": " + saveDestinations + ",");
+        lines.add("  \"save_transmissions\": " + saveTransmissions + ",");
+        lines.add("  \"satellites\": [");
+        for (int i = 0; i < satelliteList.size(); i++) {
+            String comma = (i < satelliteList.size() - 1) ? "," : "";
+            lines.add(" \t \"" + satelliteList.get(i).getElements().toString() + "\"" + comma);
+        }
+        lines.add("\t ]");
+        lines.add("}");
+
+        FileUtils fUtils = new FileUtils(filePath);
+
+        fUtils.saveAs(lines, fileName);
+
     }
 
 }
