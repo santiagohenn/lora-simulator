@@ -173,6 +173,8 @@ signal_mean_model = np.mean(steps_with_access, axis=0)
 simulations_dir = os.path.join(results_dir, case_folder)
 simulation_tput_avg, simulation_tput_std = load_simulations_results(simulations_dir, nodes, sample_time_ms, time_on_air_ms, satellite_height_km)
 
+
+# Plotting
 color_palette = sns.color_palette()
 
 plt.figure(figsize=(6, 4), dpi=150)
@@ -187,14 +189,15 @@ plt.plot(nodes, simulation_tput_avg, alpha=0.5, linestyle='dashed', label=r'Simu
 errors_mean_model = (abs(signal_mean_model - simulation_tput_avg) / signal_mean_model) * 100.0
 
 plt.margins(0)
-plt.grid(True)
-plt.ylabel('Throughput [0 - 1]')
-# plt.ylim([0, 0.25])
-plt.xlabel('N° of End Devices')
-plt.legend()
-plt.tight_layout()
-#plt.savefig('coverage_awareness_results.pdf', format='pdf', bbox_inches='tight')
-
+plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
+plt.ylabel('Throughput', fontsize=12)
+plt.xlabel('Number of End Devices', fontsize=12)
+plt.xticks(fontsize=11)
+plt.yticks(fontsize=11)
+plt.legend(frameon=False, fontsize=11, loc='best')
+plt.tight_layout(pad=1.5)
+plt.box(False)
+# plt.savefig('coverage_awareness_results.pdf', format='pdf', bbox_inches='tight', dpi=300)
 plt.show()
 
 print("Coverage stats shape:", coverage_stats.shape)

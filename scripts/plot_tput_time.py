@@ -58,7 +58,7 @@ params_file = os.path.join(results_dir, case_folder, "simulation-parameters.json
 with open(params_file, "r") as f:
     params = json.load(f)
 
-chosen_node_count = 80  # <-- Set your desired node count here
+chosen_node_count = 60  # <-- Set your desired node count here
 
 time_step_seconds = float(params["propagator_time_step_seconds"])
 dc_percentage = float(params["duty_cycle_percentage"])
@@ -88,17 +88,23 @@ simulations_dir = os.path.join(results_dir, case_folder)
 simulation_time_vector, simulation_tput_avg, simulation_tput_std = load_simulations_results(simulations_dir, chosen_node_count, sample_time_ms, time_on_air_ms, satellite_height_km)
 
 # --- Plot ---
+color_palette = sns.color_palette()
 plt.figure(figsize=(7, 4), dpi=150)
-plt.plot(time_vector_model, model_tput_vs_time, label='Model Throughput', color='blue')
-plt.plot(simulation_time_vector, simulation_tput_avg, label='Simulation Throughput', color='orange', alpha=0.7)
+plt.plot(time_vector_model, model_tput_vs_time, label='Model Throughput', color=color_palette[0], linewidth=1.5)
+plt.plot(simulation_time_vector, simulation_tput_avg, label='Simulation Throughput', color=color_palette[1], alpha=0.8, linewidth=1.5)
 plt.fill_between(simulation_time_vector, 
                  simulation_tput_avg - simulation_tput_std, 
                  simulation_tput_avg + simulation_tput_std, 
-                 color=color_palette[0], alpha=0.15)
-plt.xlabel('Time [s]')
-plt.ylabel('Throughput')
-plt.title(f'Throughput vs Time for {chosen_node_count} End Devices')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
+                 color='orange', alpha=0.18, label='Simulation Std. Dev.')
+
+plt.margins(0)
+plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.7)
+plt.ylabel('Throughput', fontsize=12)
+plt.xlabel('Time [s]', fontsize=12)
+plt.xticks(fontsize=11)
+plt.yticks(fontsize=11)
+plt.legend(frameon=False, fontsize=11, loc='best')
+plt.tight_layout(pad=1.5)
+plt.box(False)
+# plt.savefig('tput_vs_time_results.pdf', format='pdf', bbox_inches='tight', dpi=300)
 plt.show()
