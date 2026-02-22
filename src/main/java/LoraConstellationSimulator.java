@@ -99,9 +99,12 @@ public class LoraConstellationSimulator {
 
         if (cmd.hasOption("nodes")) {
             String[] nodes = cmd.getOptionValue("nodes").split(",");
+            stepNodes = 1;
             initialNodes = Integer.parseInt(nodes[0]);
-            stepNodes = Integer.parseInt(nodes[1]);
-            maxNodes = Integer.parseInt(nodes[2]);
+            maxNodes = Integer.parseInt(nodes[1]);
+            if (nodes.length > 2) {
+                stepNodes = Integer.parseInt(nodes[2]);
+            }
         }
 
         if (cmd.hasOption("roi")) {

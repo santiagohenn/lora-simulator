@@ -22,7 +22,7 @@ public class Main {
                 "-time-step", "15.0",
                 "-time-on-air", "0.5",
                 "-duty-cycle-percentage", "1.0",
-                "-nodes", "50,10,80",
+                "-nodes", "50,80,10",
                 "-roi", "-21.0,-58.0,7.1946,150",
                 "-vt", "20.0",
                 "-runs", "20"}; 
