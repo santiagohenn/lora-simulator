@@ -94,7 +94,7 @@ def load_simulations_results(simulations_dir, nodes, sample_time_ms, time_on_air
     return simulation_tput_avg, simulation_tput_std
 
 results_dir = "C:/Projects/results/"
-case_folder = "test1"
+case_folder = "test2"
 
 # Load simulation parameters from JSON file
 params_file = os.path.join(results_dir, case_folder, "simulation-parameters.json")

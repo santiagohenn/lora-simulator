@@ -1,113 +1,236 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
-import geopandas as gpd
-import json
-from shapely.geometry import Point, Polygon
-from shapely.geometry import Point, LineString
-import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
-from structures.geotools import deploy_roi
 import matplotlib.patches as mpatches
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import geopandas as gpd
+import json
+from shapely.geometry import Point, Polygon, LineString
+from structures.geotools import deploy_roi
 
+# ============================================================================
+# PATH CONFIGURATION
+# ============================================================================
 OUTPUT_ROOT = 'C:/Projects/results/test1'
-file_hash = "726eca42e2f257ba680f82bcca5e8cf70782e7fe82074233c74d465f7d5e19e4"
+FILE_HASH   = "726eca42e2f257ba680f82bcca5e8cf70782e7fe82074233c74d465f7d5e19e4"
 
-n_sats = 3
-save_fig = False
-plot_sat = True
+WORLD_BOUNDARIES = os.path.join(os.path.dirname(__file__), "resources/countries/ne_110m_admin_0_countries.shp")
+SAT_IMAGE        = os.path.join(os.path.dirname(__file__), "resources/satellite.png")
 
-longitude_limits = [-100, -20]
-latitude_limits = [-80, 30]
+OUTPUT_PATH  = OUTPUT_ROOT
 
-WORLD_BOUNDRIES = os.path.join(os.path.dirname(__file__), "resources/countries/ne_110m_admin_0_countries.shp")
-SAT_IMAGE = os.path.join(os.path.dirname(__file__), "resources/satelite.png")
+# ============================================================================
+# PLOT CONFIGURATION
+# ============================================================================
+N_SATS        = 3
+SAVE_FIG      = True
+PLOT_SAT      = True
 
-snapshot_dir = f'{OUTPUT_ROOT}/snapshot_ne_polygons_{file_hash}.json'
+ROI_PARAMS    = [-10.0, -60.0, 4.5, 100]
+SNAPSHOT_TIME = 600000
+TIME_STEP     = 15000
 
-case_dir = ""
-roi_params = [-10.0, -60.0, 4.5, 100]
-snapshot_time = 600000
-time_step = 15000
+LONGITUDE_LIMITS = [-100, -20]
+LATITUDE_LIMITS  = [-80,   30]
 
-santi_blue = [109/255,175/255,204/255]
-color_palette = sns.color_palette("rocket")
+# ============================================================================
+# IEEE PUBLICATION SETTINGS
+# ============================================================================
+FIGURE_WIDTH  = 3.5
+FIGURE_HEIGHT = 3.5      # Square — geographic maps benefit from equal aspect
 
-world = gpd.read_file(WORLD_BOUNDRIES)
+FONT_SIZE_LABELS = 8
+FONT_SIZE_TICKS  = 7
+FONT_SIZE_LEGEND = 7
 
-# Empty figure with axis
-fig = plt.figure(figsize=(5, 5))
-ax = fig.add_subplot()
+LINEWIDTH_AXES = 0.6
+LINEWIDTH_GRID = 0.4
 
-# Basic worldmap
+# Okabe-Ito colorblind-safe palette
+COLOR_ROI = '#0072B2'    # Deployment region
+# Satellite access area uses viridis palette indexed by n_gw_in_sight (kept as-is)
+COLOR_WORLD_FACE = 'lightgray'
+COLOR_WORLD_EDGE = '#444444'
+
+SAT_ZOOM       = 0.5
+SAT_POSITION   = (-72, -35)   # (lon, lat)
+
+# ============================================================================
+# CONFIGURE MATPLOTLIB FOR IEEE STYLE
+# ============================================================================
+plt.rcdefaults()
+plt.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Times New Roman', 'Times', 'DejaVu Serif'],
+    'font.size': FONT_SIZE_TICKS,
+    'axes.linewidth': LINEWIDTH_AXES,
+    'grid.linewidth': LINEWIDTH_GRID,
+    'lines.linewidth': 1.0,
+    'xtick.major.width': LINEWIDTH_AXES,
+    'ytick.major.width': LINEWIDTH_AXES,
+    'xtick.major.size': 3,
+    'ytick.major.size': 3,
+    'legend.frameon': True,
+    'legend.framealpha': 1.0,
+    'legend.edgecolor': 'black',
+    'legend.fancybox': False,
+    'pdf.fonttype': 42,
+    'ps.fonttype': 42,
+    'text.usetex': False,
+})
+
+# ============================================================================
+# LOAD DATA
+# ============================================================================
+world        = gpd.read_file(WORLD_BOUNDARIES)
+snapshot_dir = os.path.join(OUTPUT_ROOT, f'snapshot_ne_polygons_{FILE_HASH}.json')
+
+with open(snapshot_dir) as f:
+    json_data = json.load(f)
+
+# ============================================================================
+# CREATE FIGURE
+# ============================================================================
+fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, FIGURE_HEIGHT))
+
+# ============================================================================
+# PLOT WORLD MAP
+# ============================================================================
 world.plot(
     ax=ax,
-    color="lightgray",
-    edgecolor="black",
-    alpha=0.5,
-    legend=True
+    color=COLOR_WORLD_FACE,
+    edgecolor=COLOR_WORLD_EDGE,
+    linewidth=0.3,
+    alpha=0.6,
+    zorder=1
 )
 
-# turn off axis ticks
-ax.set_xticks([])
-ax.set_yticks([])
-
-# Plot ROI:
-lats, longs = deploy_roi(roi_params[0], roi_params[1], roi_params[2], roi_params[3])
-polygon = Polygon(zip(longs, lats))
+# ============================================================================
+# PLOT ROI
+# ============================================================================
+lats, longs = deploy_roi(ROI_PARAMS[0], ROI_PARAMS[1], ROI_PARAMS[2], ROI_PARAMS[3])
+polygon     = Polygon(zip(longs, lats))
 gdf_polygon = gpd.GeoDataFrame(geometry=[polygon])
-gdf_polygon.plot(ax=ax, edgecolor=santi_blue, facecolor=santi_blue, alpha=0.5, label = "End devices deployment area")
+gdf_polygon.plot(
+    ax=ax,
+    edgecolor=COLOR_ROI,
+    facecolor=COLOR_ROI,
+    linewidth=0.8,
+    alpha=0.4,
+    zorder=2
+)
 
-with open(snapshot_dir) as aap:
-    json_data = json.load(aap)
+# ============================================================================
+# PLOT SATELLITE ACCESS AREAS
+# ============================================================================
+from matplotlib.cm import get_cmap
+viridis = get_cmap('viridis')
 
+last_n_gw = 0
 for polygon_idx in range(len(json_data)):
-
-    snapshot_index = snapshot_time // time_step
-    lats = json_data[polygon_idx]['lats']
-    longs = json_data[polygon_idx]['longs']
-    
+    lats         = json_data[polygon_idx]['lats']
+    longs        = json_data[polygon_idx]['longs']
     n_gw_in_sight = json_data[polygon_idx]['nOfGwsInSight']
+    last_n_gw    = n_gw_in_sight
 
-    points = [Point(lon, lat) for lat, lon in zip(lats, longs)]
-
-    # Create a LineString from the points
-    line = LineString(points)
+    points   = [Point(lon, lat) for lat, lon in zip(lats, longs)]
+    line     = LineString(points)
     gdf_line = gpd.GeoDataFrame(geometry=[line])
-    # gdf_line.plot(ax=ax, color = colors[idx], linewidth=2, marker='.', alpha=0.5)
-    gdf_line.plot(ax=ax, color=color_palette[n_gw_in_sight], linewidth=2, marker='.', alpha=0.5, label = "Satellite Access Area")
+    gdf_line.plot(
+        ax=ax,
+        color=viridis(n_gw_in_sight / max(N_SATS, 1)),
+        linewidth=1.2,
+        alpha=0.7,
+        zorder=3
+    )
 
-    # Add longitude and latitude gridlines
-    ax.set_xticks(range(-180, 181, 10))  # Longitude ticks every 10 degrees
-    ax.set_yticks(range(-90, 91, 10))    # Latitude ticks every 10 degrees
+# ============================================================================
+# SATELLITE IMAGE ANNOTATION
+# ============================================================================
+if PLOT_SAT:
+    img      = plt.imread(SAT_IMAGE)
+    imagebox = OffsetImage(img, zoom=SAT_ZOOM)
+    ab       = AnnotationBbox(imagebox, SAT_POSITION, frameon=False, zorder=5)
+    ax.add_artist(ab)
 
-    # Add gridlines
-    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+# ============================================================================
+# AXIS CONFIGURATION
+# ============================================================================
+ax.set_xlim(LONGITUDE_LIMITS)
+ax.set_ylim(LATITUDE_LIMITS)
 
-    # Hacky patch
-    polygon_patch = mpatches.Patch(color=santi_blue, alpha=0.5, label='End devices deployment area')
-    line_legend = mlines.Line2D([], [], color=color_palette[n_gw_in_sight], linewidth=2, label='Satellite Access Area')
-    
-    # Add the legend to the plot
-    ax.legend(handles=[polygon_patch, line_legend])
+ax.set_xlabel('Longitude (°)', fontsize=FONT_SIZE_LABELS, weight='normal')
+ax.set_ylabel('Latitude (°)',  fontsize=FONT_SIZE_LABELS, weight='normal')
 
-    if plot_sat:
+ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+ax.tick_params(axis='both', labelsize=FONT_SIZE_TICKS)
 
-        img = plt.imread(SAT_IMAGE)  # Replace with the path to your PNG file
-        imagebox = OffsetImage(img, zoom=0.10) 
-        ab = AnnotationBbox(imagebox, (-72, -35), frameon=False)  # (x, y) coordinates to place the image
-        ax.add_artist(ab)
-    
+# ============================================================================
+# GRID AND FRAME
+# ============================================================================
+ax.grid(True, linestyle=':', linewidth=LINEWIDTH_GRID,
+        color='gray', alpha=0.5, zorder=0)
+ax.set_axisbelow(True)
 
-plt.grid(True)
-plt.xlim(longitude_limits)
-plt.ylim(latitude_limits)
-plt.xlabel('Longitude [Degrees]')
-plt.ylabel('Latitude [Degrees]')
-plt.tight_layout()
-if save_fig:
-    plt.savefig(os.path.join(OUTPUT_ROOT, 'aap_and_deployment_area.pdf'), format='pdf', bbox_inches='tight')
+ax.spines['top'].set_linewidth(LINEWIDTH_AXES)
+ax.spines['right'].set_linewidth(LINEWIDTH_AXES)
+ax.spines['left'].set_linewidth(LINEWIDTH_AXES)
+ax.spines['bottom'].set_linewidth(LINEWIDTH_AXES)
+
+# ============================================================================
+# LEGEND
+# ============================================================================
+roi_patch  = mpatches.Patch(facecolor=COLOR_ROI, edgecolor=COLOR_ROI,
+                             alpha=0.4, linewidth=0.8,
+                             label='End Device Deployment Area')
+sat_line   = mlines.Line2D([], [], color=viridis(last_n_gw / max(N_SATS, 1)),
+                            linewidth=1.2, alpha=0.7,
+                            label='Satellite Access Area')
+
+ax.legend(handles=[roi_patch, sat_line],
+          loc='lower left',
+          fontsize=FONT_SIZE_LEGEND,
+          framealpha=1.0,
+          edgecolor='black',
+          fancybox=False,
+          frameon=True,
+          handlelength=1.5,
+          handletextpad=0.5)
+
+# ============================================================================
+# BACKGROUND
+# ============================================================================
+ax.set_facecolor('white')
+fig.patch.set_facecolor('white')
+
+# ============================================================================
+# TIGHT LAYOUT AND EXPORT
+# ============================================================================
+plt.tight_layout(pad=0.2)
+
+if SAVE_FIG:
+    plt.savefig(os.path.join(OUTPUT_PATH, f'snapshot_{FILE_HASH}.pdf'),
+                format='pdf', bbox_inches='tight', pad_inches=0.01, dpi=600)
+    plt.savefig(os.path.join(OUTPUT_PATH, f'snapshot_{FILE_HASH}.png'),
+                format='png', bbox_inches='tight', pad_inches=0.01, dpi=600)
+    print(f"Figure saved to: {OUTPUT_PATH}snapshot_{FILE_HASH}.pdf")
+
+print(f"Figure dimensions: {FIGURE_WIDTH} × {FIGURE_HEIGHT} inches")
+
+# ============================================================================
+# STATISTICS OUTPUT
+# ============================================================================
+n_polygons = len(json_data)
+gw_counts  = [json_data[i]['nOfGwsInSight'] for i in range(n_polygons)]
+
+print(f"\nSnapshot Statistics:")
+print(f"  Polygons loaded  : {n_polygons}")
+print(f"  Snapshot time    : {SNAPSHOT_TIME / 1000:.1f} s")
+print(f"  GW in sight — mean: {np.mean(gw_counts):.2f}")
+print(f"  GW in sight — min : {np.min(gw_counts)}")
+print(f"  GW in sight — max : {np.max(gw_counts)}")
+
 plt.show()
 

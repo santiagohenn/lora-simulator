@@ -14,7 +14,7 @@ OUTPUT_ROOT = 'C:/Projects/results'
 
 def plot_specific_hash(hash, folder):
     # Low res world map
-    world = gpd.read_file(f"{OUTPUT_ROOT}/resources/countries/ne_110m_admin_0_countries.shp")
+    world = gpd.read_file(f"resources/countries/ne_110m_admin_0_countries.shp")
 
     # Empty figure with axis
     fig = plt.figure(figsize=(10, 5))

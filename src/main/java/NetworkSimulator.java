@@ -128,6 +128,7 @@ public class NetworkSimulator {
     public void run(List<TimedMetricsRecord> backOffTimeSeries, boolean limitDutyCycle) {
 
         List<List<double[]>> analysisDataSets = new ArrayList<>();
+        double averageTransmissionsPerTransmitter = 0;
 
         printProgress(999);
         for (int run = 0; run < numberOfRuns; run++) {
@@ -135,9 +136,11 @@ public class NetworkSimulator {
             simulateTraffic(backOffTimeSeries, limitDutyCycle);
             analyzeTraffic();
             analysisDataSets.add(networkAnalyzer.getDataPoints());
-            printProgress(((double) run) * 100.0 / (double) numberOfRuns);
+            averageTransmissionsPerTransmitter += network.getTrafficFactory().getAverageTransmissionsPerTransmitter();
         }
         printProgress(100);
+
+        averageTransmissionsPerTransmitter /= numberOfRuns;
 
         if (saveTransmissions) {
             Log.debug("Saving transmissions dataset for " + numberOfNodes + " nodes");
@@ -157,6 +160,7 @@ public class NetworkSimulator {
             rf.saveAsJSON(analysisDataSets, numberOfNodes + "ED_" + ((int) sampleStepMS) + "ms_"
                     + ((int) timeOnAirMS) + "ms_"
                     + ((int) (satellites.get(0).getElements().getSemiMajorAxis() / 1000)) + "km");
+            rf.saveAsJSON(averageTransmissionsPerTransmitter, "avg_tx_" + numberOfNodes + "N");
         }
 
         if (saveDestinations) {

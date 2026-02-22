@@ -5,10 +5,12 @@ public class Transmitter {
     private final int id;
     private Transmission lastTransmission;
     private boolean ready;
+    private int transmissionsCount;
 
     public Transmitter(int id) {
         this.id = id;
         ready = true;
+        transmissionsCount = 0;
     }
 
     public Transmission getLastTransmission() {
@@ -16,6 +18,7 @@ public class Transmitter {
     }
 
     public void transmit(Transmission lastTransmission) {
+        this.transmissionsCount++;
         this.lastTransmission = lastTransmission;
         block();
     }
@@ -51,6 +54,10 @@ public class Transmitter {
 
     public int getId() {
         return id;
+    }
+
+    public int getTransmissionsCount() {
+        return transmissionsCount;
     }
 
 }

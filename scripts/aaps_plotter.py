@@ -10,15 +10,18 @@ import matplotlib.lines as mlines
 
 from structures.geotools import deploy_roi
 
+# Configuration variables
+WORLD_SHAPEFILE = "scripts/resources/countries/ne_110m_admin_0_countries.shp"
+
 scenario_hash = "726eca42e2f257ba680f82bcca5e8cf70782e7fe82074233c74d465f7d5e19e4_1"
-folder = "test1"
+folder = "C:/Projects/results/test1"
 time_instant = 2580000
 gw_in_sight = 1
 
 # Low res world map
-world = gpd.read_file("plots/resources/countries/ne_110m_admin_0_countries.shp")
+world = gpd.read_file(WORLD_SHAPEFILE)
 
-with open('C:/Projects/results/' + folder + '/ne_polygons_' + scenario_hash + '.json') as aap:
+with open(folder + '/ne_polygons_' + scenario_hash + '.json') as aap:
     json_data = json.load(aap)
 
 timestamped_aap = [aap_data for aap_data in json_data if aap_data.get("date") == time_instant and aap_data.get("nOfGwsInSight") == gw_in_sight]
@@ -53,7 +56,7 @@ plt.show()
 
 def plot_specific_hash(hash, folder):
     # Low res world map
-    world = gpd.read_file("C:/Users/Santi/Desktop/Doctorado/d3co_analysis/resources/countries/ne_110m_admin_0_countries.shp")
+    world = gpd.read_file(WORLD_SHAPEFILE)
 
     # Empty figure with axis
     fig = plt.figure(figsize=(10, 5))
@@ -91,7 +94,7 @@ def plot_snapshots(folder, hash_list, labels, roi_params):
     colors = plt.cm.viridis(np.linspace(0, 1, len(hash_list)))
 
     # Low res world map
-    world = gpd.read_file("C:/Users/Santi/Desktop/Doctorado/d3co_analysis/resources/countries/ne_110m_admin_0_countries.shp")
+    world = gpd.read_file(WORLD_SHAPEFILE)
 
     # Empty figure with axis
     fig = plt.figure(figsize=(10, 5))

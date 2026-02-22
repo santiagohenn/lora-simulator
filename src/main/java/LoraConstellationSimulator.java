@@ -18,7 +18,7 @@ public class LoraConstellationSimulator {
 
     private static final Options options = configureOptions();
 
-    public static void main(String[] args) {
+    public static void  main(String[] args) {
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -225,7 +225,7 @@ public class LoraConstellationSimulator {
                 networkSimulator.run();
             } else if (cmd.hasOption("simulate-with-ca")) {
                 networkSimulator.run(backOffTimeSeries, true);
-            } else if (cmd.hasOption("simulate-with-ca-nr")) {
+            } else if (cmd.hasOption("simulate-with-ca-nr")) { // nr : no restrictions
                 networkSimulator.run(backOffTimeSeries, false);
             }
         }

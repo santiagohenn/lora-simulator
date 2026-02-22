@@ -264,4 +264,9 @@ public class TrafficFactory {
         this.limitDutyCycle = limitDutyCycle;
     }
 
+    public double getAverageTransmissionsPerTransmitter() {
+        int totalTransmissions = transmitters.values().stream().mapToInt(Transmitter::getTransmissionsCount).sum();
+        return (double) totalTransmissions / transmitters.size();
+    }
+
 }

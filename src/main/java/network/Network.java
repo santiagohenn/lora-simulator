@@ -25,6 +25,8 @@ public class Network {
     private List<Satellite> satellites;
     private List<Transmission> transmissions;
 
+    private TrafficFactory trafficFactory;
+
     private double timeStepSeconds;
     private double timeOnAirMS;
     private long dutyCycleSilentTimeMS;
@@ -107,7 +109,7 @@ public class Network {
             computeAccessIntervals();
             Log.debug("[End] Computing access intervals");
         }
-        TrafficFactory trafficFactory = new TrafficFactory(this); //TODO: add params to the constructor
+        this.trafficFactory = new TrafficFactory(this); //TODO: add params to the constructor
         if (backOffTimeSeries != null) {
             trafficFactory.setBackOffTimeSeries(backOffTimeSeries);
             trafficFactory.setLimitDutyCycle(limitDutyCycle);
@@ -324,7 +326,11 @@ public class Network {
     }
 
     public Simulation getSimulation() {
-        return simulation;
+        return this.simulation;
+    }
+
+    public TrafficFactory getTrafficFactory() {
+        return this.trafficFactory;
     }
 
 
