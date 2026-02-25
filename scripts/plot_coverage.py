@@ -1,20 +1,30 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 import os
 import pandas as pd
+import numpy as np
 
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-COVERAGE_DIR = "C:/Projects/results/test1/"
-HASH = "726eca42e2f257ba680f82bcca5e8cf70782e7fe82074233c74d465f7d5e19e4"
+COVERAGE_DIR = "C:/Projects/results/optimization/"
+HASH = "4c12aca38ff26b86b20b476712abb4e2517cd24c8b2d4a5756fe72dd8615c3cd"
 
 OUTPUT_PATH = COVERAGE_DIR
 
 # ============================================================================
+# SERIES LIMIT CONFIGURATION
+# ============================================================================
+# None -> plot all available "Access to N satellites" columns
+# int  -> plot only Access to 1..N (capped to available columns)
+MAX_SATELLITES_TO_PLOT = 6
+
+# ============================================================================
 # Y-AXIS LIMITS CONFIGURATION
 # ============================================================================
-Y_MIN = 0    # Set to None for automatic, or specify value
-Y_MAX = 105  # Set to None for automatic, or specify value
+Y_MIN = 0
+Y_MAX = 105
 
 # ============================================================================
 # IEEE PUBLICATION SETTINGS
@@ -28,9 +38,6 @@ FONT_SIZE_LEGEND = 7
 
 LINEWIDTH_AXES = 0.6
 LINEWIDTH_GRID = 0.4
-
-# Okabe-Ito colorblind-safe palette
-COLOR_COVERAGE = '#0072B2'
 
 # ============================================================================
 # CONFIGURE MATPLOTLIB FOR IEEE STYLE
@@ -65,19 +72,46 @@ def load_coverage_stats(coverage_dir, hash_id):
 
 coverage_stats = load_coverage_stats(COVERAGE_DIR, HASH)
 
+# First column is time; remaining columns are Access to 1, 2, ... N satellites
+time_s = coverage_stats[:, 0] / 1000.0
+total_series = coverage_stats.shape[1] - 1
+
+if MAX_SATELLITES_TO_PLOT is None:
+    n_series = total_series
+else:
+    n_series = min(max(int(MAX_SATELLITES_TO_PLOT), 0), total_series)
+
+if n_series < 1:
+    raise ValueError("No satellite access series selected to plot. Check MAX_SATELLITES_TO_PLOT.")
+
+# ============================================================================
+# COLORMAP  — same viridis palette used across all scripts
+# ============================================================================
+viridis = cm.get_cmap('viridis')
+norm = mcolors.Normalize(vmin=0, vmax=max(1, n_series))
+
 # ============================================================================
 # CREATE FIGURE
 # ============================================================================
 fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, FIGURE_HEIGHT))
 
 # ============================================================================
-# PLOT COVERAGE
+# PLOT SERIES
 # ============================================================================
-ax.plot(coverage_stats[:, 0] / 1000.0,
-        coverage_stats[:, 1],
-        color=COLOR_COVERAGE, linewidth=1.2, linestyle='-',
-        label='Coverage of Deployment Region',
-        zorder=3)
+for i in range(n_series):
+    col_idx = i + 1
+    n_sats = i + 1
+    label = f'Access to {n_sats} satellite{"s" if n_sats != 1 else ""}'
+
+    ax.plot(
+        time_s,
+        coverage_stats[:, col_idx],
+        color=viridis(norm(n_sats)),
+        linewidth=1.2,
+        linestyle='-',
+        label=label,
+        zorder=3,
+    )
 
 # ============================================================================
 # AXIS CONFIGURATION
@@ -111,14 +145,16 @@ ax.spines['bottom'].set_linewidth(LINEWIDTH_AXES)
 # ============================================================================
 # LEGEND
 # ============================================================================
-ax.legend(loc='lower right',
+ax.legend(loc='lower left',
           fontsize=FONT_SIZE_LEGEND,
           framealpha=1.0,
           edgecolor='black',
           fancybox=False,
           frameon=True,
           handlelength=1.5,
-          handletextpad=0.5)
+          handletextpad=0.5,
+          borderpad=0.6,
+          labelspacing=0.4)
 
 # ============================================================================
 # BACKGROUND
@@ -138,21 +174,22 @@ plt.savefig(os.path.join(OUTPUT_PATH, f'coverage_{HASH}.png'),
 
 print(f"Figure saved to: {OUTPUT_PATH}coverage_{HASH}.pdf")
 print(f"Figure dimensions: {FIGURE_WIDTH} × {FIGURE_HEIGHT} inches")
+print(f"Series plotted: {n_series} (Access to 1–{n_series} satellites)")
+if n_series < total_series:
+    print(f"Total available series: {total_series} (limited by MAX_SATELLITES_TO_PLOT={MAX_SATELLITES_TO_PLOT})")
 
 # ============================================================================
 # STATISTICS OUTPUT
 # ============================================================================
-time_s   = coverage_stats[:, 0] / 1000.0
-coverage = coverage_stats[:, 1]
-
 print(f"\nCoverage Statistics:")
-print(f"  Mean : {coverage.mean():.2f}%")
-print(f"  Std  : {coverage.std():.2f}%")
-print(f"  Min  : {coverage.min():.2f}%")
-print(f"  Max  : {coverage.max():.2f}%")
-print(f"\nTime Range:")
-print(f"  Start   : {time_s.min():.1f} s")
-print(f"  End     : {time_s.max():.1f} s")
-print(f"  Duration: {time_s.max() - time_s.min():.1f} s")
+print(f"  Time range : {time_s.min():.1f} s → {time_s.max():.1f} s ({time_s.max() - time_s.min():.1f} s)")
+for i in range(n_series):
+    col = coverage_stats[:, i + 1]
+    n_sats = i + 1
+    print(f"\n  Access to {n_sats} satellite{'s' if n_sats != 1 else ''}:")
+    print(f"    Mean : {col.mean():.2f}%")
+    print(f"    Std  : {col.std():.2f}%")
+    print(f"    Min  : {col.min():.2f}%")
+    print(f"    Max  : {col.max():.2f}%")
 
 plt.show()

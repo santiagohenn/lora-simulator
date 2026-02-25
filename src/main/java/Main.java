@@ -14,7 +14,6 @@ public class Main {
         //         "-vt", "20.0",
         //         "-runs", "5"}; 
 
-        // TODO: change nodes to initial,end,step python-like
         String[] options = {"--simulate-pure-aloha", "--save-analysis-datasets",
                 "-o", "C:/projects/results/pure-aloha/",
                 "-s", "./inputs/satellites.csv",

@@ -1,5 +1,22 @@
 import numpy as np
 
+def deploy_roi_from_file(file_path):
+    lats = []
+    longs = []
+    heigth = []
+    with open(file_path, 'r') as f:
+        for line in f:
+            # Check if line has 3 elements (lat, lon, height)
+            if len(line.strip().split(',')) >= 3:
+                lat_str, lon_str, height_str = line.strip().split(',')
+            else:
+                lat_str, lon_str = line.strip().split(',')
+                height_str = '0'  # Default height if not provided
+            lats.append(float(lat_str))
+            longs.append(float(lon_str))
+            heigth.append(float(height_str))
+    return lats, longs, heigth
+
 def deploy_roi(center_lat_deg, center_lon_deg, radius_deg, segments):
 
     lats = []

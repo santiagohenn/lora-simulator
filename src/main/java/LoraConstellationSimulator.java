@@ -17,8 +17,9 @@ import java.util.List;
 public class LoraConstellationSimulator {
 
     private static final Options options = configureOptions();
+    static String simulationHash = null;
 
-    public static void  main(String[] args) {
+    public static void main(String[] args) {
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -190,6 +191,7 @@ public class LoraConstellationSimulator {
 
         Log.info("Running constellation coverage ... ");
         constellationCoverageComputer.run();
+        simulationHash = constellationCoverageComputer.getSimulationHash();
         Log.info("... done!");
 
         List<TimedMetricsRecord> coverageData = constellationCoverageComputer.getConstellationCoverageTimeSeries();
