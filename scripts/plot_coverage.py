@@ -9,7 +9,7 @@ import numpy as np
 # PATH CONFIGURATION
 # ============================================================================
 COVERAGE_DIR = "C:/Projects/results/optimization/"
-HASH = "4c12aca38ff26b86b20b476712abb4e2517cd24c8b2d4a5756fe72dd8615c3cd"
+HASH = "e569b4080f63ca933fa12b7dfba95c089cbce43971bb2c3f8e2418963efab7bf"
 
 OUTPUT_PATH = COVERAGE_DIR
 

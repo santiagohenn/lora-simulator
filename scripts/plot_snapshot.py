@@ -17,8 +17,8 @@ from cartopy.mpl.gridliner import LongitudeFormatter, LatitudeFormatter
 # PATH CONFIGURATION
 # ============================================================================
 OUTPUT_ROOT = "C:/Projects/results/optimization"
-FILE_HASH   = "f0cedf3b3621767735b89adb76eea6baf8cb562bcfbdaedb26ae573d36e4eedc"
-ROI_FILE    = "C:/Projects/lora-simulator/inputs/rois/caribbean.csv"
+FILE_HASH   = "6fa75f57d16493f962811740a38565f1aeed535e0cfaeddf6f6b1b2d6596b9cd"
+ROI_FILE    = "C:/Projects/lora-simulator/inputs/rois/argentina_eez.csv"
 
 SAT_IMAGE   = os.path.join(os.path.dirname(__file__), "resources/satellite.png")
 OUTPUT_PATH = OUTPUT_ROOT
@@ -26,8 +26,10 @@ OUTPUT_PATH = OUTPUT_ROOT
 # ============================================================================
 # PROJECTION CONFIGURATION
 # ============================================================================
-LONGITUDE_LIMITS = [-180, 180]
-LATITUDE_LIMITS  = [ -90,  90]
+# LONGITUDE_LIMITS = [-180, 180]
+# LATITUDE_LIMITS  = [ -90,  90]
+LONGITUDE_LIMITS = [-97, -24]
+LATITUDE_LIMITS  = [ -75,  -11]
 
 # ============================================================================
 # PLOT CONFIGURATION
@@ -49,7 +51,7 @@ FIGURE_HEIGHT = 3.5
 
 FONT_SIZE_LABELS = 8
 FONT_SIZE_TICKS  = 7
-FONT_SIZE_LEGEND = 7
+FONT_SIZE_LEGEND = 11
 
 LINEWIDTH_AXES = 0.6
 LINEWIDTH_GRID = 0.4
