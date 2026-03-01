@@ -55,14 +55,16 @@ plt.rcParams.update({
 # LOAD DATA
 # ============================================================================
 df = pd.read_csv(SA_HISTORY_PATH)
-
-iterations           = df['iteration'].values
-temperature          = df['temperature'].values
-currentProfit        = df['currentProfit'].values
+# private static final String CSV_HEADER =
+            # "iter,T,profit,accessPct,dataRatePct,h,inc,phase,pTx," +
+            # "bestProfit,bestAccessPct,bestDataRatePct,bestH,bestInc,bestPhase,bestPTx";
+iterations           = df['iter'].values
+temperature          = df['T'].values
+currentProfit        = df['profit'].values
 bestProfit           = df['bestProfit'].values
-currentAccessPct     = df['currentAccessPct'].values
+currentAccessPct     = df['accessPct'].values
 bestAccessPct        = df['bestAccessPct'].values
-currentDataRatePct   = (df['currentDataRatePct'].values / 100.0) * MAX_ISL_DATARATE
+currentDataRatePct   = (df['dataRatePct'].values / 100.0) * MAX_ISL_DATARATE
 bestDataRatePct      = (df['bestDataRatePct'].values / 100.0) * MAX_ISL_DATARATE
 
 # ============================================================================

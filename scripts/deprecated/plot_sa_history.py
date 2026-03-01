@@ -53,16 +53,18 @@ plt.rcParams.update({
 # LOAD DATA
 # ============================================================================
 df = pd.read_csv(SA_HISTORY_PATH)
-
-iterations    = df['iteration'].values
-temperature   = df['temperature'].values
-currentPTx    = df['currentPTx'].values
+# private static final String CSV_HEADER =
+            # "iter,T,profit,accessPct,dataRatePct,h,inc,phase,pTx," +
+            # "bestProfit,bestAccessPct,bestDataRatePct,bestH,bestInc,bestPhase,bestPTx";
+iterations    = df['iter'].values
+temperature   = df['T'].values
+currentPTx    = df['pTx'].values
 bestPTx       = df['bestPTx'].values
-currentH      = df['currentH'].values
+currentH      = df['h'].values
 bestH         = df['bestH'].values
-currentInc    = df['currentInc'].values
+currentInc    = df['inc'].values
 bestInc       = df['bestInc'].values
-currentPhase  = df['currentPhase'].values
+currentPhase  = df['phase'].values
 bestPhase     = df['bestPhase'].values
 
 # ============================================================================
