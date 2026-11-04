@@ -1,16 +1,31 @@
+# Misc
+TODO.md
+
+# Build output and logs
+target/
+/bin
+*.class
 *.log
-target
+
+# IDE / OS metadata
 *.iml
-*.idea
-*.vscode
+.idea/
+.vscode/
+.DS_Store
 
-/inputs/*
-/results/*
-
+# Python
 venv/
+.venv/
 __pycache__/
 
-/bin
+# Local, non-versioned inputs (see inputs/README.md) and generated results
+/inputs/*
+!/inputs/README.md
+/results/*
+/orekit-data/
+examples/output/
 
+# Generated figures (the resource images used by the scripts are versioned)
 *.pdf
 *.png
+!scripts/resources/*.png

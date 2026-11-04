@@ -1,3 +1,7 @@
+"""Plot the simulated-annealing history written by the Java program ``saoptimization.SAOptimization``
+(``results/sa_results/sa_history.csv``). The figure is written to the same folder.
+"""
+from repo_paths import RESULTS_DIR
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -8,8 +12,8 @@ import numpy as np
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-SA_HISTORY_PATH = "C:/projects/results/sa_results/sa_history.csv"
-OUTPUT_PATH     = "C:/projects/results/sa_results/"
+SA_HISTORY_PATH = str(RESULTS_DIR / "sa_results" / "sa_history.csv")
+OUTPUT_PATH     = str(RESULTS_DIR / "sa_results")
 
 # ============================================================================
 # IEEE PUBLICATION SETTINGS

@@ -8,6 +8,14 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * Draws end-device positions inside a spherical cap of angular radius {@code radiusDegrees} centred at
+ * ({@code centerLatDegrees}, {@code centerLongitudeDegrees}). Positions are at 0 m altitude.
+ *
+ * <p>The angular distance from the centre is sampled as {@code radius * sqrt(U)}, which is uniform in a
+ * planar disc (a good approximation of uniform-on-the-sphere for small caps).
+ * Randomness comes from {@link java.security.SecureRandom} and cannot be seeded.
+ */
 public class PositionsFactory {
 
     private int nOfNodes;

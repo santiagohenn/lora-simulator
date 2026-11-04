@@ -14,24 +14,40 @@ import constellation.tools.ConstellationCoverageComputer;
 import constellation.tools.utilities.FileUtils;
 import satellite.tools.assets.entities.Satellite;
 import satellite.tools.utils.Log;
-import satellite.tools.utils.Utils;
 
+/**
+ * Sweeps the RAAN and the in-plane anomaly separation of all satellites and records the mean ROI coverage.
+ *
+ * <p>For every (RAAN, anomaly separation) pair on a 1-degree grid, all satellites get the same RAAN and
+ * anomalies {@code a_0 + k * separation}; coverage is computed with constellation-toolkit and, for each
+ * coverage column, the mean over the time steps with non-zero coverage is stored. Output:
+ * {@code <outputDir>/coverage_heatmap_raan<min>_<max>_anomalySep<min>_<max>.json}
+ * (plot with {@code scripts/plot_heatmap_raan_and_phase.py}).
+ *
+ * <p>Usage: {@code AccessVsRAANAndPhase [config.properties] [roi.csv] [outputDir]}. The baseline
+ * satellites are read from the {@code satellites_file} entry of the configuration file.
+ */
 public class AccessVsRAANAndPhase {
 
-    static final String OUTPUT_DIR = "C:/projects/results/access_vs_raan_and_phase/";
+    static final String DEFAULT_CONFIG = "config/optimization_argentina_eez.properties";
+    static final String DEFAULT_ROI = "inputs/rois/argentina_eez.csv";
+    static final String DEFAULT_OUTPUT_DIR = "results/access_vs_raan_and_phase/";
 
     public static void main(String[] args) {
 
-        ConstellationCoverageComputer constellationCoverageComputer = new ConstellationCoverageComputer(
-                "C:/Projects/lora-simulator/src/test/resources/config.d3co.properties");
+        String configPath = args.length > 0 ? args[0] : DEFAULT_CONFIG;
+        String roiPath = args.length > 1 ? args[1] : DEFAULT_ROI;
+        final String OUTPUT_DIR = withTrailingSlash(args.length > 2 ? args[2] : DEFAULT_OUTPUT_DIR);
+        new File(OUTPUT_DIR).mkdirs();
+
+        ConstellationCoverageComputer constellationCoverageComputer = new ConstellationCoverageComputer(configPath);
 
         // Load from file
-        List<double[]> ROI = FileUtils.file2DoubleList("C:/Projects/lora-simulator/inputs/rois/argentina_eez.csv");
+        List<double[]> ROI = FileUtils.file2DoubleList(roiPath);
         constellationCoverageComputer.setROI(ROI);
 
         constellationCoverageComputer.setOutputPath(OUTPUT_DIR);
-        List<Satellite> satelliteList = Utils
-                .satellitesFromFile("C:/Projects/lora-simulator/inputs/satellites/constellation_baseline.csv");
+        List<Satellite> satelliteList = constellationCoverageComputer.getSatelliteList();
 
         double maxAnomalySep = 15;
         double minAnomalySep = 1;
@@ -52,10 +68,6 @@ public class AccessVsRAANAndPhase {
                             .setRightAscension(raan);
                 }
 
-                // constellationCoverageComputer.getSatelliteList().get(0).getElements()
-                // constellationCoverageComputer.setSatelliteList(satelliteList);
-
-                // Log.info("Running: " + hash);
                 constellationCoverageComputer.run();
                 String hash = constellationCoverageComputer.getSimulationHash();
 
@@ -75,6 +87,10 @@ public class AccessVsRAANAndPhase {
                 minRAAN, maxRAAN, minAnomalySep, maxAnomalySep);
         writeJson(OUTPUT_DIR + outputName, results, minRAAN, maxRAAN, minAnomalySep, maxAnomalySep);
         Log.info("Results written to " + OUTPUT_DIR + outputName);
+    }
+
+    static String withTrailingSlash(String path) {
+        return (path.endsWith("/") || path.endsWith("\\")) ? path : path + "/";
     }
 
     /**

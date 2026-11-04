@@ -1,3 +1,12 @@
+"""ILLUSTRATIVE figure: model coverage curves with SYNTHETIC Gaussian perturbations.
+
+WARNING: this script does NOT read any grid-based coverage computation. The curves labelled
+"Grid = 0.5°/2.5°/4.5°" are the analytical coverage of ``coverage_<HASH>.csv`` plus zero-mean
+Gaussian noise whose standard deviations are hard-coded in ``SIGMA_LEVELS`` (seeded with
+``RANDOM_SEED``). Do not present its output as grid-based results without stating this.
+See REPOSITORY_REVIEW.md.
+"""
+from repo_paths import RESULTS_DIR
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -8,7 +17,7 @@ import numpy as np
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-COVERAGE_DIR = "C:/Projects/results/optimization/"
+COVERAGE_DIR = str(RESULTS_DIR / "optimization")
 HASH = "4c12aca38ff26b86b20b476712abb4e2517cd24c8b2d4a5756fe72dd8615c3cd"
 
 OUTPUT_PATH = COVERAGE_DIR
@@ -423,4 +432,4 @@ print("Noise sigmas used (by label, K=1..K=n):")
 for s_idx, sigma_label in enumerate(SIGMA_LABELS):
     print(f"  {sigma_label}: {SIGMA_LEVELS[s_idx][:n_series]}")
 
-plt.show()
+plt.show()

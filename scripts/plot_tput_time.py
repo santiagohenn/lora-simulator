@@ -1,3 +1,12 @@
+"""Throughput vs. time for one number of end devices: analytical model vs. simulation (one policy).
+
+Reads ``simulation-parameters.json``, ``coverage_<hash>.csv`` and ``<N>ED_*.json`` from one simulator
+output folder and writes ``tput_vs_time_<N>ED.{pdf,png}`` to the same folder.
+
+Usage:
+    python scripts/plot_tput_time.py [--case-dir results/pure-aloha] [--nodes 80] [--no-show]
+"""
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -5,19 +14,27 @@ import json
 import pandas as pd
 from lora_model import get_tput
 from structures.constellation import Constellation
+from repo_paths import RESULTS_DIR as DEFAULT_RESULTS_DIR, resolve_repo_path, find_simulation_file
+
+_parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+_parser.add_argument("--case-dir", default=str(DEFAULT_RESULTS_DIR / "pure-aloha"),
+                     help="simulator output folder (the -o argument of LoraConstellationSimulator)")
+_parser.add_argument("--nodes", type=int, default=None, help="number of end devices to plot")
+_parser.add_argument("--no-show", action="store_true", help="do not open an interactive window")
+_args = _parser.parse_args()
 
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-RESULTS_DIR = "C:/Projects/results/"
-CASE_FOLDER = "test1"
+RESULTS_DIR = _args.case_dir
+CASE_FOLDER = ""
 
 OUTPUT_PATH = RESULTS_DIR
 
 # ============================================================================
 # PLOT CONFIGURATION
 # ============================================================================
-CHOSEN_NODE_COUNT = 120  # Set your desired node count here
+CHOSEN_NODE_COUNT = _args.nodes if _args.nodes is not None else 120  # number of end devices to plot
 
 # ============================================================================
 # Y-AXIS LIMITS CONFIGURATION
@@ -87,11 +104,11 @@ def load_simulation_stats(simulations_dir, file_name):
     print(f"Loading simulation file: {file_path}")
     return pd.read_json(file_path).values
 
-def load_simulations_results(simulations_dir, nodes, sample_time_ms, time_on_air_ms, satellite_height_km):
-    simulation_file_name = f'{nodes}ED_{sample_time_ms}ms_{time_on_air_ms}ms_{satellite_height_km}km'
-    print(f'Loading simulation for {nodes} EDs: {simulation_file_name}')
+def load_simulations_results(simulations_dir, nodes, sample_time_ms, time_on_air_ms):
+    simulation_file = find_simulation_file(simulations_dir, nodes, sample_time_ms, time_on_air_ms)
+    print(f'Loading simulation for {nodes} EDs: {simulation_file}')
 
-    simulation_results   = load_simulation_stats(simulations_dir, simulation_file_name)
+    simulation_results   = pd.read_json(simulation_file).values
     simulation_time_vector = np.array([step[0] / 1000.0 for step in simulation_results[0]])
 
     average_simulation_results = average_matrices(simulation_results)
@@ -118,7 +135,6 @@ n_ch                   = 1
 area_roi_m2            = float(params["roi_surface"])
 time_on_air_seconds    = float(params["time_on_air_seconds"])
 avg_inter_arrival_time = float(params["average_inter_arrival_time_seconds"])
-satellite_height_km    = params["satellites"][0][24:28]
 sample_time_seconds    = float(params["sample_step_seconds"])
 sample_time_ms         = int(sample_time_seconds * 1000.0)
 time_on_air_ms         = int(time_on_air_seconds * 1000.0)
@@ -127,7 +143,7 @@ time_on_air_ms         = int(time_on_air_seconds * 1000.0)
 # LOAD CONSTELLATION AND COVERAGE
 # ============================================================================
 constellation = Constellation()
-constellation.read_from_csv(params["satellites_file"])
+constellation.read_from_csv(resolve_repo_path(params["satellites_file"]))
 hash        = constellation.generate_hash_256()
 coverage_dir = os.path.join(RESULTS_DIR, CASE_FOLDER)
 coverage_stats = np.loadtxt(os.path.join(coverage_dir, f'coverage_{hash}.csv'), delimiter=',')
@@ -145,7 +161,7 @@ time_vector_model, model_tput_vs_time = get_tput(
 # ============================================================================
 simulations_dir = os.path.join(RESULTS_DIR, CASE_FOLDER)
 simulation_time_vector, simulation_tput_avg, simulation_tput_std = load_simulations_results(
-    simulations_dir, CHOSEN_NODE_COUNT, sample_time_ms, time_on_air_ms, satellite_height_km)
+    simulations_dir, CHOSEN_NODE_COUNT, sample_time_ms, time_on_air_ms)
 
 # ============================================================================
 # CREATE FIGURE
@@ -250,4 +266,5 @@ print(f"\nNode Count  : {CHOSEN_NODE_COUNT} EDs")
 print(f"Time on Air : {time_on_air_ms} ms")
 print(f"Sample Time : {sample_time_ms} ms")
 
-plt.show()
+if not _args.no_show:
+    plt.show()

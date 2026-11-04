@@ -1,5 +1,22 @@
+"""Average throughput vs. number of end devices: analytical model vs. simulation, three policies.
+
+Reads the outputs of the Java simulator for the three channel-access policies, laid out as
+
+    <results-dir>/pure-aloha/          simulation-parameters.json, coverage_<hash>.csv, <N>ED_*.json
+    <results-dir>/coverage-aware/      <N>ED_*.json
+    <results-dir>/coverage-aware-nr/   <N>ED_*.json
+
+(this is what ``Main`` writes to ``results/``), evaluates the analytical model of ``lora_model.py``
+on the same coverage time series and parameters, and writes
+``coverage_awareness_results.{pdf,png}`` plus the model-vs-simulation relative errors to stdout.
+
+Usage:
+    python scripts/plot_avg_sim_vs_model.py [--results-dir results] [--output-dir DIR] [--no-show]
+"""
+import argparse
 from lora_model import get_tput, get_tput_wca, get_tput_wca_nr
 from structures.constellation import Constellation
+from repo_paths import RESULTS_DIR as DEFAULT_RESULTS_DIR, resolve_repo_path, find_simulation_file
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,11 +27,18 @@ from scipy.integrate import simpson
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-RESULTS_DIR = "C:/Projects/results/"
-CASE_FOLDER = "bigsteps"
-PARAMS_FOLDER = "pure-aloha"
+_parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+_parser.add_argument("--results-dir", default=str(DEFAULT_RESULTS_DIR),
+                     help="folder containing the pure-aloha/, coverage-aware/ and coverage-aware-nr/ result folders")
+_parser.add_argument("--output-dir", default=None, help="where to write the figure (default: --results-dir)")
+_parser.add_argument("--no-show", action="store_true", help="do not open an interactive window")
+_args = _parser.parse_args()
 
-OUTPUT_PATH = "./"
+RESULTS_DIR = _args.results_dir
+CASE_FOLDER = ""                 # optional sub-folder of RESULTS_DIR holding the policy folders
+PARAMS_FOLDER = "pure-aloha"     # folder whose simulation-parameters.json / coverage file are used
+
+OUTPUT_PATH = os.path.join(_args.output_dir or RESULTS_DIR, "")
 
 # ============================================================================
 # Y-AXIS LIMITS CONFIGURATION
@@ -67,11 +91,6 @@ plt.rcParams.update({
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
-def load_simulation_stats(simulations_dir, file_name):
-    file_name = os.path.join(simulations_dir, f'{file_name}.json')
-    print(file_name)
-    return pd.read_json(file_name).values
-
 def average_matrices(matrices):
     time_steps = len(matrices[0])
     average_matrix = np.zeros((time_steps, 8))
@@ -98,15 +117,16 @@ def integrate_time_series(signal, std_devs):
     )
     return integrated_metrics, np.sqrt(integral_variance)
 
-def load_simulations_results(simulations_dir, nodes, sample_time_ms, time_on_air_ms, satellite_height_km):
+def load_simulations_results(simulations_dir, nodes, sample_time_ms, time_on_air_ms):
     node_n_of_steps = len(nodes)
     simulation_tput_avg = np.zeros(node_n_of_steps)
     simulation_tput_std = np.zeros(node_n_of_steps)
 
     for idx, node in enumerate(nodes):
         print(f'loading_simulation_for_{node}_nodes')
-        simulation_file_name = f'{node}ED_{sample_time_ms}ms_{time_on_air_ms}ms_{satellite_height_km}km'
-        simulation_results = load_simulation_stats(simulations_dir, simulation_file_name)
+        simulation_file = find_simulation_file(simulations_dir, node, sample_time_ms, time_on_air_ms)
+        print(simulation_file)
+        simulation_results = pd.read_json(simulation_file).values
         average_simulation_results = average_matrices(simulation_results)
         std_simulation_results = deviation_matrices(simulation_results)
 
@@ -144,7 +164,6 @@ time_on_air_ms          = int(time_on_air_seconds * 1000.0)
 dc_percentage           = float(params["duty_cycle_percentage"])
 n_ch                    = 1
 area_roi_m2             = float(params["roi_surface"])
-satellite_height_km     = params["satellites"][0][24:28]
 sample_time_seconds     = float(params["sample_step_seconds"])
 sample_time_ms          = int(sample_time_seconds * 1000.0)
 
@@ -154,7 +173,7 @@ nodes = range(nodes_start, max_nodes + 1, node_step)
 # LOAD CONSTELLATION AND COVERAGE
 # ============================================================================
 constellation = Constellation()
-constellation.read_from_csv(params["satellites_file"])
+constellation.read_from_csv(resolve_repo_path(params["satellites_file"]))
 hash = constellation.generate_hash_256()
 coverage_dir = os.path.join(RESULTS_DIR, CASE_FOLDER, PARAMS_FOLDER)
 coverage_stats = np.loadtxt(os.path.join(coverage_dir, f'coverage_{hash}.csv'), delimiter=',')
@@ -213,7 +232,7 @@ nodes_list = list(nodes)
 # ============================================================================
 simulations_dir = os.path.join(RESULTS_DIR, CASE_FOLDER, "pure-aloha")
 sim_avg_pa, sim_std_pa = load_simulations_results(
-    simulations_dir, nodes, sample_time_ms, time_on_air_ms, satellite_height_km)
+    simulations_dir, nodes, sample_time_ms, time_on_air_ms)
 
 ax.plot(nodes_list, signal_mean_model,
         color=COLOR_PA, linewidth=1.2, linestyle='-',
@@ -232,7 +251,7 @@ ax.plot(nodes_list, sim_avg_pa,
 # ============================================================================
 simulations_dir = os.path.join(RESULTS_DIR, CASE_FOLDER, "coverage-aware")
 sim_avg_ca, sim_std_ca = load_simulations_results(
-    simulations_dir, nodes, sample_time_ms, time_on_air_ms, satellite_height_km)
+    simulations_dir, nodes, sample_time_ms, time_on_air_ms)
 
 ax.plot(nodes_list, signal_mean_model_wca,
         color=COLOR_CA, linewidth=1.2, linestyle='-',
@@ -251,7 +270,7 @@ ax.plot(nodes_list, sim_avg_ca,
 # ============================================================================
 simulations_dir = os.path.join(RESULTS_DIR, CASE_FOLDER, "coverage-aware-nr")
 sim_avg_nr, sim_std_nr = load_simulations_results(
-    simulations_dir, nodes, sample_time_ms, time_on_air_ms, satellite_height_km)
+    simulations_dir, nodes, sample_time_ms, time_on_air_ms)
 
 ax.plot(nodes_list, signal_mean_model_wca_nr,
         color=COLOR_NR, linewidth=1.2, linestyle='-',
@@ -344,5 +363,6 @@ print(f"\nImprovement vs. PA model:")
 print(f"  CA  : [{', '.join(map(str, improvement_ca))}]")
 print(f"  CA-NR: [{', '.join(map(str, improvement_nr))}]")
 
-plt.show()
+if not _args.no_show:
+    plt.show()
 

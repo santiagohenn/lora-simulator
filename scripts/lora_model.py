@@ -1,3 +1,30 @@
+"""Analytical throughput model for LoRa direct-to-satellite uplinks over a LEO constellation.
+
+The ROI coverage time series produced by constellation-toolkit (``coverage_<hash>.csv``) is combined
+with a pure-ALOHA/duty-cycle traffic model to compute, at every time step, the expected normalised
+throughput S (successful frames per time-on-air unit, summed over the access areas).
+
+Common arguments
+----------------
+coverage_stats : ndarray, shape (T, 1 + K)
+    Column 0: time [ms]; column s (1..K): coverage of the ROI [%] for the s-th coverage column of
+    constellation-toolkit (K = ``max_subset_size``).
+dc_percentage : float
+    Duty cycle [%]. The silent time after a frame is modelled as ``(100 - dc_percentage) * time_on_air``.
+n_ch : int
+    Number of channels.
+ed_density : float
+    End-device density [devices / m^2] (number of devices / ``area_roi_m2``).
+time_on_air : float
+    Frame time on air [s].
+avg_inter_arrival_time : float
+    Mean frame inter-arrival time per device [s]. The normalised offered load is
+    ``G = time_on_air / avg_inter_arrival_time``.
+area_roi_m2 : float
+    ROI surface [m^2] (``roi_surface`` in simulation-parameters.json).
+
+The same conventions (G = ToA / IAT, silent time = (100 - DC) * ToA) are used by the Java simulator.
+"""
 import numpy as np
 import pandas as pd
 import math
@@ -7,9 +34,10 @@ import os
 parent_dir = os.path.join(os.path.dirname(__file__), '..')
 
 def get_tput(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_inter_arrival_time, area_roi_m2):
+    """Pure ALOHA with duty-cycle restriction. Returns ``(time_s, throughput)``, both of length T."""
 
     if ed_density == 0:
-        return 0
+        return coverage_stats[:, 0] / 1000.0, np.zeros(coverage_stats.shape[0])
     
     n_of_sats = coverage_stats.shape[1] - 1                         # Number of satellites (according to "max_subset_size" property)
     time_steps = coverage_stats.shape[0]                            # Number of time steps
@@ -46,9 +74,10 @@ def get_tput(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_i
     return time_vector_model, tput_model
 
 def get_tput_wca(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_inter_arrival_time, area_roi_m2):
+    """Coverage-aware back-off, bounded below by the duty-cycle silent time. Returns the throughput (length T)."""
 
     if ed_density == 0:
-        return 0
+        return np.zeros(coverage_stats.shape[0])
 
     n_of_sats = coverage_stats.shape[1] - 1                         # Number of satellites (according to "max_subset_size" property)
     time_steps = coverage_stats.shape[0]                            # Number of time steps
@@ -96,9 +125,10 @@ def get_tput_wca(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, a
     return tput_model
 
 def get_tput_wca_nr(coverage_stats, dc_percentage, n_ch, ed_density, time_on_air, avg_inter_arrival_time, area_roi_m2):
+    """Coverage-aware back-off without duty-cycle lower bound ("no restriction"). Returns the throughput (length T)."""
 
     if ed_density == 0:
-        return 0
+        return np.zeros(coverage_stats.shape[0])
 
     n_of_sats = coverage_stats.shape[1] - 1                         # Number of satellites (according to "max_subset_size" property)
     time_steps = coverage_stats.shape[0]                            # Number of time steps
@@ -169,4 +199,4 @@ def plot_coverage_list(folder, hash_list):
         plt.grid(True)
         plt.xlabel('Time [s]')
         plt.ylabel('Coverage [%]')
-        plt.legend()
+        plt.legend()

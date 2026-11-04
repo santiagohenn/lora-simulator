@@ -1,0 +1,6 @@
+# Optional: map figures (scripts/plot_snapshot.py, scripts/plot_snapshot_polar.py).
+# Not tested in the review environment (packages could not be installed there).
+-r requirements.txt
+shapely>=2.0
+geopandas>=0.14    # plot_snapshot_polar.py only
+cartopy>=0.22      # downloads Natural Earth data on first use

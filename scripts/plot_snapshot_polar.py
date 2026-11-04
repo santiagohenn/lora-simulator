@@ -1,3 +1,10 @@
+"""Polar (azimuthal) map of the satellite access-area polygons at one instant
+(``snapshot_ne_polygons_<FILE_HASH>.json``) over a polar region of interest (cartopy).
+
+Requires the optional mapping dependencies (requirements-maps.txt). Set ``OUTPUT_ROOT``,
+``FILE_HASH`` and ``ROI_FILE`` below.
+"""
+from repo_paths import RESULTS_DIR, INPUTS_DIR
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -17,9 +24,9 @@ from cartopy.feature import NaturalEarthFeature
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-OUTPUT_ROOT = "C:/Projects/results/optimization"
+OUTPUT_ROOT = str(RESULTS_DIR / "optimization")
 FILE_HASH   = "69413b8da8441f6da15d60591c2b591b0642bf717e2e99483147639cc906470f"
-ROI_FILE    = "C:/Projects/lora-simulator/inputs/rois/greenland.csv"
+ROI_FILE    = str(INPUTS_DIR / "rois" / "greenland.csv")
 
 WORLD_BOUNDARIES = os.path.join(os.path.dirname(__file__), "resources/countries/ne_110m_admin_0_countries.shp")
 SAT_IMAGE        = os.path.join(os.path.dirname(__file__), "resources/satellite.png")
@@ -318,4 +325,4 @@ print(f"  GW in sight — min : {np.min(gw_counts)}")
 print(f"  GW in sight — max : {np.max(gw_counts)}")
 print(f"  Unique GW counts  : {gw_counts_all}")
 
-plt.show()
+plt.show()

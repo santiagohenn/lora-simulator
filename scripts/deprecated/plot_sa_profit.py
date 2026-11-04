@@ -1,3 +1,7 @@
+"""Plot the simulated-annealing history written by the Java program ``saoptimization.SAOptimization``
+(``results/sa_results/sa_history.csv``). The figure is written to the same folder.
+"""
+from repo_paths import RESULTS_DIR
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -8,8 +12,8 @@ import numpy as np
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-SA_HISTORY_PATH = "C:/projects/results/sa_results/sa_history.csv"
-OUTPUT_PATH     = "C:/projects/results/sa_results/"
+SA_HISTORY_PATH = str(RESULTS_DIR / "sa_results" / "sa_history.csv")
+OUTPUT_PATH     = str(RESULTS_DIR / "sa_results")
 
 # ============================================================================
 # IEEE PUBLICATION SETTINGS
@@ -25,7 +29,7 @@ FONT_SIZE_TITLE  = 8
 LINEWIDTH_AXES = 0.6
 LINEWIDTH_GRID = 0.4
 
-MAX_ISL_DATARATE = 7.5e6  # Mbps
+MAX_ISL_DATARATE = 7.5e6  # [bit/s], hardware cap used by SAOptimization (ISL_R_MAX_BPS)
 
 # ============================================================================
 # CONFIGURE MATPLOTLIB FOR IEEE STYLE
@@ -211,6 +215,6 @@ print(f"Rango de temperatura: {temperature.min():.4f} → {temperature.max():.4f
 print(f"\nMejores valores finales:")
 print(f"  Beneficio    : {bestProfit[-1]:.4f}")
 print(f"  Acceso       : {bestAccessPct[-1]:.2f}%")
-print(f"  Tasa de datos: {bestDataRatePct[-1]:.2f}%")
+print(f"  Tasa de datos: {bestDataRatePct[-1]:.2f} bit/s")
 
 plt.show()

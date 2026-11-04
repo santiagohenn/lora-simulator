@@ -13,6 +13,27 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Detects collisions at each satellite gateway and produces sampled traffic statistics.
+ *
+ * <p>Collision model: two receptions at the same gateway collide if their reception intervals
+ * overlap (no capture effect, single channel). Receptions are sorted by start time and each one is
+ * compared with the next one only.
+ *
+ * <p>{@link #getDataPoints()} returns one row per sample step (length {@code sampleStepSeconds}) with
+ * the columns
+ * <pre>
+ *   0 time since scenario start [ms]
+ *   1 receptions started in the step (one per ED-gateway pair, i.e. an uplink heard by k satellites counts k times)
+ *   2 distinct uplinks started in the step
+ *   3 successful receptions (REACHED_GW or REACHED_GW_PARTIAL after collision detection)
+ *   4 successful distinct uplinks
+ *   5 partial receptions that survived (access gained or lost during the frame)
+ *   6 partial receptions lost to collision
+ *   7 transmissions not heard by any satellite
+ * </pre>
+ * Timestamps are Unix epoch milliseconds.
+ */
 public class NetworkAnalyzer {
 
     private double sampleStepSeconds;

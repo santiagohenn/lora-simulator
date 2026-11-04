@@ -11,6 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Runs the Monte Carlo traffic simulation for one number of end devices: deploys the devices, generates
+ * traffic, analyses collisions and stores the results with {@link ReportFactory}.
+ *
+ * <p>Units: time on air and sample step in milliseconds, average inter-arrival time in seconds,
+ * duty cycle in percent, dates as ISO 8601 UTC strings.
+ */
 public class NetworkSimulator {
 
     Network network;

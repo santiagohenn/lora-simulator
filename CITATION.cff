@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated publication below."
+title: "LoRa Direct-to-Satellite Simulator"
+authors:
+  - family-names: Henn
+    given-names: Santiago M.
+repository-code: "https://github.com/santiagohenn/lora-simulator"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Multi-Gateway LoRaWAN Throughput Modeling in Direct-to-Satellite IoT Constellations"
+  authors:
+    - family-names: Henn
+      given-names: Santiago M.
+    - family-names: Fraire
+      given-names: Juan Andrés
+    - family-names: Accettura
+      given-names: Nicola
+    - family-names: Céspedes
+      given-names: Sandra
+    - family-names: Hermanns
+      given-names: Holger
+  year: 2024
+  url: "https://hal.science/hal-04749023v1"
+  notes: "HAL preprint hal-04749023"

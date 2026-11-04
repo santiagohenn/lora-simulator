@@ -16,6 +16,14 @@ import structures.Event;
 
 import java.util.*;
 
+/**
+ * Scenario container: end-device positions, satellites, access intervals and generated transmissions.
+ *
+ * <p>Access intervals are computed with satellite-tools/Orekit for every (end device, satellite) pair
+ * (EME2000 inertial frame, ITRF/IERS 2010 fixed frame, minimum elevation {@code visibilityThresholdDegrees})
+ * and merged per end device into intervals labelled with the set of satellites in view.
+ * All timestamps are Unix epoch milliseconds; time on air and silent times are in milliseconds.
+ */
 public class Network {
 
     static final Logger Log = LogManager.getLogger(Network.class);

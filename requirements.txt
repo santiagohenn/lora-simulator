@@ -1,6 +1,7 @@
-numpy
-matplotlib
-seaborn
-geopandas
-shapely
-scipy
+# Python dependencies of the analysis/plotting scripts in scripts/ and of examples/.
+# Tested with Python 3.11: numpy 2.4, pandas 3.0, matplotlib 3.10, scipy 1.17, seaborn 0.13.
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+scipy>=1.10        # plot_avg_sim_vs_model.py (Simpson integration)
+seaborn>=0.12      # scripts/misc/ statistics plots only

@@ -11,9 +11,34 @@ import satellite.tools.assets.entities.Satellite;
 import satellite.tools.utils.Log;
 import satellite.tools.utils.Utils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Command-line entry point of the LoRa direct-to-satellite network simulator.
+ *
+ * <p>For every number of end devices (EDs) in the requested sweep the program
+ * <ol>
+ *   <li>computes the constellation coverage time series over a spherical-cap region of interest (ROI)
+ *       with {@code constellation-toolkit} (written to {@code <output>/coverage_<hash>.csv});</li>
+ *   <li>deploys the EDs uniformly at random inside the ROI, computes ED-to-satellite access intervals
+ *       with Orekit, generates uplink traffic under one of three channel-access policies and detects
+ *       collisions at each satellite gateway;</li>
+ *   <li>repeats step 2 {@code -runs} times and stores the per-sample statistics of every run in
+ *       {@code <output>/<N>ED_<sampleStep>ms_<ToA>ms_<a>km.json}.</li>
+ * </ol>
+ *
+ * <p>Policies: {@code -simulate-pure-aloha} (duty-cycle-limited pure ALOHA),
+ * {@code -simulate-with-ca} (coverage-aware back-off, never shorter than the duty-cycle silent time) and
+ * {@code -simulate-with-ca-nr} (coverage-aware back-off without the duty-cycle lower bound).
+ *
+ * <p>Important: the coverage computation takes its start/end dates, time step and visibility threshold
+ * from the {@code -cov-cfg} properties file, while the traffic simulation takes them from the command
+ * line. Both must describe the same scenario. See README.md.
+ */
 public class LoraConstellationSimulator {
 
     private static final Options options = configureOptions();
@@ -34,7 +59,16 @@ public class LoraConstellationSimulator {
             return;
         }
 
-        String outputPath = cmd.hasOption("o") ? cmd.getOptionValue("o") : "/";
+        String outputPath = cmd.getOptionValue("o");
+        if (!outputPath.endsWith("/") && !outputPath.endsWith("\\")) {
+            outputPath = outputPath + "/";
+        }
+        try {
+            Files.createDirectories(Paths.get(outputPath));
+        } catch (IOException e) {
+            System.err.println("Could not create output directory " + outputPath + ": " + e.getMessage());
+            System.exit(1);
+        }
         String startDate = cmd.hasOption("start") ? cmd.getOptionValue("start") : "2025-01-01T16:00:00.000";
         String endDate = cmd.hasOption("end") ? cmd.getOptionValue("end") : "2025-01-01T16:30:00.000";
         String satellitePath = cmd.hasOption("satellites") ? cmd.getOptionValue("satellites") : (outputPath + "satellites.csv");
@@ -42,22 +76,24 @@ public class LoraConstellationSimulator {
 
         // Orekit configuration file
         AppConfig appConfig;
-        String orekitDataPath = "./input/orekit-data";
+        String orekitDataPath = "orekit-data";
         try {
             appConfig = new AppConfig(configurationsPath);
             orekitDataPath = appConfig.orekitPath();
         } catch (ConfigurationException e) {
-            System.err.println("Error loading configuration file: " + configurationsPath);
+            System.err.println("Error loading configuration file: " + configurationsPath
+                    + " (pass it with -cov-cfg; see config/coverage.template.properties)");
             e.printStackTrace();
+            System.exit(1);
         } catch (Exception e) {
             System.err.println("Error initializing application configuration.");
             e.printStackTrace();
             System.exit(1);
         }
 
-        /* Default values */
-        double timeOnAir = 0.1; // seconds
-        double averageInterArrivalTime = 0.1;
+        /* Default values (used when the corresponding CLI option is absent) */
+        double timeOnAir = 0.1;                 // [s]
+        double averageInterArrivalTime = 0.1;   // [s]
         double frameGenerationRate;
         double dutyCyclePercentage = 1.0;
         int initialNodes = 10;
@@ -72,7 +108,7 @@ public class LoraConstellationSimulator {
         double roiSphericalRadius = 1.0;
         int roiSegments = 50;
 
-        boolean saveAccessIntervals = cmd.hasOption("save-access-intervals");
+        boolean saveAccessIntervals = cmd.hasOption("save-intervals");
         boolean saveAnalysisDatasets = cmd.hasOption("save-analysis-datasets");
         boolean saveDestinations = cmd.hasOption("save-destinations");
         boolean saveTransmissions = cmd.hasOption("save-transmissions");
@@ -85,18 +121,21 @@ public class LoraConstellationSimulator {
 
         if (cmd.hasOption("time-on-air")) {
             timeOnAir = parseDoubleFromCLI(cmd.getOptionValue("toa"));
-        } 
+        }
 
-        frameGenerationRate = timeOnAir / averageInterArrivalTime;
-
-        if (cmd.hasOption("average-inter-arrival-time"))
+        if (cmd.hasOption("iat"))
             averageInterArrivalTime = parseDoubleFromCLI(cmd.getOptionValue("iat"));
+
+        // Normalised offered load per device, G = ToA / IAT (dimensionless). Only used for the
+        // coverage-aware back-off below and recorded in simulation-parameters.json; the traffic
+        // generator derives its own value in NetworkSimulator#setTimeOnAirAndSampleStep.
+        frameGenerationRate = timeOnAir / averageInterArrivalTime;
 
         if (cmd.hasOption("frame-generation-rate"))
             frameGenerationRate = parseDoubleFromCLI(cmd.getOptionValue("fgr"));
 
-        if (cmd.hasOption("duty-cycle-percentage"))
-            dutyCyclePercentage = parseDoubleFromCLI(cmd.getOptionValue("duty-cycle-percentage"));
+        if (cmd.hasOption("dc"))
+            dutyCyclePercentage = parseDoubleFromCLI(cmd.getOptionValue("dc"));
 
         if (cmd.hasOption("nodes")) {
             String[] nodes = cmd.getOptionValue("nodes").split(",");
@@ -116,6 +155,9 @@ public class LoraConstellationSimulator {
             roiSegments = parseIntFromCLI(roiParams[3]);
         }
 
+        if (cmd.hasOption("vt"))
+            visibilityThresholdDegrees = parseDoubleFromCLI(cmd.getOptionValue("vt"));
+
         if (cmd.hasOption("runs"))
             nOfRuns = parseIntFromCLI(cmd.getOptionValue("runs"));
 
@@ -124,6 +166,14 @@ public class LoraConstellationSimulator {
 
         if (cmd.hasOption("time-step"))
             propagatorTimeStepSeconds = parseDoubleFromCLI(cmd.getOptionValue("time-step"));
+
+        if (!cmd.hasOption("simulate-pure-aloha") && !cmd.hasOption("simulate-with-ca")
+                && !cmd.hasOption("simulate-with-ca-nr")) {
+            System.err.println("No policy selected: pass one of -simulate-pure-aloha, "
+                    + "-simulate-with-ca or -simulate-with-ca-nr.");
+            formatter.printHelp("LoraConstellationSimulator", options);
+            System.exit(1);
+        }
 
         List<Satellite> satelliteList = Utils.satellitesFromFile(satellitePath);
 
@@ -197,10 +247,7 @@ public class LoraConstellationSimulator {
         List<TimedMetricsRecord> coverageData = constellationCoverageComputer.getConstellationCoverageTimeSeries();
         List<TimedMetricsRecord> backOffTimeSeries = null;
 
-        // Run!
-        //simulator.setTimeOnAirAndSampleStep(timeOnAirMS, sampleStepMS);
-
-        Log.info("Minimum DC silent time " + ((100.0 - dutyCyclePercentage) * timeOnAir) + " S.");
+        Log.info("Minimum DC silent time " + ((100.0 - dutyCyclePercentage) * timeOnAir) + " s.");
 
         final double finalTimeOnAir = timeOnAir;
 
@@ -216,6 +263,10 @@ public class LoraConstellationSimulator {
                 backOffTimeSeries = coverageData.stream().map(coverageMetric -> {
                     TimedMetricsRecord backOffTimeMetric = new TimedMetricsRecord(coverageMetric.getTime() + TimeUtils.stamp2unix(finalStartDate), coverageMetric.getMetrics().length);
                     for (int i = 0; i < coverageMetric.getMetrics().length; i++) {
+                        // Coverage-aware back-off [s] for devices seen by (i + 1) satellites:
+                        // T_bo = (2 * N_ED * c_i - 1/G - 1) * ToA, clipped at 0, where c_i is metric i of
+                        // ConstellationCoverageComputer#getConstellationCoverageTimeSeries(). The analytical
+                        // model (scripts/lora_model.py) uses the covered FRACTION of the ROI here.
                         double backOffTime = (2 * deviceDensity * roiSurface * coverageMetric.getMetrics()[i] - 1 / finalFrameGenerationRate - 1) * finalTimeOnAir;
                         backOffTimeMetric.addMetric(i, Math.max(backOffTime, 0.0));
                     }
@@ -247,19 +298,19 @@ public class LoraConstellationSimulator {
         optionList.add(new Option("simulate-with-ca-nr", "simulate-with-coverage-awareness-nr", false, "simulate aloha with coverage awareness with no duty cycle restrictions"));
         optionList.add(new Option("cov-cfg", "coverage-configs", true, "configurations file path for constellation coverage"));
         optionList.add(new Option("s", "satellites", true, "satellites file"));
-        optionList.add(new Option("n", "nodes", true, "nodes steps in the format start,step,end"));
+        optionList.add(new Option("n", "nodes", true, "number of end devices as start,end[,step] (inclusive end, default step 1)"));
         optionList.add(new Option("toa", "time-on-air", true, "time on air in seconds"));
         optionList.add(new Option("iat", "inter-arrival-time", true, "inter arrival time in seconds"));
-        optionList.add(new Option("fgr", "frame-generation-rate", true, "frame generation rate in packets per second"));
-        optionList.add(new Option("dc", "duty-cycle", true, "duty cycle in percentage [0 - 100]"));
+        optionList.add(new Option("fgr", "frame-generation-rate", true, "normalised offered load G = ToA/IAT used by the coverage-aware back-off (default: derived from -toa and -iat)"));
+        optionList.add(new Option("dc", "duty-cycle-percentage", true, "duty cycle in percentage [0 - 100]"));
         optionList.add(new Option("runs", "n-of-runs", true, "number of runs to average"));
         optionList.add(new Option("ts", "time-step", true, "propagator time step in seconds"));
-        optionList.add(new Option("ss", "sample-step", true, "sample step in seconds"));
+        optionList.add(new Option("ss", "sample-step", true, "statistics sampling step in seconds"));
         optionList.add(new Option("vt", "visibility-th", true, "visibility threshold in degrees [0 - 89]"));
-        optionList.add(new Option("start", "start-date", true, "start date in ISO 8601 format"));
+        optionList.add(new Option("start", "start-date", true, "start date in ISO 8601 format (UTC), e.g. 2025-01-01T16:00:00.000"));
         optionList.add(new Option("end", "end-date", true, "end date in ISO 8601 format"));
-        optionList.add(new Option("roi", "deployment-area", true, "deployment area " +
-                "in [center-lat,center-lon,radius,segments] format in degrees, or a file path with coordinates"));
+        optionList.add(new Option("roi", "deployment-area", true, "deployment area (spherical cap) " +
+                "as center-lat,center-lon,radius,segments (angles in degrees)"));
         optionList.add(new Option("save-intervals", "save-intervals", false, "save file with access intervals"));
         optionList.add(new Option("save-datasets", "save-analysis-datasets", false, "save file with analysis datasets"));
         optionList.add(new Option("save-destinations", "save-destinations", false, "save file with destinations"));

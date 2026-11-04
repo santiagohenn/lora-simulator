@@ -79,7 +79,8 @@ public class TransmissionTest {
 
         }
 
-        assertEquals(1,transmissionsOnAir.stream().filter(t -> t.getToId() == 0).distinct().count());
+        // t1 and t3 reach gateway 0 but come from different devices, so they are distinct uplinks
+        assertEquals(2,transmissionsOnAir.stream().filter(t -> t.getToId() == 0).distinct().count());
         assertEquals(1,transmissionsOnAir.stream().filter(t -> t.getToId() == 1).distinct().count());
 
     }

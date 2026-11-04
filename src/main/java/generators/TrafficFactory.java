@@ -15,6 +15,20 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
 
+/**
+ * Generates the uplink transmissions of every end device over its access intervals.
+ *
+ * <p>Each device transmits frames of duration {@code timeOnAirMS}; after a frame it stays silent for
+ * {@code dutyCycleSilentTimeMS} (duty-cycle policy) or for the coverage-aware back-off interpolated from
+ * {@code backOffTimeSeries} (coverage-aware policies). Once the device is allowed to transmit again, the
+ * next attempt is delayed by exponentially distributed times with rate {@code frameGenerationRate} [1/s].
+ * Frames that overlap the start or end of an access interval are recorded as partial receptions.
+ * If {@code usePropagationDelay} is set (default), reception times at each satellite are shifted by the
+ * slant range divided by the speed of light.
+ *
+ * <p>Randomness comes from {@link java.security.SecureRandom}, which cannot be seeded: runs are not
+ * bit-for-bit reproducible.
+ */
 public class TrafficFactory {
 
     Map<Integer, Transmitter> transmitters;

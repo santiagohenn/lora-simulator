@@ -1,4 +1,5 @@
 import generators.PositionsFactory;
+import org.junit.Assume;
 import org.junit.Test;
 import org.orekit.time.AbsoluteDate;
 import satellite.tools.Simulation;
@@ -30,7 +31,9 @@ public class PositionsGeneratorTest {
     public void SSPTest() {
         
         // Paths
-        String satellitePath = "C:\\Projects\\throughput_pipeline\\satellites.csv";
+        // Exploratory test: prints the sub-satellite point of the first satellite of a local file.
+        String satellitePath = "inputs/satellites.csv";
+        Assume.assumeTrue("Skipped: " + satellitePath + " not found", new java.io.File(satellitePath).exists());
 
         // Scenario parameters
         String startTime = "2025-01-01T15:00:00.000";

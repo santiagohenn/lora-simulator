@@ -26,6 +26,7 @@ public class ReportFactory {
             outputPath = outputPath + "/";
         }
         this.outputPath = outputPath;
+        new java.io.File(outputPath).mkdirs();
     }
 
     /**

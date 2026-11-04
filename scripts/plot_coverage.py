@@ -1,3 +1,10 @@
+"""Plot the ROI coverage time series of one constellation (``coverage_<HASH>.csv``).
+
+Column 0 of the CSV is time [ms]; columns 1..N are the ROI coverage [%] reported by constellation-toolkit
+for 1..N satellites. Set ``COVERAGE_DIR`` and ``HASH`` below (the hash is printed by the Java programs).
+Writes ``coverage_<HASH>.{pdf,png}`` next to the input.
+"""
+from repo_paths import RESULTS_DIR
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -8,7 +15,7 @@ import numpy as np
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-COVERAGE_DIR = "C:/Projects/results/optimization/"
+COVERAGE_DIR = str(RESULTS_DIR / "optimization")
 HASH = "e569b4080f63ca933fa12b7dfba95c089cbce43971bb2c3f8e2418963efab7bf"
 
 OUTPUT_PATH = COVERAGE_DIR
@@ -192,4 +199,4 @@ for i in range(n_series):
     print(f"    Min  : {col.min():.2f}%")
     print(f"    Max  : {col.max():.2f}%")
 
-plt.show()
+plt.show()

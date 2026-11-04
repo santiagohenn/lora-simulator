@@ -1,3 +1,10 @@
+"""Map of the satellite access-area polygons at one instant (``snapshot_ne_polygons_<FILE_HASH>.json``)
+over the region of interest, on a Plate Carree projection (cartopy).
+
+Requires the optional mapping dependencies (requirements-maps.txt). Cartopy downloads Natural Earth
+land/ocean data on first use. Set ``OUTPUT_ROOT``, ``FILE_HASH`` and ``ROI_FILE`` below.
+"""
+from repo_paths import RESULTS_DIR, INPUTS_DIR
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -16,9 +23,9 @@ from cartopy.mpl.gridliner import LongitudeFormatter, LatitudeFormatter
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-OUTPUT_ROOT = "C:/Projects/results/optimization"
+OUTPUT_ROOT = str(RESULTS_DIR / "optimization")
 FILE_HASH   = "6fa75f57d16493f962811740a38565f1aeed535e0cfaeddf6f6b1b2d6596b9cd"
-ROI_FILE    = "C:/Projects/lora-simulator/inputs/rois/argentina_eez.csv"
+ROI_FILE    = str(INPUTS_DIR / "rois" / "argentina_eez.csv")
 
 SAT_IMAGE   = os.path.join(os.path.dirname(__file__), "resources/satellite.png")
 OUTPUT_PATH = OUTPUT_ROOT

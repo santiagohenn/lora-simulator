@@ -1,3 +1,10 @@
+"""Heat map of mean ROI access vs. RAAN and in-plane anomaly separation.
+
+Input: the JSON written by the Java program ``AccessVsRAANAndPhase``
+(``results/access_vs_raan_and_phase/coverage_heatmap_raan<min>_<max>_anomalySep<min>_<max>.json``).
+Writes the figure next to the input file.
+"""
+from repo_paths import RESULTS_DIR
 from matplotlib.colors import LogNorm, PowerNorm
 import matplotlib.pyplot as plt
 import os
@@ -7,7 +14,7 @@ import numpy as np
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
-INPUT_FILE = "C:/projects/results/access_vs_raan_and_phase/coverage_heatmap_raan-10_10_phase1_15.json"
+INPUT_FILE = str(RESULTS_DIR / "access_vs_raan_and_phase" / "coverage_heatmap_raan-10_10_anomalySep1_15.json")
 
 OUTPUT_PATH = os.path.dirname(INPUT_FILE)
 
@@ -68,6 +75,9 @@ with open(INPUT_FILE, 'r') as f:
     data = json.load(f)
 
 results = data['results']
+# AccessVsRAANAndPhase stores the anomaly separation as "anomalySep"; older outputs used "phase".
+for r in results:
+    r.setdefault('phase', r.get('anomalySep'))
 col_idx = N_SATS - 1  # 0-based index into averages
 
 # ============================================================================
